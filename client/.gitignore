@@ -1,0 +1,14 @@
+# Ignore almost everything related to unity project because it's created from scratch
+/Library/
+/Temp/
+/UserSettings/
+/Logs/
+
+# Ignore build generated files
+/*.sln
+/*.csproj
+/.idea/
+
+# Ignore IDE generated
+/obj/
+/.idea/

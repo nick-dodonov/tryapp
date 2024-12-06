@@ -1,0 +1,24 @@
+#!!! RENORMALIZE AFTER CHANGES !!!
+# git add --renormalize .
+
+#unity always saves assets in LF format, so declares them as LF on checkout
+*.meta          text eol=lf
+*.asset         text eol=lf
+*.prefab        text eol=lf
+*.unity         text eol=lf
+*.spriteatlas   text eol=lf
+*.anim          text eol=lf
+*.controller    text eol=lf
+*.mixer         text eol=lf
+*.mat           text eol=lf
+*.manifest      text eol=lf
+*.renderTexture text eol=lf
+*.preset        text eol=lf
+*.gradle        text eol=lf
+
+#assets that are "potentially big" are in binary (Lighting data, Terrain data, Textures, Meshes, Navmesh, etc)
+#   https://forum.unity.com/threads/lighting-data-in-binary-even-though-force-text-is-applied.624601/
+LightingData.asset -text
+NavMesh.asset      -text
+*.ogg              -text
+*.exr              -text
