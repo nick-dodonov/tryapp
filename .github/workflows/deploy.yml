@@ -18,6 +18,9 @@ jobs:
       - name: Deploy stack
         uses: shockhs/docker-stack-deploy@v1.2
         with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}          
           remote_host: ${{ secrets.REMOTE_HOST }}
           remote_user: ${{ secrets.REMOTE_USER }}
           remote_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
