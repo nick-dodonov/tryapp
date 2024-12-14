@@ -1,11 +1,25 @@
-name: Simple Workflow
+name: Deploy Workflow
 
 on:
   workflow_dispatch:
 
 jobs:
-  echo_job:
+#  echo_job:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Echo Message
+#        run: echo "Hello, this is a manually triggered workflow!"
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Echo Message
-        run: echo "Hello, this is a manually triggered workflow!"
+      - name: Checkout codebase
+        uses: actions/checkout@v2
+
+      - name: Deploy stack
+        uses: kitconcept/docker-stack-deploy@v1.0.1
+        with:
+          remote_host: ${{ secrets.REMOTE_HOST }}
+          remote_user: ${{ secrets.REMOTE_USER }}
+          remote_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          stack_file: "docker-compose.yml"
+          stack_name: "tt"
