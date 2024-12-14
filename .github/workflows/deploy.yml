@@ -36,7 +36,7 @@ jobs:
       # * https://stackoverflow.com/questions/67023441/deploy-docker-container-with-compose-github-actions
       # * https://github.com/appleboy/ssh-action
       - name: Deploy stack
-        uses: appleboy/ssh-action@v1.2
+        uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.REMOTE_HOST }}
           username: ${{ secrets.REMOTE_USER }}
