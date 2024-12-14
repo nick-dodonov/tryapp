@@ -2,7 +2,7 @@ name: Deploy to GitHub Pages Workflow
 
 on:
   push:
-    branches: [ $default-branch ]
+    branches: [ 'master' ] # doesn't work: [ $default-branch ]
     paths:
       - '.github/workflows/static.yml'
       - 'pages/**'
@@ -36,8 +36,9 @@ jobs:
           ls -l pages/
           echo "Replacing placeholders:"
           COMMIT_SHA=${{ github.sha }}
+          COMMIT_SHA=${COMMIT_SHA:0:7}
           COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
-          echo "COMMIT_SHA=${COMMIT_SHA:0:7}"
+          echo "COMMIT_SHA=${COMMIT_SHA}"
           echo "COMMIT_DATETIME=$COMMIT_DATETIME"
           sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
           sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
