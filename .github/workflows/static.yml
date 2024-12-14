@@ -4,25 +4,26 @@ name: Deploy to GitHub Pages Workflow
 on:
   # Runs on pushes targeting the default branch
   push:
-#    branches: [ $default-branch ]
+    branches: [ $default-branch ]
     paths:
-#      - 'index.html'
-#      - 'assets/**'
+      #- '.github/workflows/static.yml'
+      - 'index.html'
+      - 'assets/**'
       - 'client-build/**'  
-#  # Allows you to run this workflow manually from the Actions tab
-#  workflow_dispatch:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
 
-## Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
-#permissions:
-#  contents: read
-#  pages: write
-#  id-token: write
-#
-## Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
-## However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
-#concurrency:
-#  group: "pages"
-#  cancel-in-progress: false
+# Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow only one concurrent deployment, skipping runs queued between the run in-progress and latest queued.
+# However, do NOT cancel in-progress runs as we want to allow these production deployments to complete.
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
   # Simple job to echo text
@@ -32,25 +33,25 @@ jobs:
       - name: Echo Text
         run: echo "Hello, this is a simple test message!"
   
-#  # Single deploy job since we're just deploying
-#  deploy:
-#    environment:
-#      name: github-pages
-#      url: ${{ steps.deployment.outputs.page_url }}
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v3
-#      - name: Setup Pages
-#        uses: actions/configure-pages@v3
-#      - name: Upload artifact
-#        uses: actions/upload-pages-artifact@v2
-#        with:
-#          # path: '.' # Upload entire repository
-#          path: |
-#            index.html
-#            assets/
-#            client-build/
-#      - name: Deploy to GitHub Pages
-#        id: deployment
-#        uses: actions/deploy-pages@v2
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Setup Pages
+        uses: actions/configure-pages@v3
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v2
+        with:
+          # path: '.' # Upload entire repository
+          path: |
+            index.html
+            assets/
+            client-build/
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v2
