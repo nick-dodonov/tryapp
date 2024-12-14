@@ -25,10 +25,17 @@ jobs:
       
       - name: Deploy Docker Stack
         run: |
-          export DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          echo "==== content"
           ls -la
+          echo "==== key is added"
           ssh-add -L
-          docker stack deploy --compose-file docker-compose.yml tt
+          echo "==== docker version"
+          docker --version
+          echo "==== check host available"
+          nc -vz ${{ secrets.REMOTE_HOST }} 22
+          echo "==== deploy"
+          DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          docker -H $DOCKER_HOST stack deploy --compose-file docker-compose.yml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
