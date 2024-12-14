@@ -4,5 +4,12 @@ services:
   web:
     image: nginx:latest
     ports:
-      - "8080:80"
+      # using 'host' mode now to simplify diagnostics
+      # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
+      # * to-do: custom http balancer for X-Real-IP 
+      #- "8080:80"
+      - mode: host
+        protocol: tcp
+        published: 8080
+        target: 80
     restart: always
