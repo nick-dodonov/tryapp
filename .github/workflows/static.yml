@@ -49,8 +49,8 @@ jobs:
         uses: actions/upload-pages-artifact@v2
         with:
           # path: '.' # Upload entire repository
+#          ./index.html
           path: |
-            ./index.html
             ./assets
             ./client-build
       - name: Deploy to GitHub Pages
