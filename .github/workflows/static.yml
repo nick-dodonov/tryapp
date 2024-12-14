@@ -4,7 +4,7 @@ name: Deploy to GitHub Pages Workflow
 on:
   # Runs on pushes targeting the default branch
   push:
-    branches: [ $default-branch ]
+    branches: [ 'master' ] # [ $default-branch ]
     paths:
       - '.github/workflows/static.yml'
       - 'index.html'
@@ -46,13 +46,13 @@ jobs:
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
-        uses: actions/upload-pages-artifact@v2
+        uses: actions/upload-pages-artifact@v3
         with:
           # path: '.' # Upload entire repository
 #          ./index.html
           path: |
-            ./assets
-            ./client-build
+            assets/
+            client-build/
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
