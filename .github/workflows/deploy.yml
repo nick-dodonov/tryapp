@@ -16,8 +16,19 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout codebase
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2 #name: Checkout codebase
+        
+      - name: Setup SSH Private Key
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+      
+      - name: Deploy Docker Stack
+        run: |
+          export DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          ls -la
+          ssh-add -L
+          docker stack deploy --compose-file docker-compose.yml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
@@ -32,15 +43,16 @@ jobs:
 #          stack_name: "tt"
 #          debug: 1
 
-      # speedup deploy via custom deploy
-      # * https://stackoverflow.com/questions/67023441/deploy-docker-container-with-compose-github-actions
-      # * https://github.com/appleboy/ssh-action
-      - name: Deploy stack
-        uses: appleboy/ssh-action@v1.2.0
-        with:
-          host: ${{ secrets.REMOTE_HOST }}
-          username: ${{ secrets.REMOTE_USER }}
-          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          script: |
-            export DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
-            docker stack deploy --compose-file docker-compose.yml tt 
+#      # speedup deploy via custom deploy
+#      # * https://stackoverflow.com/questions/67023441/deploy-docker-container-with-compose-github-actions
+#      # * https://github.com/appleboy/ssh-action
+#      - name: Deploy stack
+#        uses: appleboy/ssh-action@v1.2.0
+#        with:
+#          host: ${{ secrets.REMOTE_HOST }}
+#          username: ${{ secrets.REMOTE_USER }}
+#          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+#          script: |
+#            export DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+#            ls -la
+#            docker stack deploy --compose-file docker-compose.yml tt 
