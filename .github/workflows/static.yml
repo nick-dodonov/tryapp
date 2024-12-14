@@ -6,7 +6,7 @@ on:
   push:
     branches: [ $default-branch ]
     paths:
-      #- '.github/workflows/static.yml'
+      - '.github/workflows/static.yml'
       - 'index.html'
       - 'assets/**'
       - 'client-build/**'  
@@ -35,6 +35,14 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v3
+      - name: Debug file listing
+        run: |
+          echo "Verifying index.html:"
+          ls -l ./index.html
+          echo "Verifying assets directory:"
+          ls -l ./assets
+          echo "Verifying client-build directory:"
+          ls -l ./client-build
       - name: Setup Pages
         uses: actions/configure-pages@v3
       - name: Upload artifact
@@ -42,9 +50,9 @@ jobs:
         with:
           # path: '.' # Upload entire repository
           path: |
-            index.html
-            assets/
-            client-build/
+            ./index.html
+            ./assets
+            ./client-build
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v2
