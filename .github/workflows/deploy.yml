@@ -1,0 +1,11 @@
+name: Simple Workflow
+
+on:
+  workflow_dispatch:
+
+jobs:
+  echo_job:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Echo Message
+        run: echo "Hello, this is a manually triggered workflow!"
