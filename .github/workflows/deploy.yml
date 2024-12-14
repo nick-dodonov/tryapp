@@ -19,15 +19,28 @@ jobs:
       - name: Checkout codebase
         uses: actions/checkout@v2
 
+#      - name: Deploy stack
+#        uses: shockhs/docker-stack-deploy@v1.2
+#        with:
+#          registry: ghcr.io
+#          username: ${{ github.repository_owner }}
+#          password: ${{ secrets.GITHUB_TOKEN }}          
+#          remote_host: ${{ secrets.REMOTE_HOST }}
+#          remote_user: ${{ secrets.REMOTE_USER }}
+#          remote_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+#          stack_file: "docker-compose.yml"
+#          stack_name: "tt"
+#          debug: 1
+
+      # speedup deploy via custom deploy
+      # * https://stackoverflow.com/questions/67023441/deploy-docker-container-with-compose-github-actions
+      # * https://github.com/appleboy/ssh-action
       - name: Deploy stack
-        uses: shockhs/docker-stack-deploy@v1.2
+        uses: appleboy/ssh-action@v1.2
         with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}          
-          remote_host: ${{ secrets.REMOTE_HOST }}
-          remote_user: ${{ secrets.REMOTE_USER }}
-          remote_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          stack_file: "docker-compose.yml"
-          stack_name: "tt"
-          debug: 1
+          host: ${{ secrets.REMOTE_HOST }}
+          username: ${{ secrets.REMOTE_USER }}
+          key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          script: |
+            export DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+            docker stack deploy --compose-file docker-compose.yml tt 
