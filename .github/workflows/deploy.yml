@@ -25,9 +25,9 @@ jobs:
       
       - name: Deploy Docker Stack
         run: |
-           echo "==== setup known_hosts"
-           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
-           cat ~/.ssh/known_hosts
+          echo "==== setup known_hosts"
+          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts
 #          echo "==== key is added"
 #          ssh-add -L
 #          echo "==== check host available"
