@@ -38,7 +38,9 @@ jobs:
           echo "==== check ~/.ssh/known_hosts"
           ls -l ~/.ssh/known_hosts
           echo "==== setup host key"
-          ssh-keyscan -t rsa,ecdsa,ed25519 -qH ${{ secrets.REMOTE_HOST }} >> ~/.ssh/known_hosts 
+          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts 
+          echo "==== content ~/.ssh/known_hosts"
+          cat ~/.ssh/known_hosts
           echo "==== verify SSH (with host check)"
           ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
           echo "==== deploy"
