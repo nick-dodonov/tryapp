@@ -17,17 +17,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2 #name: Checkout codebase
-        
+
       - name: Setup SSH Private Key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-      
+
       - name: Deploy Docker Stack
-        run: |
-          echo "==== setup known_hosts"
-          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
-          cat ~/.ssh/known_hosts
 #          echo "==== key is added"
 #          ssh-add -L
 #          echo "==== check host available"
@@ -36,6 +32,10 @@ jobs:
 #          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
 #          echo "==== verify SSH (w/ host check)"
 #          ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
+        run: |
+          echo "==== setup known_hosts"
+          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+          cat ~/.ssh/known_hosts
           echo "==== docker stack deploy"
           DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
           docker stack deploy --compose-file docker-compose.yml tt
