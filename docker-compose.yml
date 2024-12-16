@@ -12,4 +12,6 @@ services:
         protocol: tcp
         published: 8080
         target: 80
+    volumes:
+      - ./pages:/usr/share/nginx/html
     restart: always
