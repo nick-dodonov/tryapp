@@ -14,4 +14,5 @@ services:
         target: 80
     volumes:
       - ./pages:/usr/share/nginx/html
+      - ./deploy/nginx.conf:/etc/nginx/nginx.conf
     restart: always
