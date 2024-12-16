@@ -18,11 +18,11 @@ jobs:
     steps:
       - uses: actions/checkout@v2 #name: Checkout codebase
 
+      # custom docker stack deploy steps (much faster than docker-stack-deploy action)
       - name: Setup SSH Private Key
         uses: webfactory/ssh-agent@v0.9.0
         with:
           ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-
       - name: Deploy Docker Stack
 #          echo "==== key is added"
 #          ssh-add -L
@@ -39,7 +39,7 @@ jobs:
           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
           echo "==== docker stack deploy"
           DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
-          docker -H $DOCKER_HOST stack deploy --compose-file docker-compose.yml tt
+          docker -H $DOCKER_HOST stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
