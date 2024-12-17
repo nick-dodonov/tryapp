@@ -31,10 +31,6 @@ jobs:
 #          nc -vz ${{ secrets.REMOTE_HOST }} 22
 #          echo "==== verify SSH (w/o host check)"
 #          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
-#          echo "==== verify SSH (w/ host check)"
-#          ssh ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
-#          echo "==== check known_hosts"
-#          cat ~/.ssh/known_hosts
         run: |
           echo "==== setup known_hosts"
           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
@@ -45,10 +41,13 @@ jobs:
           scp -r deploy/ $SSH_TARGET:.
           scp -r pages/ $SSH_TARGET:.
           
+          echo "==== diagnose ssh config"
+          cat ~/.ssh/config || true
+          
           echo "==== docker stack deploy"
-          export DOCKER_HOST="ssh://$SSH_TARGET"
+          export DOCKER_HOST="ssh://${SSH_TARGET}"
           #TODO: setup docker context instead of -H passing every time
-          docker -H $DOCKER_HOST stack deploy --compose-file compose.yaml tt
+          docker --debug --host $DOCKER_HOST stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
