@@ -53,7 +53,8 @@ jobs:
           echo "==== prepare templates rending and initial deploy"
           echo "diagnose shell: $0 ($SHELL)"
           export SERVER_NAME=${{ secrets.REMOTE_HOST }}
-          ssh -T $SSH_TARGET bash -c "mkdir -p $DATA_ROOT/certbot/{www,conf}" #initial temp setup (todo: rm in favor of swarm secrets usage)
+          # initial tmp certbot setup #TODO: rm in favor of swarm secrets
+          ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
           
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
