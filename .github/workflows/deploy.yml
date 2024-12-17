@@ -55,7 +55,7 @@ jobs:
           
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
-          #TODO: setup docker context instead of -H passing every time
+          export SERVER_NAME=${{ secrets.REMOTE_HOST }}
           docker stack deploy --compose-file compose.yaml tt
       - name: Post Deploy Cleanup
         if: always()

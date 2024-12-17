@@ -3,18 +3,33 @@ version: '3.8'
 services:
   web:
     image: nginx:latest
+    #restart: unless-stopped
     ports:
       # using 'host' mode now to simplify diagnostics
       # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
       # * to-do: custom http balancer for X-Real-IP 
-      #- "8080:80"
+      #- "80:80"
       - mode: host
         protocol: tcp
         published: 80
         target: 80
+      # #- 443:443
+      # - mode: host
+      #   protocol: tcp
+      #   published: 443
+      #   target: 443
     volumes:
       # tmp DATA_ROOT from .env usage until image isn't built
-      - ${DATA_ROOT}/pages:/usr/share/nginx/html
-      - ${DATA_ROOT}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ${DATA_ROOT}/deploy/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
-    restart: always
+      - ${DATA_ROOT}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # templates to render environment variables
+      #   https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration-new-in-119
+      - ${DATA_ROOT}/deploy/nginx/templates/:/etc/nginx/templates/:ro
+      - ${DATA_ROOT}/pages:/usr/share/nginx/html:ro
+      - ${DATA_ROOT}/certbot/www/:/var/www/certbot/:ro
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-localhost} 
+#  certbot:
+#    image: certbot/certbot:latest
+#    volumes:
+#      - ${DATA_ROOT}/certbot/www/:/var/www/certbot/:rw
+#      - ${DATA_ROOT}/certbot/conf/:/etc/letsencrypt/:rw
