@@ -45,7 +45,7 @@ jobs:
           scp -r pages/ $SSH_TARGET:.
           
           echo "==== docker stack deploy"
-          DOCKER_HOST="ssh://$SSH_TARGET"
+          export DOCKER_HOST="ssh://$SSH_TARGET"
           docker stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
