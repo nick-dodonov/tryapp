@@ -50,14 +50,15 @@ jobs:
           scp -r deploy/ $SSH_TARGET:.
           scp -r pages/ $SSH_TARGET:.
           
-          #echo "==== diagnose rendered deployed stack"
-          #docker stack config --compose-file compose.yaml
-
           echo "==== prepare templates rending and initial deploy"
           echo "diagnose shell: $0 ($SHELL)"
           export SERVER_NAME=${{ secrets.REMOTE_HOST }}
-          mkdir -p $DATA_ROOT/certbot/{www,conf}
-
+          mkdir -p $DATA_ROOT/certbot/www
+          mkdir -p $DATA_ROOT/certbot/conf
+          
+          #echo "==== diagnose rendered deployed stack"
+          #docker stack config --compose-file compose.yaml
+          
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
           docker stack deploy --compose-file compose.yaml tt
