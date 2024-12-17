@@ -37,9 +37,15 @@ jobs:
         run: |
           echo "==== setup known_hosts"
           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+          SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          
+          echo "==== tmp deploy data for volumes locally (till separate image isn't built)"
+          scp -r deploy/ $SSH_TARGET:.
+          scp -r pages/ $SSH_TARGET:.
+          
           echo "==== docker stack deploy"
-          DOCKER_HOST="ssh://${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
-          docker -H $DOCKER_HOST stack deploy --compose-file compose.yaml tt
+          DOCKER_HOST="ssh://$SSH_TARGET"
+          docker -H $SSH_URI stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
