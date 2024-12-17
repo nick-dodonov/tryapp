@@ -45,8 +45,9 @@ jobs:
           scp -r pages/ $SSH_TARGET:.
           
           echo "==== docker stack deploy"
-          export DOCKER_HOST="ssh://$SSH_TARGET"
-          docker stack deploy --compose-file compose.yaml tt
+          DOCKER_HOST="ssh://$SSH_TARGET"
+          #TODO: setup docker context instead of -H passing every time
+          docker -H $DOCKER_HOST stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
