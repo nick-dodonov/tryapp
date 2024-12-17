@@ -35,15 +35,13 @@ jobs:
           echo "==== setup known_hosts"
           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
           SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
-
+          
           echo "==== setup ssh_config (speedup connections and workaround firewall limits issue)"
           echo "Host ${{ secrets.REMOTE_HOST }}" >> ~/.ssh/config
           echo "  ControlMaster auto" >> ~/.ssh/config
           echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
           echo "  ControlPersist 5s" >> ~/.ssh/config
-
-          echo "==== diagnose ssh_config"
-          cat ~/.ssh/config || true
+          # cat ~/.ssh/config || true #diagnose
           
           echo "==== TMP deploy data for volumes locally (till separate image isn't built)"
           export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
@@ -51,7 +49,6 @@ jobs:
           scp -r pages/ $SSH_TARGET:.
           
           echo "==== prepare templates rending and initial deploy"
-          echo "diagnose shell: $0 ($SHELL)"
           export SERVER_NAME=${{ secrets.REMOTE_HOST }}
           # initial tmp certbot setup #TODO: rm in favor of swarm secrets
           ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
