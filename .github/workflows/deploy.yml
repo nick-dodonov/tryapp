@@ -37,17 +37,20 @@ jobs:
           SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
           
           echo "==== tmp deploy data for volumes locally (till separate image isn't built)"
-          export DATA_ROOT=/home/${{ secrets.REMOTE_USER }}
+          export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
           scp -r deploy/ $SSH_TARGET:.
           scp -r pages/ $SSH_TARGET:.
           
           echo "==== diagnose ssh config"
           cat ~/.ssh/config || true
           
+          echo "==== diagnose deployed stack"
+          docker stack config --compose-file compose.yaml
+          
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
           #TODO: setup docker context instead of -H passing every time
-          docker --debug --host $DOCKER_HOST stack deploy --compose-file compose.yaml tt
+          #docker --debug --host $DOCKER_HOST stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
