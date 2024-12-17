@@ -2,6 +2,7 @@ name: Deploy Workflow
 
 on:
   workflow_dispatch:
+  # auto-deploy on script change (simplify deploy development)
   push:
     #branches: [ 'master' ]
     paths:
