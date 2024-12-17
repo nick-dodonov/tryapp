@@ -52,10 +52,14 @@ jobs:
           
           #echo "==== diagnose rendered deployed stack"
           #docker stack config --compose-file compose.yaml
-          
+
+          echo "==== prepare templates rending and initial deploy"
+          echo "diagnose shell: $0 ($SHELL)"
+          export SERVER_NAME=${{ secrets.REMOTE_HOST }}
+          mkdir -p $DATA_ROOT/certbot/{www,conf}
+
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
-          export SERVER_NAME=${{ secrets.REMOTE_HOST }}
           docker stack deploy --compose-file compose.yaml tt
       - name: Post Deploy Cleanup
         if: always()
