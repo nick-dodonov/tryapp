@@ -35,22 +35,35 @@ jobs:
           echo "==== setup known_hosts"
           ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
           SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+
+          echo "==== setup ssh_config (speedup connections and workaround firewall limits issue)"
+          echo "Host ${{ secrets.REMOTE_HOST }}" >> ~/.ssh/config
+          echo "  ControlMaster auto" >> ~/.ssh/config
+          echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
+          echo "  ControlPersist 5s" >> ~/.ssh/config
+
+          echo "==== diagnose ssh_config"
+          cat ~/.ssh/config || true
           
-          echo "==== tmp deploy data for volumes locally (till separate image isn't built)"
+          echo "==== TMP deploy data for volumes locally (till separate image isn't built)"
           export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
           scp -r deploy/ $SSH_TARGET:.
           scp -r pages/ $SSH_TARGET:.
           
-          echo "==== diagnose ssh config"
-          cat ~/.ssh/config || true
-          
-          echo "==== diagnose deployed stack"
-          docker stack config --compose-file compose.yaml
+          #echo "==== diagnose rendered deployed stack"
+          #docker stack config --compose-file compose.yaml
           
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
           #TODO: setup docker context instead of -H passing every time
           docker stack deploy --compose-file compose.yaml tt
+      - name: Post Deploy Cleanup
+        if: always()
+        run: |
+          echo "==== force close ssh master connection"
+          ssh -O exit $SSH_TARGET || true
+          echo "==== rm generated configs"
+          rm -f ~/.ssh/known_hosts ~/.ssh/config
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
