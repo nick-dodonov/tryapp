@@ -46,7 +46,7 @@ jobs:
           
           echo "==== docker stack deploy"
           DOCKER_HOST="ssh://$SSH_TARGET"
-          docker -H $SSH_URI stack deploy --compose-file compose.yaml tt
+          docker stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
