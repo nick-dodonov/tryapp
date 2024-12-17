@@ -50,7 +50,7 @@ jobs:
           echo "==== docker stack deploy"
           export DOCKER_HOST="ssh://${SSH_TARGET}"
           #TODO: setup docker context instead of -H passing every time
-          #docker --debug --host $DOCKER_HOST stack deploy --compose-file compose.yaml tt
+          docker stack deploy --compose-file compose.yaml tt
 
 #      - name: Deploy stack
 #        uses: shockhs/docker-stack-deploy@v1.2
