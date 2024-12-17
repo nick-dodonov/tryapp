@@ -13,7 +13,8 @@ services:
         published: 80
         target: 80
     volumes:
-      - ./pages:/usr/share/nginx/html
-      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf
-      - ./deploy/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
+      # tmp DATA_ROOT from .env usage until image isn't built
+      - ${DATA_ROOT}/pages:/usr/share/nginx/html
+      - ${DATA_ROOT}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf
+      - ${DATA_ROOT}/deploy/nginx/conf.d/default.conf:/etc/nginx/conf.d/default.conf
     restart: always

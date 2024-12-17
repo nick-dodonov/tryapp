@@ -41,11 +41,12 @@ jobs:
           SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
           
           echo "==== tmp deploy data for volumes locally (till separate image isn't built)"
+          export DATA_ROOT=/home/${{ secrets.REMOTE_USER }}
           scp -r deploy/ $SSH_TARGET:.
           scp -r pages/ $SSH_TARGET:.
           
           echo "==== docker stack deploy"
-          DOCKER_HOST="ssh://$SSH_TARGET"
+          export DOCKER_HOST="ssh://$SSH_TARGET"
           #TODO: setup docker context instead of -H passing every time
           docker -H $DOCKER_HOST stack deploy --compose-file compose.yaml tt
 
