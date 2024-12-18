@@ -1,0 +1,55 @@
+name: SSH Remote
+description: Helper to run on remote host via ssh
+inputs:
+  step_name:
+    required: false
+    description: step name
+    default: Run Commands
+  step_run:
+    required: true
+    description: commands script 
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup SSH Private Key
+      uses: webfactory/ssh-agent@v0.9.0 # https://github.com/webfactory/ssh-agent
+      with:
+        ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+        log-public-key: false # To simplify debugging and since it contains public key information only, this is turned on by defaultTo simplify debugging and since it contains public key information only, this is turned on by default
+
+    - name: Setup SSH Client
+      shell: bash
+      run: |
+        echo "==== setup known_hosts"
+        ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+        SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+        
+        echo "==== setup ssh_config (speedup connections and workaround firewall limits issue)"
+        echo "Host ${{ secrets.REMOTE_HOST }}" >> ~/.ssh/config
+        echo "  ControlMaster auto" >> ~/.ssh/config
+        echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
+        echo "  ControlPersist 5s" >> ~/.ssh/config
+        # cat ~/.ssh/config || true #diagnose
+#        echo "==== check key is added"
+#        ssh-add -L
+#        echo "==== check host available"
+#        nc -vz ${{ secrets.REMOTE_HOST }} 22
+#        echo "==== check ssh available (w/o host check)"
+#        ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
+
+    - name: ${{ inputs.step_name }} Run Commands
+      shell: bash
+      run: ${{ inputs.step_run }}
+      env:
+        SSH_TARGET: "${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+
+    - name: Cleanup SSH Client
+      if: always()
+      shell: bash
+      run: |
+        echo "==== force close ssh master connection"
+        SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+        ssh -O exit $SSH_TARGET || true
+        echo "==== rm generated configs"
+        rm -f ~/.ssh/known_hosts ~/.ssh/config
