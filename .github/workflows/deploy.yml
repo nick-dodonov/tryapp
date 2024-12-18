@@ -54,6 +54,7 @@ jobs:
           
           echo "==== prepare templates rending and initial deploy"
           export SERVER_NAME=${{ secrets.REMOTE_HOST }}
+          export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
           # initial tmp certbot setup #TODO: rm in favor of swarm secrets
           ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
           

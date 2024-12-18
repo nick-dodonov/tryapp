@@ -10,7 +10,7 @@ services:
       restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
         condition: on-failure
         delay: 10s
-        max_attempts: 3
+        max_attempts: 1
     volumes:
       - ${DATA_ROOT}/certbot/www:/var/www/certbot:rw
       - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:rw
@@ -30,6 +30,8 @@ services:
       --webroot-path=/var/www/certbot
       --non-interactive
       --agree-tos
+      --email ${DOMAIN_EMAIL}
+      --no-eff-email
       --domain ${SERVER_NAME}
       --keep-until-expiring
       &&
