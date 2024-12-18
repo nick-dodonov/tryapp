@@ -3,7 +3,7 @@ version: '3.8'
 services:
   web:
     image: nginx:latest
-    restart: unless-stopped
+    #restart: unless-stopped
     #profiles: [disabled]
     ports:
       # using 'host' mode now to simplify diagnostics

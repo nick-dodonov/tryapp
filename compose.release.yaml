@@ -1,6 +1,7 @@
 version: '3.8'
 
 services:
+  #TODO: try replace with docker swarm secrets instead https://github.com/eerotal/certbot-docker-swarm
   certbot:
     image: certbot/certbot:latest
     container_name: certbot
@@ -20,4 +21,3 @@ services:
       --domain ${SERVER_NAME}
       --keep-until-expiring
       --test-cert
-      --dry-run
