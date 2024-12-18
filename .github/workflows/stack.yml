@@ -1,0 +1,64 @@
+name: Deploy Stack
+
+on:
+  workflow_dispatch:
+  push: # auto-deploy on change (simplify deploy development)
+    #branches: [ 'master' ]
+    paths:
+      - '.github/workflows/stack.yml'
+      - 'compose.yaml'
+      - 'compose.release.yaml'
+      - 'deploy/nginx/**'
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2 #name: Checkout codebase
+
+      # custom docker stack deploy steps (much faster than docker-stack-deploy action)
+      - name: Setup SSH Private Key
+        uses: webfactory/ssh-agent@v0.9.0 # https://github.com/webfactory/ssh-agent
+        with:
+          ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          log-public-key: false # To simplify debugging and since it contains public key information only, this is turned on by defaultTo simplify debugging and since it contains public key information only, this is turned on by default
+      - name: Deploy Docker Stack
+#          echo "==== key is added"
+#          ssh-add -L
+#          echo "==== check host available"
+#          nc -vz ${{ secrets.REMOTE_HOST }} 22
+#          echo "==== verify SSH (w/o host check)"
+#          ssh -o StrictHostKeyChecking=no ${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }} whoami
+        # TODO: share ssh setup with deploy-build.yml 
+        run: |
+          echo "==== setup known_hosts"
+          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+          SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          
+          echo "==== setup ssh_config (speedup connections and workaround firewall limits issue)"
+          echo "Host ${{ secrets.REMOTE_HOST }}" >> ~/.ssh/config
+          echo "  ControlMaster auto" >> ~/.ssh/config
+          echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
+          echo "  ControlPersist 5s" >> ~/.ssh/config
+          # cat ~/.ssh/config || true #diagnose
+          
+          echo "==== prepare templates rending and initial deploy"
+          export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
+          export SERVER_NAME=${{ secrets.REMOTE_HOST }}
+          export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
+          # initial tmp certbot setup #TODO: rm in favor of swarm secrets
+          ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+          
+          echo "==== docker stack deploy"
+          export DOCKER_HOST="ssh://${SSH_TARGET}"
+          #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
+          docker stack deploy -c compose.yaml -c compose.release.yaml tt
+          #TODO: docker service update --force tt_web
+      - name: Post Deploy Cleanup
+        if: always()
+        run: |
+          echo "==== force close ssh master connection"
+          SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          ssh -O exit $SSH_TARGET || true
+          echo "==== rm generated configs"
+          rm -f ~/.ssh/known_hosts ~/.ssh/config

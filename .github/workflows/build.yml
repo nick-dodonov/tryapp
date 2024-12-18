@@ -1,0 +1,61 @@
+name: Deploy Build
+
+on:
+  workflow_dispatch:
+  push: # auto-deploy on change (simplify deploy development)
+    #branches: [ 'master' ]
+    paths:
+      - '.github/workflows/build.yml'
+      - 'pages/**'
+
+jobs:
+#  echo_job:
+#    runs-on: ubuntu-latest
+#    steps:
+#      - name: Echo Message
+#        run: echo "Hello, this is a manually triggered workflow!"
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2 #name: Checkout codebase
+
+      - name: Setup SSH Private Key
+        uses: webfactory/ssh-agent@v0.9.0 # https://github.com/webfactory/ssh-agent
+        with:
+          ssh-private-key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          log-public-key: false # To simplify debugging and since it contains public key information only, this is turned on by defaultTo simplify debugging and since it contains public key information only, this is turned on by default
+      - name: Deploy build
+        # TODO: share ssh setup with deploy-stack.yml 
+        run: |
+          echo "==== setup known_hosts"
+          ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ secrets.REMOTE_HOST }} 2> /dev/null >> ~/.ssh/known_hosts
+          SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          
+          echo "==== setup ssh_config (speedup connections and workaround firewall limits issue)"
+          echo "Host ${{ secrets.REMOTE_HOST }}" >> ~/.ssh/config
+          echo "  ControlMaster auto" >> ~/.ssh/config
+          echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
+          echo "  ControlPersist 5s" >> ~/.ssh/config
+          # cat ~/.ssh/config || true #diagnose
+          
+          echo "==== Replacing placeholders:"
+          COMMIT_SHA=${{ github.sha }}
+          COMMIT_SHA=${COMMIT_SHA:0:7}
+          COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
+          echo "COMMIT_SHA=${COMMIT_SHA}"
+          echo "COMMIT_DATETIME=$COMMIT_DATETIME"
+          sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
+          sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
+
+          echo "==== TMP deploy data for volumes locally (till separate image isn't built)"
+          export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
+          scp -r deploy/ $SSH_TARGET:.
+          scp -r pages/ $SSH_TARGET:.
+      - name: Post Deploy Cleanup
+        if: always()
+        run: |
+          echo "==== force close ssh master connection"
+          SSH_TARGET="${{ secrets.REMOTE_USER }}@${{ secrets.REMOTE_HOST }}"
+          ssh -O exit $SSH_TARGET || true
+          echo "==== rm generated configs"
+          rm -f ~/.ssh/known_hosts ~/.ssh/config

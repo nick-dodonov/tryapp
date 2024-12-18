@@ -1,0 +1,116 @@
+server {
+    listen       80;
+    listen  [::]:80;
+    server_name  ${SERVER_NAME};
+    server_tokens off;
+    
+    #access_log  /var/log/nginx/host.access.log  main;
+    
+    location /.well-known/acme-challenge/ {
+        root /var/www/certbot;
+    }
+    
+    location / {
+        root   /usr/share/nginx/html;
+        index  index.html index.htm;
+
+        # Support Unity WebGL builds with compression and without compress fallback
+        #   https://docs.unity3d.com/Manual/web-server-config-nginx.html
+        
+        # Add Brotli-precompressed files to your configuration file
+        # On-disk Brotli-precompressed data files should be served with compression enabled:
+        location ~ .+\.(data|symbols\.json)\.br$ {
+            # Because this file is already pre-compressed on disk, disable the on-demand compression on it.
+            # Otherwise nginx would attempt double compression.
+            gzip off;
+            add_header Content-Encoding br;
+            default_type application/octet-stream;
+        }
+        # On-disk Brotli-precompressed JavaScript code files:
+        location ~ .+\.js\.br$ {
+            gzip off; # Do not attempt dynamic gzip compression on an already compressed file
+            add_header Content-Encoding br;
+            default_type application/javascript;
+        }
+        # On-disk Brotli-precompressed WebAssembly files:
+        location ~ .+\.wasm\.br$ {
+            gzip off; # Do not attempt dynamic gzip compression on an already compressed file
+            add_header Content-Encoding br;
+            # Enable streaming WebAssembly compilation by specifying the correct MIME type for Wasm files
+            default_type application/wasm;
+        }
+
+        # Add gzip-precompressed files to your configuration files
+        # On-disk gzip-precompressed data files should be served with compression enabled:
+        location ~ .+\.(data|symbols\.json)\.gz$ {
+            gzip off; # Do not attempt dynamic gzip compression on an already compressed file
+            add_header Content-Encoding gzip;
+            default_type application/gzip;
+        }
+        # On-disk gzip-precompressed JavaScript code files:
+        location ~ .+\.js\.gz$ {
+            gzip off; # Do not attempt dynamic gzip compression on an already compressed file
+            add_header Content-Encoding gzip; # The correct MIME type here would be application/octet-stream, but due to Safari bug https://bugs.webkit.org/show_bug.cgi?id=247421, it's preferable to use MIME Type application/gzip instead.
+            default_type application/javascript;
+        }
+        # On-disk gzip-precompressed WebAssembly files:
+        location ~ .+\.wasm\.gz$ {
+            gzip off; # Do not attempt dynamic gzip compression on an already compressed file
+            add_header Content-Encoding gzip;
+            # Enable streaming WebAssembly compilation by specifying the correct MIME type for Wasm files.
+            default_type application/wasm;
+        }
+
+        # Add C/C++ multithreading support
+        # Uncomment the following lines if build was created with "Enable Native C/C++ Multithreading" player settings
+        # location ~ .+\.(htm|html|js|js\.gz|js\.br)$ {
+        #     add_header Cross-Origin-Opener-Policy same-origin;
+        #     add_header Cross-Origin-Embedder-Policy require-corp;
+        #     add_header Cross-Origin-Resource-Policy cross-origin;
+        # }
+
+        # Uncomment the following line to allow CORS requests
+        # add_header Access-Control-Allow-Origin *;
+    }
+
+    #error_page  404              /404.html;
+
+    # redirect server error pages to the static page /50x.html
+    #
+    error_page   500 502 503 504  /50x.html;
+    location = /50x.html {
+        root   /usr/share/nginx/html;
+    }
+}
+
+server {
+    listen 443 ssl;
+    listen [::]:443 ssl;
+    server_name ${SERVER_NAME};
+    server_tokens off;
+     
+    # trick with variable ($ssl_server_name) helps to execute nginx without startup failure 
+    #   (when no certificate is generated/obtained yet)
+    # https://stackoverflow.com/questions/72533030/is-it-possible-to-allow-nginx-to-start-if-the-specified-certificate-keys-files-a
+    ssl_certificate /etc/letsencrypt/live/$ssl_server_name/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$ssl_server_name/privkey.pem;
+
+    http2 on;
+
+    # best practices from by certbot
+    # https://github.com/certbot/certbot/blob/main/certbot-nginx/certbot_nginx/_internal/tls_configs/options-ssl-nginx.conf
+    ssl_session_cache shared:le_nginx_SSL:10m;
+    ssl_session_timeout 1440m;
+    ssl_session_tickets off;
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_prefer_server_ciphers off;
+    ssl_ciphers "ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-GCM-SHA384:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-RSA-CHACHA20-POLY1305:DHE-RSA-AES128-GCM-SHA256:DHE-RSA-AES256-GCM-SHA384";
+    
+    location / {
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Real-IP $remote_addr;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-Proto https;
+      proxy_pass http://localhost:80;
+    }
+}

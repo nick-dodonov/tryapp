@@ -1,4 +1,7 @@
 /.idea/
 
+# auto-generated for development
+/certbot/
+
 # macOS specifics
 .DS_Store
