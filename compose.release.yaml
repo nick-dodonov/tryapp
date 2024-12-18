@@ -32,7 +32,6 @@ services:
       --agree-tos
       --domain ${SERVER_NAME}
       --keep-until-expiring
-      --test-cert
       &&
       chown -R 101 
       /etc/letsencrypt/archive
