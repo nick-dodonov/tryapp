@@ -5,6 +5,9 @@ services:
     image: nginx:latest
     #restart: unless-stopped
     #profiles: [disabled]
+    deploy:
+      restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
+        condition: none
     ports:
       # using 'host' mode now to simplify diagnostics
       # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
