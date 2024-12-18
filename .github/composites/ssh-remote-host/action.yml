@@ -51,9 +51,12 @@ runs:
 #        echo "==== check ssh available (w/o host check)"
 #        ssh -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} whoami
 
-    - name: ${{ inputs.step_name }} Run Commands
+    - name: ${{ inputs.step_name }}
       shell: bash
-      run: ${{ inputs.step_run }}
+      run: |
+        echo ">>>>>>>> ${{ inputs.step_name }}"
+        ${{ inputs.step_run }}
+        echo "<<<<<<<< ${{ inputs.step_name }}"
       env:
         SSH_TARGET: "${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
