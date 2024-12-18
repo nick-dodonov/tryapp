@@ -28,9 +28,6 @@ services:
       - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:ro
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
-    depends_on:
-      certbot:
-        condition: service_started
 
   #TODO: split compose.override.yaml / compose.release.yaml
   certbot:
