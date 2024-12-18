@@ -1,4 +1,4 @@
-name: Deploy Workflow
+name: Deploy Stack Workflow
 
 on:
   workflow_dispatch:
@@ -6,7 +6,7 @@ on:
   push:
     #branches: [ 'master' ]
     paths:
-      - '.github/workflows/deploy.yml'
+      - '.github/workflows/deploy-stack.yml'
       - 'compose.yaml'
       - 'compose.release.yaml'
       - 'deploy/nginx/**'
