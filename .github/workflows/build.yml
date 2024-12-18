@@ -35,7 +35,5 @@ jobs:
             sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
             sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
   
-            echo "==== TMP deploy data for volumes locally (till separate image isn't built)"
-            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
-            scp -r deploy/ $SSH_TARGET:.
+            echo "==== deploy data for stack" #tmp until some storage with cdn isn't used
             scp -r pages/ $SSH_TARGET:.
