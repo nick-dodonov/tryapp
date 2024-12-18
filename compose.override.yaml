@@ -1,0 +1,21 @@
+version: '3.8'
+
+services:
+  # development: generate fake self-signed certificate with `openssl` for localhost nginx
+  certbot:
+    image: certbot/certbot:latest
+    container_name: certbot
+    volumes:
+      - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:rw
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-localhost}
+    entrypoint:
+      # TODO: don't touch existing key/cert 
+      sh -c '
+      _PATH=/etc/letsencrypt/live/$$SERVER_NAME &&
+      mkdir -p $$_PATH &&
+      openssl req -x509 -nodes -days 365 -newkey rsa:2048
+      -keyout $$_PATH/privkey.pem
+      -out    $$_PATH/fullchain.pem
+      -subj "/C=ZZ/ST=State/L=City/O=Development/CN=localhost"
+      '
