@@ -6,7 +6,7 @@ on:
 #  push:
 #    branches: [ 'master' ] # doesn't work: [ $default-branch ]
 #    paths:
-#      - '.github/workflows/deploy-pages.yml'
+#      - '.github/workflows/pages.yml'
 #      - 'pages/**'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
