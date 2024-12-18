@@ -1,4 +1,4 @@
-name: Deploy Stack
+name: Stack Deploy
 
 on:
   workflow_dispatch:
