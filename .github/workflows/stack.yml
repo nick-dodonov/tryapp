@@ -20,6 +20,9 @@ jobs:
       # custom docker stack deploy steps (much faster than docker-stack-deploy action)
       - uses: ./.github/composites/ssh-remote-host
         with:
+          ssh_user: ${{ secrets.REMOTE_USER }}"
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_run: |
             echo "==== prepare templates rending and initial deploy"
             export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
