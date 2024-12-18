@@ -30,26 +30,24 @@ runs:
     - name: Setup SSH Client
       shell: bash
       run: |
-        # allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
-        echo "==== setup known_hosts"
+        echo "==== setup known_hosts" # allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
         ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ inputs.ssh_host }} 2> /dev/null >> ~/.ssh/known_hosts
         SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
         
-        # speedup connections and workaround firewall limits issue
-        echo "==== setup ssh_config"
+        echo "==== setup ssh_config" # speedup connections and workaround firewall limits issue
         echo "Host ${{ inputs.ssh_host }}" >> ~/.ssh/config
         echo "  ControlMaster auto" >> ~/.ssh/config
         echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
         echo "  ControlPersist 5s" >> ~/.ssh/config
 
-        # echo "==== check result ssh_config"
-        # cat ~/.ssh/config || true
-        # echo "==== check key is added"
-        # ssh-add -L
-        # echo "==== check host available"
-        # nc -vz ${{ inputs.ssh_host }} 22
-        # echo "==== check ssh available (w/o host check)"
-        # ssh -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} whoami
+#        echo "==== check result ssh_config"
+#        cat ~/.ssh/config || true
+#        echo "==== check key is added"
+#        ssh-add -L
+#        echo "==== check host available"
+#        nc -vz ${{ inputs.ssh_host }} 22
+#        echo "==== check ssh available (w/o host check)"
+#        ssh -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} whoami
 
     - name: ${{ inputs.step_name }} Run Commands
       shell: bash
