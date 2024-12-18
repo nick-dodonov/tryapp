@@ -60,6 +60,7 @@ runs:
       env:
         SSH_TARGET: "${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
+    #TODO: use Post Run for cleanup (instead of always function)
     - name: Cleanup SSH Client
       if: always()
       shell: bash
