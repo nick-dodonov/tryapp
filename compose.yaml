@@ -4,6 +4,7 @@ services:
   web:
     image: nginx:latest
     restart: unless-stopped
+    #profiles: [disabled]
     ports:
       # using 'host' mode now to simplify diagnostics
       # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
@@ -38,14 +39,17 @@ services:
     volumes:
       - ${DATA_ROOT}/certbot/www:/var/www/certbot:rw
       - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:rw
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-localhost}
     entrypoint:
       # development: generate fake self-signed certificate to be used in local nginx
       # TODO: don't touch existing 
       sh -c '
-      mkdir -p /etc/letsencrypt/live/${SERVER_NAME} &&
+      _PATH=/etc/letsencrypt/live/$$SERVER_NAME &&
+      mkdir -p $$_PATH &&
       openssl req -x509 -nodes -days 365 -newkey rsa:2048
-      -keyout /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem
-      -out    /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem
+      -keyout $$_PATH/privkey.pem
+      -out    $$_PATH/fullchain.pem
       -subj "/C=ZZ/ST=State/L=City/O=Development/CN=localhost"
       '
 #    command:
