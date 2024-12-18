@@ -39,4 +39,7 @@ jobs:
             export DOCKER_HOST="ssh://${SSH_TARGET}"
             #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
             docker stack deploy -c compose.yaml -c compose.release.yaml tt
-            #TODO: docker service update --force tt_web
+
+            # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
+            echo "==== docker service update"
+            docker service update --force tt_web
