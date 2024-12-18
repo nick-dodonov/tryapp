@@ -30,6 +30,7 @@ runs:
     - name: Setup SSH Client
       shell: bash
       run: |
+        ################ Setup SSH Client
         # allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
         echo "==== setup known_hosts"
         ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ inputs.ssh_host }} 2> /dev/null >> ~/.ssh/known_hosts
@@ -54,9 +55,8 @@ runs:
     - name: ${{ inputs.step_name }}
       shell: bash
       run: |
-        echo ">>>>>>>> ${{ inputs.step_name }}"
+        ################ ${{ inputs.step_name }}
         ${{ inputs.step_run }}
-        echo "<<<<<<<< ${{ inputs.step_name }}"
       env:
         SSH_TARGET: "${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
@@ -64,6 +64,7 @@ runs:
       if: always()
       shell: bash
       run: |
+        ################ Cleanup SSH Client
         echo "==== force close ssh master connection"
         SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
         ssh -O exit $SSH_TARGET || true
