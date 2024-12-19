@@ -22,7 +22,7 @@ jobs:
       - uses: actions/cache@v3
         with:
           path: client/Library
-          key: Library-${{ hashFiles('Assets/**', 'Packages/**', 'ProjectSettings/**') }}
+          key: Library-${{ hashFiles('client/Assets/**', 'client/Packages/**', 'client/ProjectSettings/**') }}
           restore-keys: |
             Library-
       - uses: game-ci/unity-builder@v4
