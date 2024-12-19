@@ -3,11 +3,11 @@ name: Build Deploy
 on:
   workflow_dispatch:
   push: # auto-deploy on change (simplify deploy development)
-    #branches: [ 'master' ]
+    branches: [ 'master' ]
     paths:
       - '.github/workflows/build.yml'
       - '.github/composites/ssh-remote-host/**'
-      - 'pages/**'
+      - 'client/**'
 
 jobs:
 #  echo_job:
