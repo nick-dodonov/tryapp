@@ -19,12 +19,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2 #name: Checkout codebase
+      - uses: rlespinasse/github-slug-action@v3.x # Inject slug/short variables https://github.com/marketplace/actions/github-slug-action
+      
       - uses: actions/cache@v3
         with:
           path: client/Library
           key: Library-${{ hashFiles('client/Assets/**', 'client/Packages/**', 'client/ProjectSettings/**') }}
           restore-keys: |
             Library-
+      
       - uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -33,10 +36,22 @@ jobs:
         with:
           projectPath: client
           targetPlatform: WebGL
+          buildName: client
+      
       - uses: actions/upload-artifact@v3
         with:
-          name: client-build
-          path: build
+          name: client-${{ env.GITHUB_REF_NAME_SLUG }}
+          path: build/WebGL/client
+
+      - uses: ./.github/composites/ssh-remote-host #tmp until some storage with cdn isn't used
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Deploy Client Build
+          step_run: |
+            echo "==== deploy client build"
+            scp -r build/WebGL/client $SSH_TARGET:./pages/${{ env.GITHUB_REF_NAME_SLUG }}
 
 #      - uses: ./.github/composites/ssh-remote-host
 #        with:
