@@ -3,11 +3,11 @@ name: Build Deploy
 on:
   workflow_dispatch:
   push: # auto-deploy on change (simplify deploy development)
-    #branches: [ 'master' ]
+    branches: [ 'master' ]
     paths:
       - '.github/workflows/build.yml'
       - '.github/composites/ssh-remote-host/**'
-      - 'pages/**'
+      - 'client/**'
 
 jobs:
 #  echo_job:
@@ -19,21 +19,55 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2 #name: Checkout codebase
-      - uses: ./.github/composites/ssh-remote-host
+      - uses: rlespinasse/github-slug-action@v3.x # Inject slug/short variables https://github.com/marketplace/actions/github-slug-action
+      
+      - uses: actions/cache@v3
+        with:
+          path: client/Library
+          key: Library-${{ hashFiles('client/Assets/**', 'client/Packages/**', 'client/ProjectSettings/**') }}
+          restore-keys: |
+            Library-
+      
+      - uses: game-ci/unity-builder@v4
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+          UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
+          UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
+        with:
+          projectPath: client
+          targetPlatform: WebGL
+          buildName: client
+      
+      - uses: actions/upload-artifact@v3
+        with:
+          name: client-${{ env.GITHUB_REF_NAME_SLUG }}
+          path: build/WebGL/client
+
+      - uses: ./.github/composites/ssh-remote-host #tmp until some storage with cdn isn't used
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Deploy Build
+          step_name: Deploy Client Build
           step_run: |
-            echo "==== Replacing placeholders:"
-            COMMIT_SHA=${{ github.sha }}
-            COMMIT_SHA=${COMMIT_SHA:0:7}
-            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
-            echo "COMMIT_SHA=${COMMIT_SHA}"
-            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
-            sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
-            sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
-  
-            echo "==== deploy data for stack" #tmp until some storage with cdn isn't used
-            scp -r pages/ $SSH_TARGET:.
+            echo "==== deploy client build"
+            scp -r build/WebGL/client $SSH_TARGET:./pages/${{ env.GITHUB_REF_NAME_SLUG }}
+
+#      - uses: ./.github/composites/ssh-remote-host
+#        with:
+#          ssh_user: ${{ secrets.REMOTE_USER }}
+#          ssh_host: ${{ secrets.REMOTE_HOST }}
+#          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+#          step_name: Deploy Build
+#          step_run: |
+#            echo "==== Replacing placeholders:"
+#            COMMIT_SHA=${{ github.sha }}
+#            COMMIT_SHA=${COMMIT_SHA:0:7}
+#            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
+#            echo "COMMIT_SHA=${COMMIT_SHA}"
+#            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
+#            sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
+#            sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
+#  
+#            echo "==== deploy data for stack" #tmp until some storage with cdn isn't used
+#            scp -r pages/ $SSH_TARGET:.

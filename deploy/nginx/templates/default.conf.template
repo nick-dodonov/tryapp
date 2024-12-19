@@ -83,23 +83,30 @@ server {
     }
 }
 
+# Trick with variable ($ssl_server_name) helps to execute nginx without startup failure 
+#   (when no certificate is generated/obtained yet)
+#   https://stackoverflow.com/questions/72533030/is-it-possible-to-allow-nginx-to-start-if-the-specified-certificate-keys-files-a
+#   https://serverfault.com/questions/505015/nginx-use-server-name-on-ssl-certificate-path
+# Keep in mind that is it has Performance impact: "Note that using variables implies that a certificate will be loaded for each SSL handshake, and this may have a negative impact on performance. "
+#   https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate
+# But in original implementation (with using `default $ssl_server_name`) 
+#   there are errors in logs: "cannot load certificate "/etc/letsencrypt/live//fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live//fullchain.pem, r) error:10000080:BIO routines::no such file) while SSL handshaking"
+# So I decided to replace with always known value instead
+map $ssl_server_name $_domain {
+    #default $ssl_server_name;
+    #~(([^\.]+)\.([^\.]+))$ $1;
+    default ${SERVER_NAME};
+}
 server {
     listen 443 ssl;
     listen [::]:443 ssl;
     server_name ${SERVER_NAME};
     server_tokens off;
 
-    #DISABLED because:
-    # * Performance impact: "Note that using variables implies that a certificate will be loaded for each SSL handshake, and this may have a negative impact on performance. "
-    #   * https://nginx.org/en/docs/http/ngx_http_ssl_module.html#ssl_certificate
-    # * Errors in logs: "cannot load certificate "/etc/letsencrypt/live//fullchain.pem": BIO_new_file() failed (SSL: error:80000002:system library::No such file or directory:calling fopen(/etc/letsencrypt/live//fullchain.pem, r) error:10000080:BIO routines::no such file) while SSL handshaking"     
-    # Trick with variable ($ssl_server_name) helps to execute nginx without startup failure 
-    #   (when no certificate is generated/obtained yet)
-    #   https://stackoverflow.com/questions/72533030/is-it-possible-to-allow-nginx-to-start-if-the-specified-certificate-keys-files-a
-    # ssl_certificate /etc/letsencrypt/live/$ssl_server_name/fullchain.pem;
-    # ssl_certificate_key /etc/letsencrypt/live/$ssl_server_name/privkey.pem;
-    ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+    #ssl_certificate /etc/letsencrypt/live/${SERVER_NAME}/fullchain.pem;
+    #ssl_certificate_key /etc/letsencrypt/live/${SERVER_NAME}/privkey.pem;
+    ssl_certificate /etc/letsencrypt/live/$_domain/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/$_domain/privkey.pem;
 
     http2 on;
 
