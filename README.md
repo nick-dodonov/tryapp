@@ -1,3 +1,4 @@
-# Test complex to explore several features
+# Try and explore develop features
 
-* Originally based on [Telegram Mini Apps Basic Example](https://github.com/Telegram-Mini-Apps-Dev/vanilla-js-boilerplate)
+* Uses features from [Telegram Mini Apps Basic Example](https://github.com/Telegram-Mini-Apps-Dev/vanilla-js-boilerplate)
+* TODO: add another parts and obtained measurements

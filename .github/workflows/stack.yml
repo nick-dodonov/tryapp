@@ -3,7 +3,7 @@ name: Stack Deploy
 on:
   workflow_dispatch:
   push: # auto-deploy on change (simplify deploy development)
-    branches: [ 'master' ]
+    branches: [ 'main' ]
     paths:
       - '.github/workflows/stack.yml'
       - '.github/composites/ssh-remote-host/**'

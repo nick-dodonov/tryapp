@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
   #DISABLE auto-deploy to GitHub Pages (prepare for another hosting with meta-data)
 #  push:
-#    branches: [ 'master' ] # doesn't work: [ $default-branch ]
+#    branches: [ 'main' ]
 #    paths:
 #      - '.github/workflows/pages.yml'
 #      - 'pages/**'
