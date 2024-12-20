@@ -3,5 +3,8 @@
 # auto-generated for development
 /certbot/
 
+# local/remote builds
+/build/
+
 # macOS specifics
 .DS_Store
