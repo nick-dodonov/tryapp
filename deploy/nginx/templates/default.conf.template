@@ -10,8 +10,8 @@ server {
         root /var/www/certbot;
     }
 
-    location /api/ {
-        proxy_pass http://server:8080/api/;
+    location /api {
+        proxy_pass http://server:8080/api;
     }
     
     location / {

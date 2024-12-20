@@ -12,6 +12,8 @@ services:
       # using 'host' mode now to simplify diagnostics
       # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
       # * TODO: custom balancer for X-Real-IP
+      #- '80:80'
+      #- '443:443'
       - mode: host
         protocol: tcp
         published: 80
@@ -36,3 +38,5 @@ services:
     image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
+    #ports: #diagnostics
+    #  - '8080:8080'
