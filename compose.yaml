@@ -31,3 +31,8 @@ services:
       - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:ro
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
+
+  server:
+    image: server
+    build:
+      dockerfile: server/Dockerfile
