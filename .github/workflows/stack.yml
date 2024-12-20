@@ -47,30 +47,30 @@ jobs:
           cache-to: type=gha,mode=max
       #TODO: sign the published docker image
 
-#TMP 
-#      # custom docker stack deploy steps (much faster than docker-stack-deploy action)
-#      - uses: ./.github/composites/ssh-remote-host
-#        with:
-#          ssh_user: ${{ secrets.REMOTE_USER }}
-#          ssh_host: ${{ secrets.REMOTE_HOST }}
-#          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-#          step_name: Docker Stack Deploy
-#          step_run: |
-#            echo "==== prepare templates rending and initial deploy"
-#            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
-#            export SERVER_NAME=${{ secrets.REMOTE_HOST }}
-#            export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
-#            # initial tmp certbot setup #TODO: rm in favor of swarm secrets
-#            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
-#            
-#            echo "==== deploy configs" #tmp until app image isn't built
-#            scp -r deploy/ $SSH_TARGET:.
-#            
-#            echo "==== docker stack deploy"
-#            export DOCKER_HOST="ssh://${SSH_TARGET}"
-#            #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
-#            docker stack deploy -c compose.yaml -c compose.release.yaml tt
-#
-#            # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
-#            echo "==== docker service update"
-#            docker service update --force tt_web
+      # custom docker stack deploy steps (much faster than docker-stack-deploy action)
+      - uses: ./.github/composites/ssh-remote-host
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Docker Stack Deploy
+          step_run: |
+            echo "==== prepare templates rending and initial deploy"
+            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
+            export SERVER_NAME=${{ secrets.REMOTE_HOST }}
+            export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
+            export SERVER_IMAGE=${{ steps.meta.outputs.tags }}
+            # initial tmp certbot setup #TODO: rm in favor of swarm secrets
+            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+
+            echo "==== deploy configs" #tmp until app image isn't built
+            scp -r deploy/ $SSH_TARGET:.
+
+            echo "==== docker stack deploy"
+            export DOCKER_HOST="ssh://${SSH_TARGET}"
+            #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
+            docker stack deploy --with-registry-auth -c compose.yaml -c compose.release.yaml tt
+
+            # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
+            echo "==== docker service update"
+            docker service update --force tt_web

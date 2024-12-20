@@ -33,7 +33,7 @@ services:
       - SERVER_NAME=${SERVER_NAME:-localhost}
 
   server:
-    image: server
+    image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
     ports: 
