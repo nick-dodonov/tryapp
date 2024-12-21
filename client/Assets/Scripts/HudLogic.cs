@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using Diagnostics;
 using Shared;
 using Shared.Meta.Client;
+using Shared.Web;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +21,8 @@ public class HudLogic : MonoBehaviour
 
     private void OnEnable()
     {
-        Shared.StaticLog.Info("==== starting client ====");
+        //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
+        StaticLog.Info("==== starting client ====");
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
         
@@ -109,16 +110,16 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            serverResponseText.text = "Requesting server...";
+            serverResponseText.text = "Requesting...";
             var url = _serverOptions[serverDropdown.value].Url;
-            var client = new HttpClient { BaseAddress = new(url) };
+            using var client = new UnityWebClient(url);
             var meta = new MetaClient(client);
             var result = await meta.GetInfo(destroyCancellationToken);
-            serverResponseText.text = $"Server Response: {result.RequestTime}";
+            serverResponseText.text = $"Response:\n{result.RequestTime:O}";
         }
         catch (Exception ex)
         {
-            serverResponseText.text = $"Error: {ex.Message}";
+            serverResponseText.text = $"ERROR:\n{ex.Message}";
         }
     }
 }

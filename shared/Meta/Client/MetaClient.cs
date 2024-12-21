@@ -1,22 +1,21 @@
 using System;
-using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Meta.Api;
+using Shared.Web;
 
 namespace Shared.Meta.Client
 {
     public class MetaClient : IMeta
     {
-        private readonly HttpClient _httpClient;
+        private readonly IWebClient _client;
         private readonly JsonSerializerOptions _serializerOptions;
         
-        public MetaClient(HttpClient httpClient)
+        public MetaClient(IWebClient client)
         {
-            _httpClient = httpClient;
-            //ASP Web Controller default formatting
-            _serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
+            _client = client;
+            _serializerOptions = new(JsonSerializerDefaults.Web) //ASP Web Controller default formatting
             {
                 // IncludeFields = true
             };
@@ -24,8 +23,8 @@ namespace Shared.Meta.Client
         
         public async ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
         {
-            StaticLog.Info($"==== Info request: {_httpClient.BaseAddress}");
-            using var response = await _httpClient.GetAsync("api/info", cancellationToken);
+            StaticLog.Info($"==== Info request: {_client.BaseAddress}");
+            using var response = await _client.GetAsync("api/info", cancellationToken);
             response.EnsureSuccessStatusCode();
             StaticLog.Info($"==== Info response: StatusCode={response.StatusCode}");
             

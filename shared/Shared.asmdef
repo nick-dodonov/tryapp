@@ -1,7 +1,9 @@
 {
     "name": "Shared",
     "rootNamespace": "Shared",
-    "references": [],
+    "references": [
+        "UniTask"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
