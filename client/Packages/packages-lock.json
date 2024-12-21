@@ -34,6 +34,12 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "shared": {
+      "version": "file:../../shared",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
     "com.unity.modules.audio": {
       "version": "1.0.0",
       "depth": 0,

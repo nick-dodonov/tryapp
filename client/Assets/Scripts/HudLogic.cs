@@ -7,6 +7,7 @@ public class HudLogic : MonoBehaviour
 
     private void Start()
     {
+        Shared.StaticLog.Info("==== starting client ====");
         versionText.text = $"Version: {Application.version}";
     }
 }

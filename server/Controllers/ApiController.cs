@@ -21,6 +21,7 @@ public class ApiController : ControllerBase
     [HttpGet]
     public IEnumerable<WeatherForecast> Get()
     {
+        Shared.StaticLog.Info("==== api request ====");
         return Enumerable.Range(1, 5).Select(index => new WeatherForecast
             {
                 Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),

@@ -13,4 +13,8 @@
       </Content>
     </ItemGroup>
 
+    <ItemGroup>
+        <ProjectReference Include="../shared/shared.csproj"/>
+    </ItemGroup>
+    
 </Project>
