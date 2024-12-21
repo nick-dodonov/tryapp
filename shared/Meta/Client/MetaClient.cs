@@ -24,8 +24,10 @@ namespace Shared.Meta.Client
         
         public async ValueTask<string> GetDateTime(CancellationToken cancellationToken)
         {
+            StaticLog.Info($"==== Info request: {_httpClient.BaseAddress}");
             using var response = await _httpClient.GetAsync("api/datetime", cancellationToken);
             response.EnsureSuccessStatusCode();
+            StaticLog.Info($"==== Info response: StatusCode={response.StatusCode}");
             
             //TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet)
             //  to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
