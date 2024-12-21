@@ -1,5 +1,4 @@
 using System.Net.Http;
-using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -27,7 +26,13 @@ namespace Shared.Meta.Client
         {
             using var response = await _httpClient.GetAsync("api/datetime", cancellationToken);
             response.EnsureSuccessStatusCode();
-            var result = await response.Content.ReadFromJsonAsync<string>(_serializerOptions, cancellationToken);
+            
+            //TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet)
+            //  to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
+            //var result = await response.Content.ReadFromJsonAsync<string>(_serializerOptions, cancellationToken);
+            await using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
+            var result = await JsonSerializer.DeserializeAsync<string>(contentStream, _serializerOptions, cancellationToken).ConfigureAwait(false);
+
             return result!;
         }
     }

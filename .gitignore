@@ -1,4 +1,5 @@
 /.idea/
+*.DotSettings.user
 
 # auto-generated for development
 /certbot/

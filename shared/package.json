@@ -2,5 +2,7 @@
   "name": "shared",
   "version": "0.1.0",
   "displayName": "Shared",
-  "dependencies": {}
+  "dependencies": {
+    "org.nuget.system.text.json": "9.0.0"
+  }
 }
