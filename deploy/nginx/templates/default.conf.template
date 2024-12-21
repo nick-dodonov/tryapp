@@ -17,6 +17,7 @@ server {
     location /api {
         # enables CORS to develop client agains deployed server #TODO: only for staging
         #   https://docs.unity3d.com/Manual/webgl-networking.html
+        #   https://enable-cors.org/server_nginx.html
         add_header 'Access-Control-Allow-Origin' '*';
         
         proxy_pass http://server:8080/api;

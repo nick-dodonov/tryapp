@@ -8,12 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!--
-        TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet) 
-            to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
-        <PackageReference Include="System.Net.Http.Json" Version="9.0.0" />
-        -->
-        <PackageReference Include="System.Text.Json" Version="9.0.0" />
+        <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     </ItemGroup>
 
 </Project>

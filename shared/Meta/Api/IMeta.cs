@@ -12,6 +12,8 @@ namespace Shared.Meta.Api
     [Serializable]
     public class ServerInfo
     {
-        public DateTime RequestTime { get; set; } //just sample
+        public string? RandomName;
+        public int RequestId;
+        public DateTime RequestTime;
     }
 }

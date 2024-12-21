@@ -116,7 +116,11 @@ public class HudLogic : MonoBehaviour
             using var client = new UnityWebClient(url);
             var meta = new MetaClient(client);
             var result = await meta.GetInfo(destroyCancellationToken);
-            serverResponseText.text = $"Response:\n{result.RequestTime:O}";
+            serverResponseText.text = @$"Response:
+\tRandomName: {result.RandomName}
+\tRequestId: {result.RequestId}
+\tRequestTime: {result.RequestTime:O}
+";
         }
         catch (Exception ex)
         {
