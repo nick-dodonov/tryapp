@@ -22,8 +22,8 @@ public class HudLogic : MonoBehaviour
         serverDropdown.options.Add(new TMP_Dropdown.OptionData("http://localhost:5270"));
 #endif
         serverDropdown.options.Add(new TMP_Dropdown.OptionData("https://TODO-BuildOption"));
-        
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
+        serverResponseText.text = "";
     }
 
     private void OnDisable()

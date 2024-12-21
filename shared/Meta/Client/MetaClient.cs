@@ -15,10 +15,9 @@ namespace Shared.Meta.Client
         public MetaClient(HttpClient httpClient)
         {
             _httpClient = httpClient;
-            //TODO: setup ASP Web Controller default formatting
-            _serializerOptions = new JsonSerializerOptions
+            //ASP Web Controller default formatting
+            _serializerOptions = new JsonSerializerOptions(JsonSerializerDefaults.Web)
             {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 // IncludeFields = true
             };
         }
