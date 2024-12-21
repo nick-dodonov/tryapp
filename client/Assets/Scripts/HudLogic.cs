@@ -40,8 +40,8 @@ public class HudLogic : MonoBehaviour
             var serverAddress = new Uri(selectedServer);
             var client = new HttpClient { BaseAddress = serverAddress };
             var meta = new MetaClient(client);
-            var result = await meta.GetDateTime(destroyCancellationToken);
-            serverResponseText.text = $"Server Response: {result}";
+            var result = await meta.GetInfo(destroyCancellationToken);
+            serverResponseText.text = $"Server Response: {result.RequestTime}";
         }
         catch (Exception ex)
         {

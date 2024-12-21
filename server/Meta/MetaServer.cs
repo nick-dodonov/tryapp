@@ -5,10 +5,13 @@ namespace Server.Meta;
 
 public class MetaServer : IMeta
 {
-    public ValueTask<string> GetDateTime(CancellationToken cancellationToken)
+    public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
     {
-        var result = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-        StaticLog.Info($"==== Info request/result: {result}");
-        return new ValueTask<string>(result);
+        var result = new ServerInfo
+        {
+            RequestTime = DateTime.Now
+        };
+        StaticLog.Info($"==== Info request/result: {result.RequestTime}");
+        return new ValueTask<ServerInfo>(result);
     }
 }

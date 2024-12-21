@@ -23,7 +23,7 @@ public class ApiController(IMeta meta, ILogger<ApiController> logger)
             .ToArray();
     }
     
-    [Route("datetime")]
-    public ValueTask<string> GetDateTime(CancellationToken cancellationToken) 
-        => meta.GetDateTime(cancellationToken);
+    [Route("info")]
+    public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
+        => meta.GetInfo(cancellationToken);
 }

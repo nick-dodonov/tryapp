@@ -1,3 +1,4 @@
+using System;
 using System.Net.Http;
 using System.Text.Json;
 using System.Threading;
@@ -17,15 +18,15 @@ namespace Shared.Meta.Client
             //TODO: setup ASP Web Controller default formatting
             _serializerOptions = new JsonSerializerOptions
             {
-                // PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
                 // IncludeFields = true
             };
         }
         
-        public async ValueTask<string> GetDateTime(CancellationToken cancellationToken)
+        public async ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
         {
             StaticLog.Info($"==== Info request: {_httpClient.BaseAddress}");
-            using var response = await _httpClient.GetAsync("api/datetime", cancellationToken);
+            using var response = await _httpClient.GetAsync("api/info", cancellationToken);
             response.EnsureSuccessStatusCode();
             StaticLog.Info($"==== Info response: StatusCode={response.StatusCode}");
             
@@ -33,9 +34,11 @@ namespace Shared.Meta.Client
             //  to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
             //var result = await response.Content.ReadFromJsonAsync<string>(_serializerOptions, cancellationToken);
             await using var contentStream = await response.Content.ReadAsStreamAsync().ConfigureAwait(false);
-            var result = await JsonSerializer.DeserializeAsync<string>(contentStream, _serializerOptions, cancellationToken).ConfigureAwait(false);
+            var result = await JsonSerializer.DeserializeAsync<ServerInfo>(contentStream, _serializerOptions, cancellationToken).ConfigureAwait(false);
+            if (result == null)
+                throw new Exception("deserialize failed");
 
-            return result!;
+            return result;
         }
     }
 }
