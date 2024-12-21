@@ -1,22 +1,14 @@
 using Microsoft.AspNetCore.Mvc;
+using Shared.Meta.Api;
 
 namespace server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ApiController : ControllerBase
+public class ApiController(IMeta meta, ILogger<ApiController> logger) 
+    : ControllerBase, IMeta
 {
-    private static readonly string[] Summaries = new[]
-    {
-        "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-    };
-
-    private readonly ILogger<ApiController> _logger;
-
-    public ApiController(ILogger<ApiController> logger)
-    {
-        _logger = logger;
-    }
+    private static readonly string[] Summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
 
     [HttpGet]
     public IEnumerable<WeatherForecast> Get()
@@ -30,4 +22,8 @@ public class ApiController : ControllerBase
             })
             .ToArray();
     }
+    
+    [Route("datetime")]
+    public ValueTask<string> GetDateTime(CancellationToken cancellationToken) 
+        => meta.GetDateTime(cancellationToken);
 }

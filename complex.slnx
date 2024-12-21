@@ -1,7 +1,4 @@
 <Solution>
-    <Folder Name="/SolutionFolder/">
-        <File Path="global.json" />
-    </Folder>
-    <Project Path="server\server.csproj" Type="Classic C#" />
-    <Project Path="shared\shared.csproj" Type="Classic C#" />
+  <Project Path="server\server.csproj" Type="Classic C#" />
+  <Project Path="shared\shared.csproj" Type="Classic C#" />
 </Solution>
