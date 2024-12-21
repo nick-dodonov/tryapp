@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Diagnostics;
 using Shared.Meta.Client;
 using TMPro;
 using UnityEngine;
@@ -15,6 +16,7 @@ public class HudLogic : MonoBehaviour
     private void OnEnable()
     {
         Shared.StaticLog.Info("==== starting client ====");
+        StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
         
         serverDropdown.options.Clear();
