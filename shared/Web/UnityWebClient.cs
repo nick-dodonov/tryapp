@@ -1,3 +1,4 @@
+#if UNITY_5_6_OR_NEWER
 using System;
 using System.Linq;
 using System.Net;
@@ -127,3 +128,4 @@ namespace Shared.Web
         }
     }
 }
+#endif
