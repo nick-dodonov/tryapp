@@ -1,0 +1,7 @@
+<Project>
+    <PropertyGroup>
+        <DefaultItemExcludes>$(DefaultItemExcludes);**\*.meta</DefaultItemExcludes>
+        <BaseIntermediateOutputPath>obj~\</BaseIntermediateOutputPath>
+        <BaseOutputPath>bin~\</BaseOutputPath>
+    </PropertyGroup>
+</Project>
