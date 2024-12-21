@@ -12,8 +12,8 @@ services:
         delay: 10s
         max_attempts: 1
     volumes:
-      - ${DATA_ROOT}/certbot/www:/var/www/certbot:rw
-      - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:rw
+      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
+      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     #command:

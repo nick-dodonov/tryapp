@@ -6,7 +6,7 @@ services:
     container_name: cert
     image: certbot/certbot:latest
     volumes:
-      - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:rw
+      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     entrypoint:

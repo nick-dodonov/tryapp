@@ -1,4 +1,7 @@
 /.idea/
+
+# user develop settings
+.env
 *.DotSettings.user
 
 # auto-generated for development
