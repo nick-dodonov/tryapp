@@ -29,7 +29,8 @@ public class HudLogic : MonoBehaviour
         if (NeedServerLocalhostOptions())
         {
             _serverOptions.Add(new("localhost-debug", "http://localhost:5270"));
-            _serverOptions.Add(new("localhost-compose", "https://localhost"));
+            _serverOptions.Add(new("localhost-http", "http://localhost"));
+            _serverOptions.Add(new("localhost-ssl", "https://localhost"));
         }
         if (NeedServerHostingOption(out var url))
             _serverOptions.Add(new("hosting", url));
