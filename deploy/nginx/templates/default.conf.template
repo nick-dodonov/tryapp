@@ -6,6 +6,7 @@ server {
 
     # workaround 301 redirect to localhost on folder w/o trailing slash (issued: http://host/folder -> 301 http://localhost/folder/)  
     #   https://stackoverflow.com/questions/15555428/nginx-causes-301-redirect-if-theres-no-trailing-slash
+    # TODO: try to fix without redirect (try_files): https://stackoverflow.com/questions/35133287/access-index-html-in-folder-without-301-redirect
     absolute_redirect off;
 
     #access_log  /var/log/nginx/host.access.log  main;
