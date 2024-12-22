@@ -15,7 +15,7 @@ jobs:
 #    steps:
 #      - name: Echo Message
 #        run: echo "Hello, this is a manually triggered workflow!"
-  deploy:
+  build-deploy:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2 #name: Checkout codebase
@@ -41,7 +41,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         with:
           name: client-${{ env.GITHUB_REF_NAME_SLUG }}
-          path: build/WebGL/client
+          path: build/WebGL # keep client directory in archive
 
       - uses: ./.github/composites/ssh-remote-host #tmp until some storage with cdn isn't used
         with:
@@ -50,8 +50,11 @@ jobs:
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Deploy Client Build
           step_run: |
+            # echo "==== diagnose client build"
+            # ls -lR build/WebGL/client
             echo "==== deploy client build"
-            scp -r build/WebGL/client $SSH_TARGET:./pages/${{ env.GITHUB_REF_NAME_SLUG }}
+            # trailing / in rsync is important to copy source directory content to different destination folder
+            rsync -rvv build/WebGL/client/ $SSH_TARGET:./pages/${{ env.GITHUB_REF_NAME_SLUG }}/
 
 #      - uses: ./.github/composites/ssh-remote-host
 #        with:
