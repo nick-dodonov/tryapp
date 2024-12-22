@@ -12,6 +12,8 @@ services:
       # using 'host' mode now to simplify diagnostics
       # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
       # * TODO: custom balancer for X-Real-IP
+      #- '80:80'
+      #- '443:443'
       - mode: host
         protocol: tcp
         published: 80
@@ -22,12 +24,19 @@ services:
         target: 443
     volumes:
       # tmp DATA_ROOT from .env usage until image isn't built
-      - ${DATA_ROOT}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DATA_ROOT:-.}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       # templates to render environment variables
       #   https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration-new-in-119
-      - ${DATA_ROOT}/deploy/nginx/templates:/etc/nginx/templates:ro
-      - ${DATA_ROOT}/pages:/usr/share/nginx/html:ro
-      - ${DATA_ROOT}/certbot/www:/var/www/certbot:ro
-      - ${DATA_ROOT}/certbot/conf:/etc/letsencrypt:ro
+      - ${DATA_ROOT:-.}/deploy/nginx/templates:/etc/nginx/templates:ro
+      - ${DATA_ROOT:-.}/pages:/usr/share/nginx/html:ro
+      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:ro
+      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:ro
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
+
+  server:
+    image: ${SERVER_IMAGE:-server}
+    build:
+      dockerfile: server/Dockerfile
+    #ports: #diagnostics
+    #  - '8080:8080'

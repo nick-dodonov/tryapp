@@ -3,11 +3,24 @@ server {
     listen  [::]:80;
     server_name  ${SERVER_NAME};
     server_tokens off;
-    
+
+    # workaround 301 redirect to localhost on folder w/o trailing slash (issued: http://host/folder -> 301 http://localhost/folder/)  
+    #   https://stackoverflow.com/questions/15555428/nginx-causes-301-redirect-if-theres-no-trailing-slash
+    absolute_redirect off;
+
     #access_log  /var/log/nginx/host.access.log  main;
     
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
+    }
+
+    location /api {
+        # enables CORS to develop client agains deployed server #TODO: only for staging
+        #   https://docs.unity3d.com/Manual/webgl-networking.html
+        #   https://enable-cors.org/server_nginx.html
+        add_header 'Access-Control-Allow-Origin' '*';
+        
+        proxy_pass http://server:8080/api;
     }
     
     location / {
@@ -123,7 +136,7 @@ server {
       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-Host $host;
-      proxy_set_header X-Forwarded-Proto https;
+      proxy_set_header X-Forwarded-Proto $scheme;
       proxy_pass http://localhost:80;
     }
 }

@@ -1,10 +1,18 @@
 /.idea/
 
+# user develop settings
+.env
+*.DotSettings.user
+
 # auto-generated for development
 /certbot/
 
 # local/remote builds
 /build/
+
+# dotnet artifacts
+obj/
+bin/
 
 # macOS specifics
 .DS_Store

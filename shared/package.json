@@ -1,0 +1,10 @@
+{
+  "name": "shared",
+  "version": "0.1.0",
+  "displayName": "Shared",
+  "dependencies": {
+    "com.cysharp.unitask": "2.5.10",
+    "com.unity.modules.unitywebrequest": "1.0.0",
+    "com.unity.nuget.newtonsoft-json": "3.2.1"
+  }
+}
