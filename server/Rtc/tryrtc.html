@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<head>
+    <title>TryRTC</title>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript">
+        const DATA_CHANNEL_LABEL = "dc1";
+
+        const id = Date.now().toString();
+        const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
+        const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
+        const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
+        const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
+
+        let pc, dc;
+
+        async function startConnection() {
+            console.log("======== startConnection ========");
+            console.log("getting offer: " + getOfferUrl);
+            let offerResponse = await fetch(getOfferUrl);
+            let offer = await offerResponse.json();
+            console.log("got offer: " + JSON.stringify(offer));
+
+            console.log("creating peer connection and assigning remote description");
+            pc = new RTCPeerConnection();
+            //const STUN_URL = "stun:stun.sipsorcery.com";
+            //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
+            
+            pc.onconnectionstatechange = () => {
+                console.log("onconnectionstatechange: " + pc.connectionState);
+            }
+            
+            pc.ondatachannel = (event) => {
+                const channel = event.channel
+                console.log(`ondatachannel: new data channel created: id=${channel.id} label=${channel.label}`);
+                console.log("ondatachannel: RTCDataChannel: " + JSON.stringify(channel))
+                channel.onmessage = function(event) {
+                    onDataChannelMessage(event)
+                }
+            }
+            
+            dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
+            // dc.onopen = (event) => console.log(`data channel onopen: id=${dc.id}, label ${dc.label}.`);
+            // dc.onclose = (event) => console.log(`data channel onclose: id=${dc.id}, label ${dc.label}.`);
+            // dc.onmessage = onDataChannelMessage;
+
+            pc.onicegatheringstatechange = function () {
+                console.log("onicegatheringstatechange: " + pc.iceGatheringState);
+            }
+            pc.oniceconnectionstatechange = function () {
+                console.log("oniceconnectionstatechange: " + pc.iceConnectionState);
+            }
+            pc.onsignalingstatechange = function () {
+                console.log("onsignalingstatechange: " + pc.signalingState);
+            }
+            pc.onicecandidate = async function (event) {
+                console.log(`onicecandidate: ${JSON.stringify(event)}`);
+                if (event.candidate) {
+                    console.log('new-ice-candidate:');
+                    console.log(event.candidate.candidate);
+                    console.log(event.candidate);
+                    await fetch(setIceCandidateUrl, {
+                        method: 'POST',
+                        body: JSON.stringify(event.candidate),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            };
+            pc.onicecandidateerror = function (event) {
+                console.log("onicecandidateerror: " + JSON.stringify(event));
+            }
+
+            await pc.setRemoteDescription(offer);
+
+            console.log("creating answer");
+            let answer = await pc.createAnswer();
+            let answerJson = JSON.stringify(answer)
+            console.log("assigning answer as local description: " + answerJson);
+            await pc.setLocalDescription(answer);
+
+            console.log("posting answer: " + setAnswerUrl);
+            await fetch(setAnswerUrl, {
+                method: 'POST',
+                body: answerJson,
+                headers: { 'Content-Type': 'application/json' }
+            });
+
+            console.log("Data channel readyState: " + dc.readyState);
+            //dc.send('1111111111111111111111111111');
+        }
+
+        function onDataChannelMessage(evt) {
+            console.log(`onDataChannelMessage: message type ${evt.type}, label ${evt.target.label}, data ${evt.data}.`);
+            //console.log(evt);
+            if (evt.data instanceof ArrayBuffer) {
+                console.log(`binary data of length ${evt.data.byteLength}.`);
+                evt.target.send(evt.data);
+            }
+        }
+        
+        async function closeConnection() {
+            console.log("======== closeConnection ========");
+            console.log("Data channel readyState: " + dc.readyState);
+        }
+    </script>
+</head>
+<body>
+<h1>TryRTC</h1>
+
+<div>
+<!--    <input type="checkbox" id="makeoffer" name="makfeoffer" value="makeoffer" onchange="seturl();"> Make Offer-->
+<!--    <input type="text" id="websockurl" size="40"/>-->
+    <button type="button" class="btn btn-success" onclick="startConnection();">Open</button>
+    <button type="button" class="btn btn-success" onclick="closeConnection();">Close</button>
+</div>
+
+<!--<div>-->
+<!--    <input type="text" id="message" value="hello world"/>-->
+<!--    <button type="button" class="btn btn-success" onclick="sendMessage(document.querySelector('#message').value);">Send-->
+<!--        Message-->
+<!--    </button>-->
+<!--</div>-->
+
+<!--<div>-->
+<!--    <input type="text" id="rndByteLength"/>-->
+<!--    <button type="button" class="btn btn-success" onclick="sendRandomEcho();">Send Random Echo</button>-->
+<!--</div>-->
+</body>

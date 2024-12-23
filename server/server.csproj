@@ -17,5 +17,9 @@
     <ItemGroup>
         <ProjectReference Include="../shared/shared.csproj"/>
     </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="SIPSorcery" Version="8.0.6" />
+    </ItemGroup>
     
 </Project>
