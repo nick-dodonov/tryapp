@@ -9,8 +9,9 @@ namespace Shared.Meta.Api
         public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken);
 
         //TODO: separate iface
-        //TODO: shared RTCSessionDescription
+        //TODO: shared RTC types for SDP (offer, answer) and ICE candidates
         public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken);
+        public ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken);
     }
     
     [Serializable]

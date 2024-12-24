@@ -35,7 +35,7 @@ namespace Shared.Web
 
         private readonly HttpClient _httpClient = new();
 
-        public async Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, HttpCompletionOption option, CancellationToken token)
+        async Task<HttpResponseMessage> IWebClient.SendAsync(HttpRequestMessage message, HttpCompletionOption option, CancellationToken token)
         {
             var content = await (message.Content?.ReadAsStringAsync() ?? Task.FromResult(""));
             var webRequest = GetUnityWebRequest(message.Method.Method, message.RequestUri, content);
@@ -56,6 +56,17 @@ namespace Shared.Web
 
             var responseMessage = CreateHttpResponseMessage(webRequest);
             webRequest.Dispose();
+            return responseMessage;
+        }
+
+        async Task<HttpResponseMessage> IWebClient.PostAsync(string uri, string answer, CancellationToken cancellationToken)
+        {
+            var requestUri = BaseAddress.AbsoluteUri + uri;
+            using var request = UnityWebRequest.Post(requestUri, answer, "application/json");
+            await request
+                .SendWebRequest()
+                .WithCancellation(cancellationToken);
+            var responseMessage = CreateHttpResponseMessage(request);
             return responseMessage;
         }
 

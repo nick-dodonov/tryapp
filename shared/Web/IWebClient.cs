@@ -13,10 +13,11 @@ namespace Shared.Web
     /// </summary>
     public interface IWebClient : IDisposable
     {
-        public Uri BaseAddress { get; set; }
-        public HttpRequestHeaders DefaultRequestHeaders { get; }
+        Uri BaseAddress { get; set; }
+        HttpRequestHeaders DefaultRequestHeaders { get; }
 
-        public Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, HttpCompletionOption option, CancellationToken token);
+        Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, HttpCompletionOption option, CancellationToken token);
+        Task<HttpResponseMessage> PostAsync(string uri, string answer, CancellationToken cancellationToken);
     }
     
     public interface IWebClientFactory

@@ -10,20 +10,39 @@ namespace Server.Rtc;
 ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
 ///     https://www.marksort.com/udp-like-networking-in-the-browser/
 /// </summary>
-public class RtcService(ILogger<RtcService> logger) : IHostedService
+public class RtcService : IHostedService
 {
-    private record Connection(RTCPeerConnection PeerConnection, RTCDataChannel DataChannel);
-    private readonly ConcurrentDictionary<string, Connection> _peerConnections = new();
+    private readonly ILogger<RtcService> _logger;
+
+    private class Connection(RTCPeerConnection peerConnection)
+    {
+        public readonly RTCPeerConnection PeerConnection = peerConnection;
+        public readonly List<RTCIceCandidate> IceCandidates = [];
+        public RTCDataChannel DataChannel;
+    }
+    private readonly ConcurrentDictionary<string, Connection> _connections = new();
+
+    /// <summary>
+    /// Based on several samples
+    ///     examples/WebRTCExamples/WebRTCAspNet
+    ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
+    ///     https://www.marksort.com/udp-like-networking-in-the-browser/
+    /// </summary>
+    public RtcService(ILoggerFactory loggerFactory)
+    {
+        _logger = loggerFactory.CreateLogger<RtcService>();
+        SIPSorcery.LogFactory.Set(loggerFactory);
+    }
 
     public Task StartAsync(CancellationToken cancellationToken)
     {
-        logger.LogDebug("StartAsync");
+        _logger.LogDebug("StartAsync");
         return Task.CompletedTask;
     }
 
     public Task StopAsync(CancellationToken cancellationToken)
     {
-        logger.LogDebug("StopAsync");
+        _logger.LogDebug("StopAsync");
         return Task.CompletedTask;
     }
 
@@ -31,34 +50,49 @@ public class RtcService(ILogger<RtcService> logger) : IHostedService
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
-        if (_peerConnections.ContainsKey(id))
+        if (_connections.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
-        
+
+        _logger.LogDebug($"creating RTCPeerConnection for id={id}");
         // const string STUN_URL = "stun:stun.sipsorcery.com";
         // var config = new RTCConfiguration {
         //     iceServers = [new() { urls = STUN_URL }]
         // };
         //var peerConnection = new RTCPeerConnection(config);
         var peerConnection = new RTCPeerConnection();
+        var connection = new Connection(peerConnection);
+
+        peerConnection.onicecandidate += candidate =>
+        {
+            _logger.LogDebug($"onicecandidate: {candidate}");
+            connection.IceCandidates.Add(candidate);
+        };
+        peerConnection.onicecandidateerror += (candidate, error) =>
+            _logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
+        peerConnection.oniceconnectionstatechange += state => 
+            _logger.LogDebug($"oniceconnectionstatechange: {state}");
+        peerConnection.onicegatheringstatechange += state =>
+            _logger.LogDebug($"onicegatheringstatechange: {state}");
         
         peerConnection.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) 
-            => logger.LogDebug($"OnRtpPacketReceived: RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}, SeqNum {rtpPkt.Header.SequenceNumber}");
+            => _logger.LogDebug($"OnRtpPacketReceived: RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}, SeqNum {rtpPkt.Header.SequenceNumber}");
         peerConnection.OnReceiveReport += (IPEndPoint ip, SDPMediaTypesEnum media, RTCPCompoundPacket pkt) 
-            => logger.LogDebug($"OnReceiveReport: RTP {media}");
+            => _logger.LogDebug($"OnReceiveReport: RTP {media}");
         peerConnection.OnSendReport += (SDPMediaTypesEnum media, RTCPCompoundPacket pkt) 
-            => logger.LogDebug($"OnSendReport: RTP {media}");
+            => _logger.LogDebug($"OnSendReport: RTP {media}");
         peerConnection.OnTimeout += media 
-            => logger.LogWarning($"OnTimeout: {media}");
+            => _logger.LogWarning($"OnTimeout: {media}");
+        
         peerConnection.onconnectionstatechange += state =>
         {
-            logger.LogDebug($"onconnectionstatechange: Peer {id} state changed to {state}");
+            _logger.LogDebug($"onconnectionstatechange: Peer {id} state changed to {state}");
             if (state is 
                 RTCPeerConnectionState.closed or 
                 RTCPeerConnectionState.disconnected or 
                 RTCPeerConnectionState.failed)
-                _peerConnections.TryRemove(id, out _);
+                _connections.TryRemove(id, out _);
             else if (state == RTCPeerConnectionState.connected)
-                logger.LogDebug("onconnectionstatechange: Peer connection connected");
+                _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
         
         // peerConnection.ondatachannel += rdc =>
@@ -71,41 +105,44 @@ public class RtcService(ILogger<RtcService> logger) : IHostedService
         //         rdc.send("echo: 22222222222222222222222222");
         //     };
         // };
-        var dataChannel = await peerConnection.createDataChannel("test", new()
+        
+        _logger.LogDebug($"creating data channel for id={id}");
+        connection.DataChannel = await peerConnection.createDataChannel("test", new()
         {
             ordered = false,
             maxRetransmits = 0
         });
         
+        _logger.LogDebug($"creating offer for id={id}");
         var offerSdp = peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerSdp);
 
-        _peerConnections.TryAdd(id, new(peerConnection, dataChannel));
-        
-        peerConnection.onicecandidate += candidate => 
-            logger.LogDebug($"onicecandidate: {candidate}");
-        peerConnection.onicecandidateerror += (candidate, error) =>
-            logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
-        peerConnection.oniceconnectionstatechange += state => 
-            logger.LogDebug($"oniceconnectionstatechange: {state}");
-        peerConnection.onicegatheringstatechange += state =>
-            logger.LogDebug($"onicegatheringstatechange: {state}");
-            
+        _connections.TryAdd(id, connection);
+
+        _logger.LogDebug($"returning offer for id={id}: {offerSdp}");
         return offerSdp;
     }
     
-    public void SetRemoteDescription(string id, RTCSessionDescriptionInit description)
+    public async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description, CancellationToken cancellationToken)
     {
-        if (!_peerConnections.TryGetValue(id, out var pc))
+        if (!_connections.TryGetValue(id, out var connection))
             throw new ApplicationException($"No peer connection is available for the specified id: {id}");
         
-        logger.LogDebug($"SetRemoteDescription: answer: {description.toJSON()}");
-        pc.PeerConnection.setRemoteDescription(description);
-    }
+        _logger.LogDebug($"SetAnswer for id={id}: {description.toJSON()}");
+        connection.PeerConnection.setRemoteDescription(description);
 
+        //TODO: wait at least one is ready
+        await Task.Yield();
+        
+        //TODO: answer all candidates
+        var candidate = connection.IceCandidates[0];
+        var result = candidate.toJSON();
+        return result;
+    }
+    
     public void TestSend(string id)
     {
-        if (!_peerConnections.TryGetValue(id, out var pc))
+        if (!_connections.TryGetValue(id, out var pc))
             throw new ApplicationException($"No peer connection is available for the specified id: {id}");
         var channel = pc.DataChannel;
         
@@ -113,7 +150,7 @@ public class RtcService(ILogger<RtcService> logger) : IHostedService
         const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         var randomString = new string(Enumerable.Repeat(chars, 16).Select(s => s[random.Next(s.Length)]).ToArray());
 
-        logger.LogDebug($"TestSend: readyState={channel.readyState} randomString={randomString}");
+        _logger.LogDebug($"TestSend: readyState={channel.readyState} randomString={randomString}");
         channel.send(randomString);
     }
 }

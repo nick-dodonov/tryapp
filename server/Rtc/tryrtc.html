@@ -15,11 +15,11 @@
         let pc, dc;
 
         async function startConnection() {
-            console.log("======== startConnection ========");
+            console.log(">>>> startConnection");
             console.log("getting offer: " + getOfferUrl);
             let offerResponse = await fetch(getOfferUrl);
             let offer = await offerResponse.json();
-            console.log("got offer: " + JSON.stringify(offer));
+            console.log("result offer: ", offer);
 
             console.log("creating peer connection and assigning remote description");
             pc = new RTCPeerConnection();
@@ -54,16 +54,14 @@
                 console.log("onsignalingstatechange: " + pc.signalingState);
             }
             pc.onicecandidate = async function (event) {
-                console.log(`onicecandidate: ${JSON.stringify(event)}`);
+                console.log('onicecandidate: ', event.candidate);
                 if (event.candidate) {
-                    console.log('new-ice-candidate:');
-                    console.log(event.candidate.candidate);
-                    console.log(event.candidate);
-                    await fetch(setIceCandidateUrl, {
-                        method: 'POST',
-                        body: JSON.stringify(event.candidate),
-                        headers: { 'Content-Type': 'application/json' }
-                    });
+                    //TODO: send candidates to server
+                    // await fetch(setIceCandidateUrl, {
+                    //     method: 'POST',
+                    //     body: JSON.stringify(event.candidate),
+                    //     headers: { 'Content-Type': 'application/json' }
+                    // });
                 }
             };
             pc.onicecandidateerror = function (event) {
@@ -74,19 +72,19 @@
 
             console.log("creating answer");
             let answer = await pc.createAnswer();
-            let answerJson = JSON.stringify(answer)
-            console.log("assigning answer as local description: " + answerJson);
+            console.log("assigning answer as local description: ", answer);
             await pc.setLocalDescription(answer);
 
             console.log("posting answer: " + setAnswerUrl);
-            await fetch(setAnswerUrl, {
+            let answerResponse = await fetch(setAnswerUrl, {
                 method: 'POST',
-                body: answerJson,
+                body: JSON.stringify(answer),
                 headers: { 'Content-Type': 'application/json' }
             });
-
-            console.log("Data channel readyState: " + dc.readyState);
-            //dc.send('1111111111111111111111111111');
+            let candidate = new RTCIceCandidate(await answerResponse.json());
+            console.log("result of answer (ice candidate): ", candidate);
+            await pc.addIceCandidate(candidate);
+            console.log("<<<< startConnection");
         }
 
         function onDataChannelMessage(evt) {

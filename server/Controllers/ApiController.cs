@@ -8,12 +8,11 @@ namespace server.Controllers;
 [ApiController]
 [Route("[controller]")]
 public sealed class ApiController(
-    ILogger<ApiController> logger, 
     IMeta meta, 
     RtcService rtcService) 
-    : ControllerBase, IMeta
+    : ControllerBase
 {
-    public void Dispose() => logger.LogDebug("Dispose"); // diagnose controller behaviour
+    public void Dispose() { }
 
     [Route("info")]
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
@@ -22,20 +21,21 @@ public sealed class ApiController(
     [Route("getoffer")]
     public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
         => meta.GetOffer(id, cancellationToken);
-    
+
     [HttpPost]
     [Route("setanswer")]
-    public IActionResult SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer)
+    public async ValueTask<string> SetAnswer(string id, CancellationToken cancellationToken)
     {
-        if (string.IsNullOrWhiteSpace(id))
-            return BadRequest("The id cannot be empty in SetAnswer");
-        if (string.IsNullOrWhiteSpace(answer.sdp))
-            return BadRequest("The SDP cannot be empty in SetAnswer");
-
-        rtcService.SetRemoteDescription(id, answer);
-        return Ok();
+        using var reader = new StreamReader(HttpContext.Request.Body);
+        var answerJson = await reader.ReadToEndAsync(cancellationToken);
+        return await meta.SetAnswer(id, answerJson, cancellationToken);
     }
-    
+
+    [HttpPost]
+    [Route("setanswer-TODO")]
+    public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
+        => rtcService.SetAnswer(id, answer, cancellationToken);
+
     [Route("testsend")]
     public void TestSend(string id) 
         => rtcService.TestSend(id);

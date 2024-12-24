@@ -1,5 +1,6 @@
 //TODO: test System.Text.Json with enabled WebGL embedded data (because System.Text.Json is better having span variants)
 //WEBGL-DISABLE: using System.Text.Json;
+
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -60,6 +61,15 @@ namespace Shared.Meta.Client
             var uri = $"api/getoffer?id={id}";
             StaticLog.Info($"==== GetOffer: {_client.BaseAddress}{uri}");
             using var response = await _client.GetAsync(uri, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+
+        public async ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken)
+        {
+            var uri = $"api/setanswer?id={id}";
+            StaticLog.Info($"==== SetAnswer: {_client.BaseAddress}{uri}");
+            using var response = await _client.PostAsync(uri, answer, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
