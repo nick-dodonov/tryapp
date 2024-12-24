@@ -53,14 +53,21 @@ public class RtcService : IHostedService
         if (_connections.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
 
-        _logger.LogDebug($"creating RTCPeerConnection for id={id}");
+        _logger.LogDebug($"creating RTCPeerConnection and RTCDataChannel for id={id}");
         // const string STUN_URL = "stun:stun.sipsorcery.com";
         // var config = new RTCConfiguration {
         //     iceServers = [new() { urls = STUN_URL }]
         // };
         //var peerConnection = new RTCPeerConnection(config);
         var peerConnection = new RTCPeerConnection();
-        var connection = new Connection(peerConnection);
+        var connection = new Connection(peerConnection)
+        {
+            DataChannel = await peerConnection.createDataChannel("test", new()
+            {
+                ordered = false,
+                maxRetransmits = 0
+            })
+        };
 
         peerConnection.onicecandidate += candidate =>
         {
@@ -95,23 +102,7 @@ public class RtcService : IHostedService
                 _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
         
-        // peerConnection.ondatachannel += rdc =>
-        // {
-        //     rdc.onopen += () => logger.LogDebug($"Data channel: onopen: label={rdc.label}");
-        //     rdc.onclose += () => logger.LogDebug($"Data channel: onclose: label={rdc.label}");
-        //     rdc.onmessage += (datachannel, type, data) =>
-        //     {
-        //         logger.LogDebug($"Data channel: message: label={rdc.label} type={type}");
-        //         rdc.send("echo: 22222222222222222222222222");
-        //     };
-        // };
-        
-        _logger.LogDebug($"creating data channel for id={id}");
-        var channel = connection.DataChannel = await peerConnection.createDataChannel("test", new()
-        {
-            ordered = false,
-            maxRetransmits = 0
-        });
+        var channel = connection.DataChannel;
         channel.onopen += () =>
         {
             _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
@@ -120,22 +111,38 @@ public class RtcService : IHostedService
             var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
             timer.Elapsed += (sender, e) =>
             {
+                if (channel.readyState != RTCDataChannelState.open)
+                {
+                    _logger.LogDebug($"DataChannel: timer: stop: readyState={channel.readyState}");
+                    timer.Stop();
+                    return;
+                }
                 if (peerConnection.connectionState != RTCPeerConnectionState.connected)
                 {
-                    _logger.LogDebug("DataChannel: Peer connection is connected, stopping frame ID timer.");
+                    _logger.LogDebug($"DataChannel: timer: stop: connectionState={peerConnection.connectionState}");
+                    timer.Stop();
+                    return;
+                }
+                if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
+                {
+                    _logger.LogDebug($"DataChannel: timer: stop: sctp.state={peerConnection.sctp.state}");
                     timer.Stop();
                     return;
                 }
 
-                var frameIdToSend = $"{frameId++};TODO-RANDOM-DATA";
-                _logger.LogDebug($"Sending frame ID: {frameIdToSend}");
+                var frameIdToSend = $"{frameId++};TODO-FROM-SERVER;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                _logger.LogDebug($"DataChannel: make send: {frameIdToSend}");
                 channel.send(frameIdToSend);
             };
             timer.Start();
         };
-        channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
         channel.onmessage += (datachannel, type, data) =>
-            _logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
+        {
+            //_logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
+            var str = System.Text.Encoding.UTF8.GetString(data);
+            _logger.LogDebug($"DataChannel: onmessage: {str}");
+        };
+        channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
         channel.onerror += error => _logger.LogError($"DataChannel: error: {error}");
         
         _logger.LogDebug($"creating offer for id={id}");

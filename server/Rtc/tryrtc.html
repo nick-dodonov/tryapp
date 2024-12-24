@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
 
     <script type="text/javascript">
-        const DATA_CHANNEL_LABEL = "dc1";
+        //const DATA_CHANNEL_LABEL = "dc1";
 
         const id = Date.now().toString();
         const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
@@ -12,7 +12,7 @@
         const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
         //const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
 
-        let pc, dc;
+        let pc;//, dc;
 
         async function startConnection() {
             console.log(">>>> startConnection");
@@ -89,7 +89,7 @@
                 const channel = event.channel
                 console.log("ondatachannel: ", channel);
                 channel.onmessage = function (event) {
-                    console.log('DataChannel: onmessage:', event); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
+                    console.log('DataChannel: onmessage:', event.data); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
                     // if (event.data instanceof ArrayBuffer) {
                     //     console.log(`binary data of length ${event.data.byteLength}.`);
                     //     event.target.send(event.data);
@@ -125,14 +125,35 @@
                     messagesLostElement.innerText = messagesLost
                     messagesLateElement.innerText = messagesLate
                 }
+
+                console.log(`DataChannel: timer: starting to send data`);
+                let frameId = 1;
+                let timer = setInterval(() => {
+                    const readyState = channel.readyState;
+                    if (readyState !== "open") {
+                        console.log(`DataChannel: timer: stop: readyState=${readyState}`);
+                        clearInterval(timer);
+                        return;
+                    }
+                    const connectionState = pc.connectionState;
+                    if (connectionState !== "connected") {
+                        console.log(`DataChannel: timer: stop: connectionState=${connectionState}`);
+                        clearInterval(timer);
+                        return;
+                    }
+                    const message = frameId + ";TODO-FROM-CLIENT;" + Date.now();
+                    console.log(`DataChannel: make send: ${message}`);
+                    channel.send(message);
+                    frameId++;
+                }, 1000); // every second
             }
 
-            dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
+            //dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
         }
         
         async function closeConnection() {
             console.log("======== closeConnection ========");
-            console.log("Data channel readyState: " + dc.readyState);
+            await pc?.close();
         }
     </script>
 </head>
