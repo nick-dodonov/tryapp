@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <head>
-    <title>TryRTC</title>
+    <title>RtcClient</title>
     <meta charset="UTF-8">
 
     <script type="text/javascript">
@@ -10,7 +10,7 @@
         const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
         const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
         const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
-        const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
+        //const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
 
         let pc, dc;
 
@@ -22,27 +22,15 @@
             console.log("result offer: ", offer);
 
             console.log("creating peer connection and assigning remote description");
-            pc = new RTCPeerConnection();
             //const STUN_URL = "stun:stun.sipsorcery.com";
             //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
+            pc = new RTCPeerConnection();
             
             pc.onconnectionstatechange = () => {
                 console.log("onconnectionstatechange: " + pc.connectionState);
             }
             
-            pc.ondatachannel = (event) => {
-                const channel = event.channel
-                console.log(`ondatachannel: new data channel created: id=${channel.id} label=${channel.label}`);
-                console.log("ondatachannel: RTCDataChannel: " + JSON.stringify(channel))
-                channel.onmessage = function(event) {
-                    onDataChannelMessage(event)
-                }
-            }
-            
-            dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
-            // dc.onopen = (event) => console.log(`data channel onopen: id=${dc.id}, label ${dc.label}.`);
-            // dc.onclose = (event) => console.log(`data channel onclose: id=${dc.id}, label ${dc.label}.`);
-            // dc.onmessage = onDataChannelMessage;
+            setupDataChannel(pc);
 
             pc.onicegatheringstatechange = function () {
                 console.log("onicegatheringstatechange: " + pc.iceGatheringState);
@@ -87,13 +75,59 @@
             console.log("<<<< startConnection");
         }
 
-        function onDataChannelMessage(evt) {
-            console.log(`onDataChannelMessage: message type ${evt.type}, label ${evt.target.label}, data ${evt.data}.`);
-            //console.log(evt);
-            if (evt.data instanceof ArrayBuffer) {
-                console.log(`binary data of length ${evt.data.byteLength}.`);
-                evt.target.send(evt.data);
+        function setupDataChannel(pc) {
+            let messagesOk = 0
+            let messagesLost = 0
+            let messagesLate = 0
+            let messagesOkElement = document.getElementById('ok')
+            let messagesLostElement = document.getElementById('lost')
+            let messagesLateElement = document.getElementById('late')
+            let lastMessageId = 0
+            let firstMessage = true
+            
+            pc.ondatachannel = (event) => {
+                const channel = event.channel
+                console.log("ondatachannel: ", channel);
+                channel.onmessage = function (event) {
+                    console.log('DataChannel: onmessage:', event); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
+                    // if (event.data instanceof ArrayBuffer) {
+                    //     console.log(`binary data of length ${event.data.byteLength}.`);
+                    //     event.target.send(event.data);
+                    // }
+                    // Ideally this wouldn't be a string, but that's out of scope here.
+
+                    const messageId = parseInt(event.data.split(";")[0], 10)
+
+                    if (messageId <= lastMessageId) {
+                        // This message is old. We can either skip it, or handle it
+                        // differently knowing it is old.
+                        if (messageId < lastMessageId) {
+                            messagesLost--
+                            messagesLate++
+                        }
+                    } else {
+                        messagesOk++
+                    }
+
+                    if (messageId > lastMessageId + 1) {
+                        if (firstMessage) {
+                            firstMessage = false
+                        } else {
+                            // Some messages before this one are late or were lost. 
+                            // If this happens a lot we may want to alert the user that the
+                            // connection seems unstable.
+                            messagesLost += messageId - lastMessageId - 1
+                        }
+                    }
+                    lastMessageId = messageId
+
+                    messagesOkElement.innerText = messagesOk
+                    messagesLostElement.innerText = messagesLost
+                    messagesLateElement.innerText = messagesLate
+                }
             }
+
+            dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
         }
         
         async function closeConnection() {
@@ -103,7 +137,7 @@
     </script>
 </head>
 <body>
-<h1>TryRTC</h1>
+<h1>RtcClient</h1>
 
 <div>
 <!--    <input type="checkbox" id="makeoffer" name="makfeoffer" value="makeoffer" onchange="seturl();"> Make Offer-->
@@ -111,6 +145,12 @@
     <button type="button" class="btn btn-success" onclick="startConnection();">Open</button>
     <button type="button" class="btn btn-success" onclick="closeConnection();">Close</button>
 </div>
+
+<h2>Result</h2>
+
+<div>Messages OK: <span id="ok">0</span></div>
+<div>Messages Lost: <span id="lost">0</span></div>
+<div>Messages Late: <span id="late">0</span></div>
 
 <!--<div>-->
 <!--    <input type="text" id="message" value="hello world"/>-->

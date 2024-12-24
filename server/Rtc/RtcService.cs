@@ -107,11 +107,36 @@ public class RtcService : IHostedService
         // };
         
         _logger.LogDebug($"creating data channel for id={id}");
-        connection.DataChannel = await peerConnection.createDataChannel("test", new()
+        var channel = connection.DataChannel = await peerConnection.createDataChannel("test", new()
         {
             ordered = false,
             maxRetransmits = 0
         });
+        channel.onopen += () =>
+        {
+            _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
+            
+            var frameId = 1;
+            var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
+            timer.Elapsed += (sender, e) =>
+            {
+                if (peerConnection.connectionState != RTCPeerConnectionState.connected)
+                {
+                    _logger.LogDebug("DataChannel: Peer connection is connected, stopping frame ID timer.");
+                    timer.Stop();
+                    return;
+                }
+
+                var frameIdToSend = $"{frameId++};TODO-RANDOM-DATA";
+                _logger.LogDebug($"Sending frame ID: {frameIdToSend}");
+                channel.send(frameIdToSend);
+            };
+            timer.Start();
+        };
+        channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
+        channel.onmessage += (datachannel, type, data) =>
+            _logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
+        channel.onerror += error => _logger.LogError($"DataChannel: error: {error}");
         
         _logger.LogDebug($"creating offer for id={id}");
         var offerSdp = peerConnection.createOffer();
