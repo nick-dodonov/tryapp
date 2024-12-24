@@ -6,6 +6,8 @@ Shared.StaticLog.Info("==== starting server ====");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
+//TODO: add custom console formatter with category recolor to simplify debug
+//  https://learn.microsoft.com/en-us/dotnet/core/extensions/console-log-formatter
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<RtcService>()
@@ -21,6 +23,7 @@ builder.Services
     });
 
 var app = builder.Build();
+app.Logger.LogInformation("Starting server");
 
 // Configure the HTTP request pipeline.
 app.UseAuthorization();

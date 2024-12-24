@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Diagnostics;
+using Rtc;
 using Shared;
+using Shared.Meta.Api;
 using Shared.Meta.Client;
 using Shared.Web;
 using TMPro;
@@ -12,13 +14,18 @@ using UnityEngine.UI;
 public class HudLogic : MonoBehaviour
 {
     public TMP_Text versionText;
+
     public TMP_Dropdown serverDropdown;
     public Button serverRequestButton;
     public TMP_Text serverResponseText;
 
+    public Button rtcCallButton;
+
     private record ServerOption(string Text, string Url);
     private readonly List<ServerOption> _serverOptions = new();
 
+    private readonly RtcClient _rtcClient = new();
+    
     private void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
@@ -39,6 +46,29 @@ public class HudLogic : MonoBehaviour
             _serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         serverResponseText.text = "";
+        
+        rtcCallButton.onClick.AddListener(OnRtcCallButtonClick);
+    }
+
+    private async void OnRtcCallButtonClick()
+    {
+        try
+        {
+            serverResponseText.text = "Requesting...";
+            using var meta = CreateMetaClient();
+            var result = await _rtcClient.TryCall(meta, destroyCancellationToken);
+            serverResponseText.text = $"RESULT:\n{result}";
+        }
+        catch (Exception ex)
+        {
+            serverResponseText.text = $"ERROR:\n{ex.Message}";
+        }
+    }
+
+    private void OnDisable()
+    {
+        rtcCallButton.onClick.RemoveListener(OnRtcCallButtonClick);
+        serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
     }
 
     private static bool NeedServerLocalhostOptions()
@@ -101,20 +131,12 @@ public class HudLogic : MonoBehaviour
         return true;
     }
 
-
-    private void OnDisable()
-    {
-        serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
-    }
-
     private async void OnServerRequestButtonClick()
     {
         try
         {
             serverResponseText.text = "Requesting...";
-            var url = _serverOptions[serverDropdown.value].Url;
-            using var client = new UnityWebClient(url);
-            var meta = new MetaClient(client);
+            using var meta = CreateMetaClient();
             var result = await meta.GetInfo(destroyCancellationToken);
             serverResponseText.text = @$"Response:
 \tRandomName: {result.RandomName}
@@ -126,5 +148,12 @@ public class HudLogic : MonoBehaviour
         {
             serverResponseText.text = $"ERROR:\n{ex.Message}";
         }
+    }
+
+    private IMeta CreateMetaClient()
+    {
+        var url = _serverOptions[serverDropdown.value].Url;
+        var meta = new MetaClient(new UnityWebClient(url));
+        return meta;
     }
 }

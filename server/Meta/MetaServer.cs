@@ -1,9 +1,10 @@
+using Server.Rtc;
 using Shared;
 using Shared.Meta.Api;
 
 namespace Server.Meta;
 
-public class MetaServer : IMeta
+public sealed class MetaServer(RtcService rtcService) : IMeta
 {
     private static readonly string[] RandomNames =
     [
@@ -14,6 +15,8 @@ public class MetaServer : IMeta
         "Zagreb", "Sofia", "Bucharest", "Belgrade", "Bern", "Reykjavik", "Montevideo", "Doha", "Amman", "Singapore"
     ];
     private int _uid;
+
+    public void Dispose() { }
 
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
     {
@@ -27,4 +30,7 @@ public class MetaServer : IMeta
         StaticLog.Info($"==== Info request/result: {result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
+
+    public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
+        => (await rtcService.GetOffer(id)).toJSON();
 }

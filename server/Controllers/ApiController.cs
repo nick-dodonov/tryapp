@@ -7,29 +7,26 @@ namespace server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ApiController(
+public sealed class ApiController(
     ILogger<ApiController> logger, 
     IMeta meta, 
     RtcService rtcService) 
     : ControllerBase, IMeta
 {
+    public void Dispose() => logger.LogDebug("Dispose"); // diagnose controller behaviour
+
     [Route("info")]
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
         => meta.GetInfo(cancellationToken);
     
     [Route("getoffer")]
-    public async Task<IActionResult> GetOffer(string id)
-    {
-        logger.LogDebug($"GetOffer: {id}");
-        return Ok(await rtcService.GetOffer(id));
-    }
+    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
+        => meta.GetOffer(id, cancellationToken);
     
     [HttpPost]
     [Route("setanswer")]
     public IActionResult SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer)
     {
-        logger.LogDebug($"SetAnswer: {id} {answer.type} {answer.sdp}");
-
         if (string.IsNullOrWhiteSpace(id))
             return BadRequest("The id cannot be empty in SetAnswer");
         if (string.IsNullOrWhiteSpace(answer.sdp))
@@ -40,9 +37,6 @@ public class ApiController(
     }
     
     [Route("testsend")]
-    public void TestSend(string id)
-    {
-        logger.LogDebug($"TestSend: {id}");
-        rtcService.TestSend(id);
-    }
+    public void TestSend(string id) 
+        => rtcService.TestSend(id);
 }

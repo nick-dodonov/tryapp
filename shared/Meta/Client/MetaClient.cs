@@ -1,3 +1,4 @@
+//TODO: test System.Text.Json with enabled WebGL embedded data (because System.Text.Json is better having span variants)
 //WEBGL-DISABLE: using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,20 +26,23 @@ namespace Shared.Meta.Client
         {
             _client = client;
         }
-        
+
+        public void Dispose()
+        {
+            _client.Dispose();
+        }
+
         public async ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
         {
-            StaticLog.Info($"==== Info request: {_client.BaseAddress}");
-            using var response = await _client.GetAsync("api/info", cancellationToken);
-            StaticLog.Info($"==== Info response StatusCode: {response.StatusCode}");
+            var uri = "api/info";
+            StaticLog.Info($"GetInfo request: {_client.BaseAddress}{uri}");
+            using var response = await _client.GetAsync(uri, cancellationToken);
+            StaticLog.Info($"GetInfo response StatusCode: {response.StatusCode}");
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            StaticLog.Info($"==== Info response Content: {content}");
+            StaticLog.Info($"GetInfo response Content: {content}");
             var result = JsonConvert.DeserializeObject<ServerInfo>(content, JsonSettings);
 
-            // var content2 = JsonConvert.SerializeObject(result, JsonSettings);
-            // StaticLog.Info($"==== Info response Content2: {content2}");
-            
             //TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet)
             //  to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
             //var result = await response.Content.ReadFromJsonAsync<string>(_serializerOptions, cancellationToken);
@@ -49,6 +53,15 @@ namespace Shared.Meta.Client
             
             if (result == null) throw new("deserialize failed");
             return result;
+        }
+
+        public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
+        {
+            var uri = $"api/getoffer?id={id}";
+            StaticLog.Info($"==== GetOffer: {_client.BaseAddress}{uri}");
+            using var response = await _client.GetAsync(uri, cancellationToken);
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
         }
     }
 }

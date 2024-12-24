@@ -4,9 +4,13 @@ using System.Threading.Tasks;
 
 namespace Shared.Meta.Api
 {
-    public interface IMeta
+    public interface IMeta : IDisposable
     {
         public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken);
+
+        //TODO: separate iface
+        //TODO: shared RTCSessionDescription
+        public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken);
     }
     
     [Serializable]

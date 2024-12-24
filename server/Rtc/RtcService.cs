@@ -27,7 +27,6 @@ public class RtcService(ILogger<RtcService> logger) : IHostedService
         return Task.CompletedTask;
     }
 
-    private const string STUN_URL = "stun:stun.sipsorcery.com";
     public async Task<RTCSessionDescriptionInit> GetOffer(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
@@ -35,6 +34,7 @@ public class RtcService(ILogger<RtcService> logger) : IHostedService
         if (_peerConnections.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
         
+        // const string STUN_URL = "stun:stun.sipsorcery.com";
         // var config = new RTCConfiguration {
         //     iceServers = [new() { urls = STUN_URL }]
         // };
