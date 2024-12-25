@@ -4,14 +4,24 @@
     <meta charset="UTF-8">
 
     <script type="text/javascript">
-        //const DATA_CHANNEL_LABEL = "dc1";
-
+        //const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
+        const currentUrl = window.location.href;
+        console.log("currentUrl: ", currentUrl);
+        //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
+        const baseUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+            if (base.includes("localhost")) {
+                return base.replace(/:\d+/, ":5270") + "/api/";
+            }
+            return base + "/api/";
+        });
+        console.log("baseUrl: ", baseUrl);
+        
         const id = Date.now().toString();
-        const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
         const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
         const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
         //const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
 
+        //const DATA_CHANNEL_LABEL = "dc1";
         let pc;//, dc;
 
         async function startConnection() {
