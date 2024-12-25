@@ -130,9 +130,9 @@ public class RtcService : IHostedService
                     return;
                 }
 
-                var frameIdToSend = $"{frameId++};TODO-FROM-SERVER;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                _logger.LogDebug($"DataChannel: make send: {frameIdToSend}");
-                channel.send(frameIdToSend);
+                var message = $"{frameId++};TODO-FROM-SERVER;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                _logger.LogDebug($"DataChannel: sending: {message}");
+                channel.send(message);
             };
             timer.Start();
         };

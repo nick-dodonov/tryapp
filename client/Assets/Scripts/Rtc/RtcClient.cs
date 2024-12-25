@@ -38,11 +38,34 @@ namespace Rtc
                 channel.OnMessage = message =>
                 {
                     var messageStr = System.Text.Encoding.UTF8.GetString(message);
-                    StaticLog.Info($"OnMessage: {messageStr}");
+                    StaticLog.Info($"DataChannel: OnMessage: {messageStr}");
                 };
-                channel.OnOpen = () => StaticLog.Info($"OnOpen: {channel}");
-                channel.OnClose = () => StaticLog.Info($"OnClose: {channel}");
-                channel.OnError = error => StaticLog.Info($"OnError: {error}");
+                channel.OnOpen = () => StaticLog.Info($"DataChannel: OnOpen: {channel}");
+                channel.OnClose = () => StaticLog.Info($"DataChannel: OnClose: {channel}");
+                channel.OnError = error => StaticLog.Info($"DataChannel: OnError: {error}");
+                
+                var frameId = 1;
+                var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
+                timer.Elapsed += (sender, e) =>
+                {
+                    if (channel.ReadyState != RTCDataChannelState.Open)
+                    {
+                        StaticLog.Info($"DataChannel: timer: stop: readyState={channel.ReadyState}");
+                        timer.Stop();
+                        return;
+                    }
+                    if (_peerConnection.ConnectionState != RTCPeerConnectionState.Connected)
+                    {
+                        StaticLog.Info($"DataChannel: timer: stop: connectionState={_peerConnection.ConnectionState}");
+                        timer.Stop();
+                        return;
+                    }
+
+                    var message = $"{frameId++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                    StaticLog.Info($"DataChannel: sending: {message}");
+                    channel.Send(message);
+                };
+                timer.Start();
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
