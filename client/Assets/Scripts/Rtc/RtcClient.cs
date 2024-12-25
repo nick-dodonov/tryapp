@@ -19,13 +19,24 @@ namespace Rtc
             StaticLog.Info($"Requesting offer for id: {id}");
             var offerStr = await meta.GetOffer(id, cancellationToken);
             var offer = JsonUtility.FromJson<RTCSessionDescription>(offerStr);
-            StaticLog.Info($"Obtained offer: ${Describe(offer)}");
+            StaticLog.Info($"Obtained offer: {Describe(offer)}");
             
             _peerConnection = new();
-            _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"OnIceCandidate: ${Describe(candidate)}");
-            _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"OnIceConnectionChange: ${state}");
-            _peerConnection.OnIceGatheringStateChange = state => StaticLog.Info($"OnIceGatheringStateChange: ${state}");
-            _peerConnection.OnDataChannel = channel => StaticLog.Info($"OnDataChannel: ${channel}");
+            _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"OnIceCandidate: {Describe(candidate)}");
+            _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"OnIceConnectionChange: {state}");
+            _peerConnection.OnIceGatheringStateChange = state => StaticLog.Info($"OnIceGatheringStateChange: {state}");
+            _peerConnection.OnDataChannel = channel =>
+            {
+                StaticLog.Info($"OnDataChannel: {channel}");
+                channel.OnMessage = message =>
+                {
+                    var messageStr = message.ToString();
+                    StaticLog.Info($"OnMessage: {messageStr}");
+                };
+                channel.OnOpen = () => StaticLog.Info($"OnOpen: {channel}");
+                channel.OnClose = () => StaticLog.Info($"OnClose: {channel}");
+                channel.OnError = error => StaticLog.Info($"OnError: {error}");
+            };
 
             await _peerConnection.SetRemoteDescription(ref offer);
             StaticLog.Info("Creating answer");
