@@ -13,6 +13,12 @@ namespace Rtc
     {
         private RTCPeerConnection _peerConnection;
 
+        public RtcClient()
+        {
+            //Disabled because Unity Editor crashes (macOS)
+            //WebRTC.ConfigureNativeLogging(true, NativeLoggingSeverity.Info);
+        }
+
         public async Task<string> TryCall(IMeta meta, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid().ToString();
@@ -25,9 +31,10 @@ namespace Rtc
             _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"OnIceCandidate: {Describe(candidate)}");
             _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"OnIceConnectionChange: {state}");
             _peerConnection.OnIceGatheringStateChange = state => StaticLog.Info($"OnIceGatheringStateChange: {state}");
+            _peerConnection.OnConnectionStateChange = state => StaticLog.Info($"OnConnectionStateChange: {state}");
             _peerConnection.OnDataChannel = channel =>
             {
-                StaticLog.Info($"OnDataChannel: {channel}");
+                StaticLog.Info($"OnDataChannel: {Describe(channel)}");
                 channel.OnMessage = message =>
                 {
                     var messageStr = System.Text.Encoding.UTF8.GetString(message);
@@ -55,8 +62,11 @@ namespace Rtc
             return "OK";
         }
 
-        private static string Describe(in RTCSessionDescription sessionDescription)
-            => WebSerializer.SerializeObject(sessionDescription); //$"type={sessionDescription.type} sdp={sessionDescription.sdp}";
+        private static string Describe(RTCDataChannel channel) 
+            => $"id={channel.Id} label={channel.Label} ordered={channel.Ordered} maxRetransmits={channel.MaxRetransmits} protocol={channel.Protocol} negotiated={channel.Negotiated} bufferedAmount={channel.BufferedAmount} readyState={channel.ReadyState}";
+
+        private static string Describe(in RTCSessionDescription description)
+            => WebSerializer.SerializeObject(description); //$"type={description.type} sdp={description.sdp}";
 
         private static string Describe(RTCIceCandidate candidate)
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
