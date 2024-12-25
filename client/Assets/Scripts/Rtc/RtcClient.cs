@@ -30,7 +30,7 @@ namespace Rtc
                 StaticLog.Info($"OnDataChannel: {channel}");
                 channel.OnMessage = message =>
                 {
-                    var messageStr = message.ToString();
+                    var messageStr = System.Text.Encoding.UTF8.GetString(message);
                     StaticLog.Info($"OnMessage: {messageStr}");
                 };
                 channel.OnOpen = () => StaticLog.Info($"OnOpen: {channel}");
