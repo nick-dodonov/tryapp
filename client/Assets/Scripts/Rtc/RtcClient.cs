@@ -4,8 +4,8 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Shared;
 using Shared.Meta.Api;
+using Shared.Web;
 using Unity.WebRTC;
-using UnityEngine;
 
 namespace Rtc
 {
@@ -18,7 +18,7 @@ namespace Rtc
             var id = Guid.NewGuid().ToString();
             StaticLog.Info($"Requesting offer for id: {id}");
             var offerStr = await meta.GetOffer(id, cancellationToken);
-            var offer = JsonUtility.FromJson<RTCSessionDescription>(offerStr);
+            var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
             StaticLog.Info($"Obtained offer: {Describe(offer)}");
             
             _peerConnection = new();
@@ -47,7 +47,7 @@ namespace Rtc
             await _peerConnection.SetLocalDescription(ref answer);
             
             StaticLog.Info("Posting answer");
-            var answerStr = JsonUtility.ToJson(answer);
+            var answerStr = WebSerializer.SerializeObject(answer);
             var candidate = await meta.SetAnswer(id, answerStr, cancellationToken);
             StaticLog.Info($"Result candidate: {candidate}");
             
@@ -56,9 +56,9 @@ namespace Rtc
         }
 
         private static string Describe(in RTCSessionDescription sessionDescription)
-            => $"type={sessionDescription.type} sdp={sessionDescription.sdp}";
+            => WebSerializer.SerializeObject(sessionDescription); //$"type={sessionDescription.type} sdp={sessionDescription.sdp}";
 
-        private static string Describe(RTCIceCandidate candidate) 
+        private static string Describe(RTCIceCandidate candidate)
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
     }
 }
