@@ -24,7 +24,7 @@ public class HudLogic : MonoBehaviour
     private record ServerOption(string Text, string Url);
     private readonly List<ServerOption> _serverOptions = new();
 
-    private readonly RtcClient _rtcClient = new();
+    private readonly IRtcClient _rtcClient = RtcClientFactory.CreateRtcClient();
     
     private void OnEnable()
     {

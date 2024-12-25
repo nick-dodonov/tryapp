@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || !UNITY_WEBGL
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,12 +10,13 @@ using Unity.WebRTC;
 
 namespace Rtc
 {
-    public class RtcClient
+    public class UnityRtcClient : IRtcClient
     {
         private RTCPeerConnection _peerConnection;
 
-        public RtcClient()
+        public UnityRtcClient()
         {
+            StaticLog.Info("UnityRtcClient: created");
             //Disabled because Unity Editor crashes (macOS)
             //WebRTC.ConfigureNativeLogging(true, NativeLoggingSeverity.Info);
         }
@@ -46,7 +48,7 @@ namespace Rtc
                 
                 var frameId = 1;
                 var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
-                timer.Elapsed += (sender, e) =>
+                timer.Elapsed += (_, _) =>
                 {
                     if (channel.ReadyState != RTCDataChannelState.Open)
                     {
@@ -95,3 +97,4 @@ namespace Rtc
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
     }
 }
+#endif
