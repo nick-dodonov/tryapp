@@ -1,4 +1,5 @@
 //TODO: test System.Text.Json with enabled WebGL embedded data (because System.Text.Json is better having span variants)
+//  https://docs.unity3d.com/Manual/webgl-embeddedresources.html
 //WEBGL-DISABLE: using System.Text.Json;
 
 using System.Collections.Generic;
