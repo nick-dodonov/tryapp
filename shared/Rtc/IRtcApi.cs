@@ -15,6 +15,9 @@ namespace Shared.Rtc
         Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
     }
     
+    /// <summary>
+    /// TODO: make different implementations (not only current REST variant but WebSocket too)
+    /// </summary>
     public interface IRtcService
     {
         //TODO: shared RTC types for SDP (offer, answer) and ICE candidates

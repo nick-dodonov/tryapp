@@ -1,3 +1,7 @@
+instances = {
+
+}
+
 async function RtcConnect(receivedCallback) {
     const currentUrl = window.location.href;
     console.log("RtcConnect: currentUrl: ", currentUrl);
@@ -15,15 +19,6 @@ async function RtcConnect(receivedCallback) {
     let offerResponse = await fetch(getOfferUrl);
     let offer = await offerResponse.json();
     console.log("RtcConnect: result offer: ", offer);
-
-    const message = 'XXXXXXXXXXX 1234567890'
-    const encoder = new TextEncoder();
-    const array = encoder.encode(message);
-
-    const buffer = _malloc(array.length * array.BYTES_PER_ELEMENT);
-    HEAPU8.set(bytes, buffer);    
-    {{{ makeDynCall('vi', 'receivedCallback') }}}(bytes);
-    _free(buffer);
 }
 
 mergeInto(LibraryManager.library, {

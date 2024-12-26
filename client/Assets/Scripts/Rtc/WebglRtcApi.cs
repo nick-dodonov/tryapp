@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared;
-using Shared.Meta.Api;
 using Shared.Rtc;
 
 namespace Client.Rtc
@@ -16,7 +15,7 @@ namespace Client.Rtc
     /// </summary>
     public class WebglRtcApi : IRtcApi
     {
-        private readonly IMeta _meta;
+        private readonly IRtcService _service;
 
         [DllImport("__Internal")]
         private static extern void SetupTestCallbackString(string message, Action<string> action);
@@ -24,17 +23,17 @@ namespace Client.Rtc
         [DllImport("__Internal")]
         private static extern void SetupTestCallbackBytes(byte[] bytes, int size, Action<byte[], int> action);
         
-        public WebglRtcApi(IMeta meta)
+        public WebglRtcApi(IRtcService service)
         {
-            StaticLog.Info("WebglRtcApi: created");
-            _meta = meta;
+            StaticLog.Info("WebglRtcApi: ctr");
+            _service = service;
         }
 
         Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
             StaticLog.Info("WebglRtcApi: Connect");
             TestCallbacks();
-            return Task.FromResult<IRtcLink>(new WebglRtcLink(receivedCallback));
+            return Task.FromResult<IRtcLink>(new WebglRtcLink(_service, receivedCallback));
             
             // var link = new WebglRtcLink(receivedCallback);
             // await link.Connect(cancellationToken);
@@ -63,19 +62,20 @@ namespace Client.Rtc
             StaticLog.Info($"WebglRtcApi: TestCallbackBytes: [{string.Join(',', bytes)}]");
     }
 
-    public class WebglRtcLink : IRtcLink
+    public class WebglRtcLink : BaseRtcLink, IRtcLink
     {
-        private readonly IRtcLink.ReceivedCallback _receivedCallback;
-
         [DllImport("__Internal")]
         private static extern void RtcConnect(Action<byte[], int> receivedCallback);
 
-        public WebglRtcLink(IRtcLink.ReceivedCallback receivedCallback)
+        public WebglRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
+            : base(service, receivedCallback)
         {
-            _receivedCallback = receivedCallback;
         }
 
-        public void Dispose() { }
+        public void Dispose()
+        {
+            //throw new NotImplementedException();
+        }
 
         public void Send(byte[] bytes)
         {
@@ -93,7 +93,7 @@ namespace Client.Rtc
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)] 
             byte[] bytes, int length)
         {
-            StaticLog.Info($"WebglRtcLink: ReceivedCallback: [{bytes.Length}]");
+            StaticLog.Info($"WebglRtcLink: ReceivedCallback: [{string.Join(',', bytes)}]");
             //_receivedCallback(bytes);
         }
     }
