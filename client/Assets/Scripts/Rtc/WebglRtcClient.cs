@@ -17,6 +17,9 @@ namespace Rtc
         [DllImport("__Internal")]
         private static extern void Hello();
         [DllImport("__Internal")]
+        private static extern void Connect();
+
+        [DllImport("__Internal")]
         private static extern void SetupTestCallback(string message, Action<string> action);
         
         public WebglRtcClient()
@@ -30,7 +33,8 @@ namespace Rtc
             await Task.Yield();
             
             //Hello();
-            SetupTestCallback("message-into-js", TestCallback);
+            //SetupTestCallback("message-into-js", TestCallback);
+            Connect();
             
             return "TODO";
         }

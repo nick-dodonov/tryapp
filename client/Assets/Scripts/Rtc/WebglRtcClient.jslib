@@ -1,6 +1,22 @@
 mergeInto(LibraryManager.library, {
-    Hello: function () {
-        window.alert("Hello, world!");
+    Connect: async function () {
+        const currentUrl = window.location.href;
+        console.log("WebglRtcClient: currentUrl: ", currentUrl);
+        const baseUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+            if (base.includes("localhost")) {
+                return base.replace(/:\d+/, ":5270") + "/api/";
+            }
+            return base + "/api/";
+        });
+        console.log("WebglRtcClient: baseUrl: ", baseUrl);
+        const id = Date.now().toString();
+        const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
+        const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
+
+        console.log("Connect:", getOfferUrl);
+        let offerResponse = await fetch(getOfferUrl);
+        let offer = await offerResponse.json();
+        console.log("result offer: ", offer);
     },
     SetupTestCallback: function (message, callback) {
         console.log("SetupTestCallback-1:", message);
@@ -21,5 +37,5 @@ mergeInto(LibraryManager.library, {
                 clearInterval(timer);
             }
         }, 1000);
-    }    
+    },
 });
