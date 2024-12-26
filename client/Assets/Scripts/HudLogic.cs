@@ -19,13 +19,16 @@ public class HudLogic : MonoBehaviour
     public Button serverRequestButton;
     public TMP_Text serverResponseText;
 
-    public Button rtcCallButton;
+    public Button rtcStartButton;
+    public Button rtcStopButton;
 
     private record ServerOption(string Text, string Url);
     private readonly List<ServerOption> _serverOptions = new();
 
-    private readonly IRtcClient _rtcClient = RtcClientFactory.CreateRtcClient();
-    
+    private IMeta _meta;
+    private IRtcClient _rtcClient;
+    private IRtcLink _rtcLink;
+
     private void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
@@ -44,30 +47,17 @@ public class HudLogic : MonoBehaviour
         serverDropdown.options.Clear();
         serverDropdown.options.AddRange(
             _serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
-        serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         serverResponseText.text = "";
         
-        rtcCallButton.onClick.AddListener(OnRtcCallButtonClick);
-    }
-
-    private async void OnRtcCallButtonClick()
-    {
-        try
-        {
-            serverResponseText.text = "Requesting...";
-            using var meta = CreateMetaClient();
-            var result = await _rtcClient.TryCall(meta, destroyCancellationToken);
-            serverResponseText.text = $"RESULT:\n{result}";
-        }
-        catch (Exception ex)
-        {
-            serverResponseText.text = $"ERROR:\n{ex.Message}";
-        }
+        serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
+        rtcStartButton.onClick.AddListener(RtcStart);
+        rtcStopButton.onClick.AddListener(RtcStop);
     }
 
     private void OnDisable()
     {
-        rtcCallButton.onClick.RemoveListener(OnRtcCallButtonClick);
+        rtcStopButton.onClick.AddListener(RtcStop);
+        rtcStartButton.onClick.RemoveListener(RtcStart);
         serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
     }
 
@@ -81,7 +71,7 @@ public class HudLogic : MonoBehaviour
         return false;
     }
 
-    private bool NeedServerHostingOption(out string url)
+    private static bool NeedServerHostingOption(out string url)
     {
         url = Application.absoluteURL;
         if (!string.IsNullOrEmpty(url))
@@ -148,6 +138,67 @@ public class HudLogic : MonoBehaviour
         {
             serverResponseText.text = $"ERROR:\n{ex.Message}";
         }
+    }
+    
+    private async void RtcStart()
+    {
+        try
+        {
+            StaticLog.Info("RtcStart");
+            if (_rtcLink != null)
+                throw new InvalidOperationException("RtcStart: link is already established");
+            
+            serverResponseText.text = "Requesting...";
+            _meta = CreateMetaClient();
+            _rtcClient = RtcClientFactory.CreateRtcClient(_meta);
+            _rtcLink = await _rtcClient.Connect(RtcReceived, destroyCancellationToken);
+            
+            //start stub logic
+            var timer = new System.Timers.Timer(1000);
+            var frameId = 1;
+            timer.Elapsed += (_, _) =>
+            {
+                if (_rtcLink == null)
+                {
+                    timer.Stop();
+                    return;
+                }
+                var message = $"{frameId++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                StaticLog.Info($"RtcSend: {message}");
+                var bytes = System.Text.Encoding.UTF8.GetBytes(message);
+                _rtcLink.Send(bytes);
+            };
+            timer.Start();
+            
+            serverResponseText.text = "RESULT:\nOK";
+        }
+        catch (Exception ex)
+        {
+            serverResponseText.text = $"ERROR:\n{ex.Message}";
+            RtcStop("connect error");
+        }
+    }
+
+    private void RtcStop() => RtcStop("user request");
+    private void RtcStop(string reason)
+    {
+        StaticLog.Info($"RtcStop: {reason}");
+        _rtcLink?.Dispose();
+        _rtcLink = null;
+        _rtcClient = null;
+        _meta?.Dispose();
+        _meta = null;
+    }
+
+    private void RtcReceived(byte[] data)
+    {
+        if (data == null)
+        {
+            RtcStop("disconnected");
+            return;
+        }
+        var str = System.Text.Encoding.UTF8.GetString(data);
+        StaticLog.Info($"RtcReceived: {str}");
     }
 
     private IMeta CreateMetaClient()

@@ -14,6 +14,8 @@ namespace Rtc
     /// </summary>
     public class WebglRtcClient : IRtcClient
     {
+        private readonly IMeta _meta;
+
         [DllImport("__Internal")]
         private static extern void Hello();
         [DllImport("__Internal")]
@@ -22,12 +24,13 @@ namespace Rtc
         [DllImport("__Internal")]
         private static extern void SetupTestCallback(string message, Action<string> action);
         
-        public WebglRtcClient()
+        public WebglRtcClient(IMeta meta)
         {
             StaticLog.Info("WebglRtcClient: created");
+            _meta = meta;
         }
 
-        public async Task<string> TryCall(IMeta meta, CancellationToken cancellationToken)
+        async Task<string> IRtcClient.TryCall(CancellationToken cancellationToken)
         {
             StaticLog.Info("WebglRtcClient: TryCall: TODO");
             await Task.Yield();
@@ -38,11 +41,17 @@ namespace Rtc
             
             return "TODO";
         }
-        
+
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void TestCallback(string message)
         {
             StaticLog.Info($"WebglRtcClient: TestCallback: \"{message}\"");
+        }
+
+        Task<IRtcLink> IRtcClient.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
+        {
+            StaticLog.Info("Connect: TODO");
+            throw new NotImplementedException();
         }
     }
 }

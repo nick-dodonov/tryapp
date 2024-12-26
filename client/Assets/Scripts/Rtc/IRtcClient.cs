@@ -6,21 +6,29 @@ using UnityEngine;
 
 namespace Rtc
 {
+    public interface IRtcLink : IDisposable
+    {
+        public delegate void ReceivedCallback(byte[] bytes); //null - disconnected
+        void Send(byte[] bytes);
+    }
+
     public interface IRtcClient
     {
-        public Task<string> TryCall(IMeta meta, CancellationToken cancellationToken);
+        Task<string> TryCall(CancellationToken cancellationToken);
+
+        Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
     }
 
     public static class RtcClientFactory
     {
-        public static IRtcClient CreateRtcClient()
+        public static IRtcClient CreateRtcClient(IMeta meta)
         {
 #if UNITY_EDITOR
             if (Application.isEditor)
-                return new UnityRtcClient();
+                return new UnityRtcClient(meta);
 #endif
             if (Application.platform == RuntimePlatform.WebGLPlayer)
-                return new WebglRtcClient();
+                return new WebglRtcClient(meta);
 
             throw new NotSupportedException($"Unsupported platform: {Application.platform}");
         }
