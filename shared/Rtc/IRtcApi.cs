@@ -6,7 +6,7 @@ namespace Shared.Rtc
 {
     public interface IRtcLink : IDisposable
     {
-        public delegate void ReceivedCallback(byte[] bytes); //null - disconnected
+        public delegate void ReceivedCallback(byte[]? bytes); //null - disconnected
         void Send(byte[] bytes);
     }
 

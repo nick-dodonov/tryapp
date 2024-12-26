@@ -30,10 +30,10 @@ namespace Client.Rtc
             StaticLog.Info($"Requesting offer for id: {id}");
             var offerStr = await _meta.GetOffer(id, cancellationToken);
             var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
-            StaticLog.Info($"Obtained offer: {Describe(offer)}");
+            StaticLog.Info($"Obtained offer: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
-            _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"OnIceCandidate: {Describe(candidate)}");
+            _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
             _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"OnIceConnectionChange: {state}");
             _peerConnection.OnIceGatheringStateChange = state => StaticLog.Info($"OnIceGatheringStateChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
@@ -54,7 +54,7 @@ namespace Client.Rtc
             };
             _peerConnection.OnDataChannel = channel =>
             {
-                StaticLog.Info($"OnDataChannel: {Describe(channel)}");
+                StaticLog.Info($"OnDataChannel: {UnityRtcDebug.Describe(channel)}");
                 _dataChannel = channel;
                 channel.OnMessage = bytes =>
                 {
@@ -72,7 +72,7 @@ namespace Client.Rtc
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            StaticLog.Info($"Created answer: {Describe(answer)}");
+            StaticLog.Info($"Created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
             StaticLog.Info("Posting answer");
@@ -92,15 +92,6 @@ namespace Client.Rtc
         {
             _dataChannel.Send(bytes);
         }
-        
-        private static string Describe(RTCDataChannel channel) 
-            => $"id={channel.Id} label={channel.Label} ordered={channel.Ordered} maxRetransmits={channel.MaxRetransmits} protocol={channel.Protocol} negotiated={channel.Negotiated} bufferedAmount={channel.BufferedAmount} readyState={channel.ReadyState}";
-
-        private static string Describe(in RTCSessionDescription description)
-            => WebSerializer.SerializeObject(description); //$"type={description.type} sdp={description.sdp}";
-
-        private static string Describe(RTCIceCandidate candidate)
-            => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
     }
     
     public class UnityRtcApi : IRtcApi

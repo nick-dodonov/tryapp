@@ -1,5 +1,9 @@
+function xxxx() {
+    console.log("XXXXXXXXX");
+}
+
 mergeInto(LibraryManager.library, {
-    Connect: async function () {
+    Connect: async function() {
         const currentUrl = window.location.href;
         console.log("WebglRtcClient: currentUrl: ", currentUrl);
         const baseUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
@@ -18,7 +22,7 @@ mergeInto(LibraryManager.library, {
         let offer = await offerResponse.json();
         console.log("result offer: ", offer);
     },
-    SetupTestCallback: function (message, callback) {
+    SetupTestCallback: function(message, callback) {
         console.log("SetupTestCallback-1:", message);
         var stringMessage = UTF8ToString(message);
         console.log("SetupTestCallback-2:", stringMessage);
@@ -27,7 +31,13 @@ mergeInto(LibraryManager.library, {
         let timer = setInterval(() => {
             console.log(">>>> SetupTestCallback-timer:", frameId);
             var buffer = stringToNewUTF8(stringMessage + "-" + frameId); // copy of message because it might be deleted before callback is run
-            {{{ makeDynCall('vi', 'callback') }}} (buffer);
+            {
+                {
+                    {
+                        makeDynCall('vi', 'callback')
+                    }
+                }
+            }(buffer);
             _free(buffer);
             console.log("<<<< SetupTestCallback-timer:", frameId);
 
