@@ -5,8 +5,9 @@ using System.Threading.Tasks;
 using AOT;
 using Shared;
 using Shared.Meta.Api;
+using Shared.Rtc;
 
-namespace Rtc
+namespace Client.Rtc
 {
     /// <summary>
     /// Interaction with browser scripting:

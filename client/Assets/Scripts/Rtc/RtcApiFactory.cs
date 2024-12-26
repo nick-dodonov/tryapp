@@ -1,22 +1,10 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Shared.Meta.Api;
+using Shared.Rtc;
 using UnityEngine;
 
-namespace Rtc
+namespace Client.Rtc
 {
-    public interface IRtcLink : IDisposable
-    {
-        public delegate void ReceivedCallback(byte[] bytes); //null - disconnected
-        void Send(byte[] bytes);
-    }
-
-    public interface IRtcApi
-    {
-        Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
-    }
-
     public static class RtcApiFactory
     {
         public static IRtcApi CreateRtcClient(IMeta meta)

@@ -5,10 +5,11 @@ using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Shared;
 using Shared.Meta.Api;
+using Shared.Rtc;
 using Shared.Web;
 using Unity.WebRTC;
 
-namespace Rtc
+namespace Client.Rtc
 {
     public class UnityRtcLink : IRtcLink
     {
