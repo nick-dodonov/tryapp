@@ -1,15 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
-using Server.Rtc;
 using Shared.Meta.Api;
-using SIPSorcery.Net;
 
 namespace server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public sealed class ApiController(
-    IMeta meta, 
-    RtcService rtcService) 
+public sealed class ApiController(IMeta meta) 
     : ControllerBase
 {
     public void Dispose() { }

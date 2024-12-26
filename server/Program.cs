@@ -1,6 +1,7 @@
 using Server.Meta;
 using Server.Rtc;
 using Shared.Meta.Api;
+using Shared.Rtc;
 
 Shared.StaticLog.Info("==== starting server ====");
 var builder = WebApplication.CreateBuilder(args);
@@ -10,7 +11,7 @@ var builder = WebApplication.CreateBuilder(args);
 //  https://learn.microsoft.com/en-us/dotnet/core/extensions/console-log-formatter
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
-    .AddSingleton<RtcService>()
+    .AddSingleton<IRtcService, RtcService>()
     .AddHostedService<RtcService>()
     ;
 builder.Services

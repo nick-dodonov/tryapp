@@ -1,10 +1,10 @@
-using Server.Rtc;
 using Shared;
 using Shared.Meta.Api;
+using Shared.Rtc;
 
 namespace Server.Meta;
 
-public sealed class MetaServer(RtcService rtcService) : IMeta
+public sealed class MetaServer(IRtcService rtcService) : IMeta
 {
     private static readonly string[] RandomNames =
     [
