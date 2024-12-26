@@ -12,7 +12,7 @@ namespace Rtc
     /// Interaction with browser scripting:
     ///     https://docs.unity3d.com/Manual/webgl-interactingwithbrowserscripting.html
     /// </summary>
-    public class WebglRtcClient : IRtcClient
+    public class WebglRtcApi : IRtcApi
     {
         private readonly IMeta _meta;
 
@@ -24,7 +24,7 @@ namespace Rtc
         [DllImport("__Internal")]
         private static extern void SetupTestCallback(string message, Action<string> action);
         
-        public WebglRtcClient(IMeta meta)
+        public WebglRtcApi(IMeta meta)
         {
             StaticLog.Info("WebglRtcClient: created");
             _meta = meta;
@@ -36,7 +36,7 @@ namespace Rtc
             StaticLog.Info($"WebglRtcClient: TestCallback: \"{message}\"");
         }
 
-        Task<IRtcLink> IRtcClient.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
+        Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
             StaticLog.Info("Connect: TODO");
             throw new NotImplementedException();

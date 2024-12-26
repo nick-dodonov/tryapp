@@ -26,7 +26,7 @@ public class HudLogic : MonoBehaviour
     private readonly List<ServerOption> _serverOptions = new();
 
     private IMeta _meta;
-    private IRtcClient _rtcClient;
+    private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
     private void OnEnable()
@@ -150,8 +150,8 @@ public class HudLogic : MonoBehaviour
             
             serverResponseText.text = "Requesting...";
             _meta = CreateMetaClient();
-            _rtcClient = RtcClientFactory.CreateRtcClient(_meta);
-            _rtcLink = await _rtcClient.Connect(RtcReceived, destroyCancellationToken);
+            _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
+            _rtcLink = await _rtcApi.Connect(RtcReceived, destroyCancellationToken);
             
             //start stub logic
             var timer = new System.Timers.Timer(1000);
@@ -185,7 +185,7 @@ public class HudLogic : MonoBehaviour
         StaticLog.Info($"RtcStop: {reason}");
         _rtcLink?.Dispose();
         _rtcLink = null;
-        _rtcClient = null;
+        _rtcApi = null;
         _meta?.Dispose();
         _meta = null;
     }

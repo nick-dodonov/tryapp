@@ -12,21 +12,21 @@ namespace Rtc
         void Send(byte[] bytes);
     }
 
-    public interface IRtcClient
+    public interface IRtcApi
     {
         Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
     }
 
-    public static class RtcClientFactory
+    public static class RtcApiFactory
     {
-        public static IRtcClient CreateRtcClient(IMeta meta)
+        public static IRtcApi CreateRtcClient(IMeta meta)
         {
 #if UNITY_EDITOR
             if (Application.isEditor)
-                return new UnityRtcClient(meta);
+                return new UnityRtcApi(meta);
 #endif
             if (Application.platform == RuntimePlatform.WebGLPlayer)
-                return new WebglRtcClient(meta);
+                return new WebglRtcApi(meta);
 
             throw new NotSupportedException($"Unsupported platform: {Application.platform}");
         }

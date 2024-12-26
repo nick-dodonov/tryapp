@@ -102,12 +102,12 @@ namespace Rtc
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
     }
     
-    public class UnityRtcClient : IRtcClient
+    public class UnityRtcApi : IRtcApi
     {
         private readonly IMeta _meta;
         private RTCPeerConnection _peerConnection;
 
-        public UnityRtcClient(IMeta meta)
+        public UnityRtcApi(IMeta meta)
         {
             StaticLog.Info("UnityRtcClient: created");
             //Disabled because Unity Editor crashes (macOS)
