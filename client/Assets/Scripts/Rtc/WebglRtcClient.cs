@@ -1,6 +1,8 @@
+using System;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AOT;
 using Shared;
 using Shared.Meta.Api;
 
@@ -14,6 +16,8 @@ namespace Rtc
     {
         [DllImport("__Internal")]
         private static extern void Hello();
+        [DllImport("__Internal")]
+        private static extern void SetupTestCallback(string message, Action<string> action);
         
         public WebglRtcClient()
         {
@@ -25,9 +29,16 @@ namespace Rtc
             StaticLog.Info("WebglRtcClient: TryCall: TODO");
             await Task.Yield();
             
-            Hello();
+            //Hello();
+            SetupTestCallback("message-into-js", TestCallback);
             
             return "TODO";
+        }
+        
+        [MonoPInvokeCallback(typeof(Action<string>))]
+        public static void TestCallback(string message)
+        {
+            StaticLog.Info($"WebglRtcClient: TestCallback: \"{message}\"");
         }
     }
 }
