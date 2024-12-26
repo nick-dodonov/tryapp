@@ -17,55 +17,25 @@ namespace Client.Rtc
     {
         private readonly IRtcService _service;
 
-        [DllImport("__Internal")]
-        private static extern void SetupTestCallbackString(string message, Action<string> action);
-
-        [DllImport("__Internal")]
-        private static extern void SetupTestCallbackBytes(byte[] bytes, int size, Action<byte[], int> action);
-        
         public WebglRtcApi(IRtcService service)
         {
             StaticLog.Info("WebglRtcApi: ctr");
             _service = service;
         }
 
-        Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
+        async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
             StaticLog.Info("WebglRtcApi: Connect");
-            TestCallbacks();
-            return Task.FromResult<IRtcLink>(new WebglRtcLink(_service, receivedCallback));
-            
-            // var link = new WebglRtcLink(receivedCallback);
-            // await link.Connect(cancellationToken);
-            // return link;
+            var link = new WebglRtcLink(_service, receivedCallback);
+            await link.Connect(cancellationToken);
+            return link;
         }
-
-        private static void TestCallbacks()
-        {
-            StaticLog.Info("WebglRtcApi: TestCallbacks");
-            SetupTestCallbackString("test-string", TestCallbackString);
-
-            var bytes = new byte[] { 1, 2, 3, 4, 5 };
-            SetupTestCallbackBytes(bytes, bytes.Length, TestCallbackBytes);
-            for (var i = 0; i < bytes.Length; ++ i)
-                bytes[i] += 10;
-        }
-        
-        [MonoPInvokeCallback(typeof(Action<string>))]
-        public static void TestCallbackString(string message) 
-            => StaticLog.Info($"WebglRtcApi: TestCallbackString: \"{message}\"");
-
-        [MonoPInvokeCallback(typeof(Action<byte[]>))]
-        public static void TestCallbackBytes(
-            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)]
-            byte[] bytes, int length) =>
-            StaticLog.Info($"WebglRtcApi: TestCallbackBytes: [{string.Join(',', bytes)}]");
     }
 
     public class WebglRtcLink : BaseRtcLink, IRtcLink
     {
         [DllImport("__Internal")]
-        private static extern void RtcConnect(Action<byte[], int> receivedCallback);
+        private static extern int RtcConnect(string offer, Action<byte[], int> receivedCallback);
 
         public WebglRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
             : base(service, receivedCallback)
@@ -82,10 +52,12 @@ namespace Client.Rtc
             //throw new NotImplementedException();
         }
 
-        public Task Connect(CancellationToken cancellationToken)
+        public async Task Connect(CancellationToken cancellationToken)
         {
-            RtcConnect(ReceivedCallback);
-            return Task.CompletedTask;
+            var offerStr = await ObtainOffer(cancellationToken);
+            StaticLog.Info($"WebglRtcLink: Connect: request");
+            var result = RtcConnect(offerStr, ReceivedCallback);
+            StaticLog.Info($"WebglRtcLink: Connect: result: {result}");
         }
         
         [MonoPInvokeCallback(typeof(Action<byte[]>))]
@@ -94,6 +66,7 @@ namespace Client.Rtc
             byte[] bytes, int length)
         {
             StaticLog.Info($"WebglRtcLink: ReceivedCallback: [{string.Join(',', bytes)}]");
+            //CallReceived(bytes);
             //_receivedCallback(bytes);
         }
     }

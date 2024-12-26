@@ -127,6 +127,8 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
+            TryBind.TestCallbacks(); //TODO: mv to debug console for testing
+
             serverResponseText.text = "Requesting...";
             using var meta = CreateMetaClient();
             var result = await meta.GetInfo(destroyCancellationToken);
