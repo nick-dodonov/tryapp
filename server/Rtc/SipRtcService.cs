@@ -11,9 +11,9 @@ namespace Server.Rtc;
 ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
 ///     https://www.marksort.com/udp-like-networking-in-the-browser/
 /// </summary>
-public class RtcService : IRtcService, IHostedService
+public class SipRtcService : IRtcService, IHostedService
 {
-    private readonly ILogger<RtcService> _logger;
+    private readonly ILogger<SipRtcService> _logger;
 
     private class Connection(RTCPeerConnection peerConnection)
     {
@@ -29,9 +29,9 @@ public class RtcService : IRtcService, IHostedService
     ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
     ///     https://www.marksort.com/udp-like-networking-in-the-browser/
     /// </summary>
-    public RtcService(ILoggerFactory loggerFactory)
+    public SipRtcService(ILoggerFactory loggerFactory)
     {
-        _logger = loggerFactory.CreateLogger<RtcService>();
+        _logger = loggerFactory.CreateLogger<SipRtcService>();
         SIPSorcery.LogFactory.Set(loggerFactory);
     }
 

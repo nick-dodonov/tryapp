@@ -11,8 +11,8 @@ var builder = WebApplication.CreateBuilder(args);
 //  https://learn.microsoft.com/en-us/dotnet/core/extensions/console-log-formatter
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
-    .AddSingleton<IRtcService, RtcService>()
-    .AddHostedService<RtcService>()
+    .AddSingleton<IRtcService, SipRtcService>()
+    .AddHostedService<SipRtcService>()
     ;
 builder.Services
     .AddControllers()
