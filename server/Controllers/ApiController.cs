@@ -31,12 +31,8 @@ public sealed class ApiController(
         return await meta.SetAnswer(id, answerJson, cancellationToken);
     }
 
-    [HttpPost]
-    [Route("setanswer-TODO")]
-    public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
-        => rtcService.SetAnswer(id, answer, cancellationToken);
-
-    [Route("testsend")]
-    public void TestSend(string id) 
-        => rtcService.TestSend(id);
+    // [HttpPost]
+    // [Route("setanswer-TODO")]
+    // public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
+    //     => rtcService.SetAnswer(id, answer, cancellationToken);
 }

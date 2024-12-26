@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using System.Net;
+using Shared.Rtc;
 using SIPSorcery.Net;
 
 namespace Server.Rtc;
@@ -10,7 +11,7 @@ namespace Server.Rtc;
 ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
 ///     https://www.marksort.com/udp-like-networking-in-the-browser/
 /// </summary>
-public class RtcService : IHostedService
+public class RtcService : IRtcService, IHostedService
 {
     private readonly ILogger<RtcService> _logger;
 
@@ -18,7 +19,7 @@ public class RtcService : IHostedService
     {
         public readonly RTCPeerConnection PeerConnection = peerConnection;
         public readonly List<RTCIceCandidate> IceCandidates = [];
-        public RTCDataChannel DataChannel;
+        public RTCDataChannel? DataChannel;
     }
     private readonly ConcurrentDictionary<string, Connection> _connections = new();
 
@@ -46,7 +47,17 @@ public class RtcService : IHostedService
         return Task.CompletedTask;
     }
 
-    public async Task<RTCSessionDescriptionInit> GetOffer(string id)
+    public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
+        => (await GetOffer(id)).toJSON();
+
+    public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
+    {
+        if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
+            throw new InvalidOperationException("Body must contain SDP answer for id: {id}");
+        return SetAnswer(id, answer, cancellationToken);
+    }
+
+    private async Task<RTCSessionDescriptionInit> GetOffer(string id)
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
@@ -154,8 +165,8 @@ public class RtcService : IHostedService
         _logger.LogDebug($"returning offer for id={id}: {offerSdp}");
         return offerSdp;
     }
-    
-    public async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description, CancellationToken cancellationToken)
+
+    private async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description, CancellationToken cancellationToken)
     {
         if (!_connections.TryGetValue(id, out var connection))
             throw new ApplicationException($"No peer connection is available for the specified id: {id}");
@@ -170,19 +181,5 @@ public class RtcService : IHostedService
         var candidate = connection.IceCandidates[0];
         var result = candidate.toJSON();
         return result;
-    }
-    
-    public void TestSend(string id)
-    {
-        if (!_connections.TryGetValue(id, out var pc))
-            throw new ApplicationException($"No peer connection is available for the specified id: {id}");
-        var channel = pc.DataChannel;
-        
-        var random = new Random();
-        const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-        var randomString = new string(Enumerable.Repeat(chars, 16).Select(s => s[random.Next(s.Length)]).ToArray());
-
-        _logger.LogDebug($"TestSend: readyState={channel.readyState} randomString={randomString}");
-        channel.send(randomString);
     }
 }

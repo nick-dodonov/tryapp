@@ -1,7 +1,6 @@
 using Server.Rtc;
 using Shared;
 using Shared.Meta.Api;
-using SIPSorcery.Net;
 
 namespace Server.Meta;
 
@@ -32,13 +31,9 @@ public sealed class MetaServer(RtcService rtcService) : IMeta
         return new(result);
     }
 
-    public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
-        => (await rtcService.GetOffer(id)).toJSON();
+    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
+        => rtcService.GetOffer(id, cancellationToken);
 
     public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
-    {
-        if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
-            throw new ApplicationException("Body must contain SDP answer for id: {id}");
-        return rtcService.SetAnswer(id, answer, cancellationToken);
-    }
+        => rtcService.SetAnswer(id, answerJson, cancellationToken);
 }
