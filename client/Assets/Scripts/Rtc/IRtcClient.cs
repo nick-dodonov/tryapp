@@ -14,8 +14,6 @@ namespace Rtc
 
     public interface IRtcClient
     {
-        Task<string> TryCall(CancellationToken cancellationToken);
-
         Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
     }
 

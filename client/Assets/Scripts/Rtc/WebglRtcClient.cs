@@ -30,18 +30,6 @@ namespace Rtc
             _meta = meta;
         }
 
-        async Task<string> IRtcClient.TryCall(CancellationToken cancellationToken)
-        {
-            StaticLog.Info("WebglRtcClient: TryCall: TODO");
-            await Task.Yield();
-            
-            //Hello();
-            //SetupTestCallback("message-into-js", TestCallback);
-            Connect();
-            
-            return "TODO";
-        }
-
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void TestCallback(string message)
         {
