@@ -57,6 +57,7 @@ public class HudLogic : MonoBehaviour
 
     private void OnDisable()
     {
+        RtcStop("closing");
         rtcStopButton.onClick.AddListener(RtcStop);
         rtcStartButton.onClick.RemoveListener(RtcStart);
         serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
