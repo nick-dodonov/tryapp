@@ -1,12 +1,20 @@
 const RtcApi = {
-    connectCallback: null,
-    CallConnectCallback: function(peerId, error) {
+    connectAnswerCallback: null,
+    CallConnectAnswer: function(peerId, answerJson) {
+        console.log("RtcApi: CallConnectAnswer:", peerId, answerJson);
+        const ptr = stringToNewUTF8(answerJson);
+        {{{ makeDynCall('vii', 'RtcApi.connectAnswerCallback') }}}(peerId, ptr);
+        _free(ptr);
+    },
+    connectCompleteCallback: null,
+    CallConnectComplete: function(peerId, error) {
+        console.log("RtcApi: CallConnectComplete:", peerId, error);
         if (error) {
-            const errorPtr = stringToNewUTF8(error);
-            {{{ makeDynCall('vii', 'RtcApi.connectCallback') }}}(peerId, errorPtr);
-            _free(errorPtr);
+            const ptr = stringToNewUTF8(error);
+            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, ptr);
+            _free(ptr);
         } else {
-            {{{ makeDynCall('vii', 'RtcApi.connectCallback') }}}(peerId, null);
+            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, null);
         }
     },
 
@@ -26,15 +34,14 @@ const RtcApi = {
     },
 }
 
-function RtcInit(connectCallback) {
-    console.log("RtcInit:", connectCallback);
-    RtcApi.connectCallback = connectCallback;
+function RtcInit(connectAnswerCallback, connectCompleteCallback) {
+    console.log("RtcInit:", connectAnswerCallback, connectCompleteCallback);
+    RtcApi.connectAnswerCallback = connectAnswerCallback;
+    RtcApi.connectCompleteCallback = connectCompleteCallback;
 }
 
 function RtcConnect(offerPtr, receivedCallback) {
-    console.log("RtcConnect: offer ptr:", offerPtr);
     var offerStr = UTF8ToString(offerPtr);
-    console.log("RtcConnect: offer str:", offerStr);
     let offer = JSON.parse(offerStr);
     console.log("RtcConnect: offer:", offer);
 
@@ -45,18 +52,52 @@ function RtcConnect(offerPtr, receivedCallback) {
     pc.onconnectionstatechange = (event) => {
         console.log("RtcConnect: onconnectionstatechange: " + pc.connectionState, event);
     }
+    pc.onicegatheringstatechange = function () {
+        console.log("RtcConnect: onicegatheringstatechange: " + pc.iceGatheringState);
+    }
+    pc.oniceconnectionstatechange = function () {
+        console.log("RtcConnect: oniceconnectionstatechange: " + pc.iceConnectionState);
+    }
+    pc.onsignalingstatechange = function () {
+        console.log("RtcConnect: onsignalingstatechange: " + pc.signalingState);
+    }
+    pc.onicecandidate = async function (event) {
+        console.log('RtcConnect: onicecandidate: ', event.candidate);
+        if (event.candidate) {
+            //TODO: send candidates to server
+            // await fetch(setIceCandidateUrl, {
+            //     method: 'POST',
+            //     body: JSON.stringify(event.candidate),
+            //     headers: { 'Content-Type': 'application/json' }
+            // });
+        }
+    };
+    pc.onicecandidateerror = function (event) {
+        console.log("RtcConnect: onicecandidateerror: ", event);
+    }
+
+    pc.ondatachannel = (event) => {
+        const channel = event.channel
+        console.log("RtcConnect: ondatachannel: ", channel);
+        channel.onmessage = function (event) {
+            console.log('RtcConnect: onmessage:', event.data);
+            //TODO: receivedCallback
+        }
+    }
 
     const peerId = RtcApi.AddNextPeer(pc);
-    RtcApi.CallConnectCallback(peerId, "connecting");
 
-    pc.setRemoteDescription(offer).then(() => {
-        RtcApi.CallConnectCallback(peerId, null); //"remote set SUCCESS");
-        {{{ makeDynCall('vi', 'receivedCallback') }}}(null, 0);
+    pc.setRemoteDescription(offer).then(async () => {
+        console.log("RtcConnect: creating answer");
+        let answer = await pc.createAnswer();
+        console.log("RtcConnect: assign and return answer: ", answer);
+        await pc.setLocalDescription(answer);
+        RtcApi.CallConnectAnswer(peerId, JSON.stringify(answer));
     }).catch((e) => {
-        RtcApi.CallConnectCallback(peerId, "remote set ERROR:" + e);
+        RtcApi.CallConnectComplete(peerId, e.message);
     });
 
-    console.log("RtcConnect: result peerId:", peerId);
+    console.log("RtcConnect: peerId:", peerId);
     return peerId;
 }
 

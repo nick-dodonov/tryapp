@@ -81,7 +81,7 @@
             });
             let candidate = new RTCIceCandidate(await answerResponse.json());
             console.log("result of answer (ice candidate): ", candidate);
-            await pc.addIceCandidate(candidate);
+            //TEST-WITHOUT-CANDIDATE await pc.addIceCandidate(candidate);
             console.log("<<<< startConnection");
         }
 
