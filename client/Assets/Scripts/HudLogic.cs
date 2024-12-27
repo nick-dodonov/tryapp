@@ -70,6 +70,8 @@ public class HudLogic : MonoBehaviour
             return true; // running in editor
         if (absoluteURL.Contains("localhost"))
             return true;
+        if (absoluteURL.Contains("127.0.0.1"))
+            return true;
         return false;
     }
 

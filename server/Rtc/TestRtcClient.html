@@ -9,7 +9,7 @@
         console.log("currentUrl: ", currentUrl);
         //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
         const baseUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
-            if (base.includes("localhost")) {
+            if (base.includes("localhost") || base.includes("127.0.0.1")) {
                 return base.replace(/:\d+/, ":5270") + "/api/";
             }
             return base + "/api/";
@@ -81,7 +81,7 @@
             });
             let candidate = new RTCIceCandidate(await answerResponse.json());
             console.log("result of answer (ice candidate): ", candidate);
-            //TEST-WITHOUT-CANDIDATE await pc.addIceCandidate(candidate);
+            await pc.addIceCandidate(candidate);
             console.log("<<<< startConnection");
         }
 
