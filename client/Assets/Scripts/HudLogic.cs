@@ -37,11 +37,11 @@ public class HudLogic : MonoBehaviour
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
         
-        if (NeedServerLocalhostOptions())
+        if (NeedServerLocalhostOptions(out var localhost))
         {
-            _serverOptions.Add(new("localhost-debug", "http://localhost:5270"));
-            _serverOptions.Add(new("localhost-http", "http://localhost"));
-            _serverOptions.Add(new("localhost-ssl", "https://localhost"));
+            _serverOptions.Add(new("localhost-debug", $"http://{localhost}:5270"));
+            _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
+            _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
         }
         if (NeedServerHostingOption(out var url))
             _serverOptions.Add(new("hosting", url));
@@ -63,14 +63,16 @@ public class HudLogic : MonoBehaviour
         serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
     }
 
-    private static bool NeedServerLocalhostOptions()
+    private static bool NeedServerLocalhostOptions(out string localhost)
     {
+        localhost = "localhost";
         var absoluteURL = Application.absoluteURL;
         if (string.IsNullOrEmpty(absoluteURL))
             return true; // running in editor
         if (absoluteURL.Contains("localhost"))
             return true;
-        if (absoluteURL.Contains("127.0.0.1"))
+        localhost = "127.0.0.1";
+        if (absoluteURL.Contains(localhost))
             return true;
         return false;
     }
@@ -82,7 +84,7 @@ public class HudLogic : MonoBehaviour
             url = new Uri(url).GetLeftPart(UriPartial.Authority);
 
 #if UNITY_EDITOR
-        if (NeedServerLocalhostOptions())
+        if (NeedServerLocalhostOptions(out _))
         {
             var env = ParseEnvFileToDictionary();
             if (env.TryGetValue("SERVER_URL", out url))
