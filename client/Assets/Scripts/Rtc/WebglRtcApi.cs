@@ -22,16 +22,18 @@ namespace Client.Rtc
         [DllImport("__Internal")]
         private static extern int RtcInit(
             Action<int, string> connectAnswerCallback,
-            Action<int, string> connectCompleteCallback
+            Action<int, string> connectCompleteCallback,
+            Action<int, byte[], int> receivedCallback
             );
-        
+
         public WebglRtcApi(IRtcService service)
         {
             StaticLog.Info("WebglRtcApi: ctr");
             _service = service;
             RtcInit(
                 ConnectAnswerCallback,
-                ConnectCompleteCallback
+                ConnectCompleteCallback,
+                ReceivedCallback
                 );
         }
 
@@ -56,7 +58,7 @@ namespace Client.Rtc
             if (Links.TryGetValue(peerId, out var link))
                 link.AnswerCallback(answer);
             else
-                StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: failed to find peerId={peerId}");
+                StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: ERROR: failed to find peerId={peerId}");
         }
         
         [MonoPInvokeCallback(typeof(Action<int, string>))]
@@ -65,6 +67,18 @@ namespace Client.Rtc
             StaticLog.Info(error != null
                 ? $"WebglRtcApi: ConnectCompleteCallback: failure: peerId={peerId} {error}"
                 : $"WebglRtcApi: ConnectCompleteCallback: success: peerId={peerId}");
+        }
+        
+        [MonoPInvokeCallback(typeof(Action<int, byte[], int>))]
+        public static void ReceivedCallback(
+            int peerId,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)] 
+            byte[] bytes, int length)
+        {
+            if (Links.TryGetValue(peerId, out var link))
+                link.CallReceived(bytes);
+            else
+                StaticLog.Info($"WebglRtcApi: ReceivedCallback: ERROR: failed to find peerId={peerId}");
         }
     }
 
@@ -76,7 +90,7 @@ namespace Client.Rtc
         public int PeerId => _peerId;
 
         [DllImport("__Internal")]
-        private static extern int RtcConnect(string offer, Action<byte[], int> receivedCallback);
+        private static extern int RtcConnect(string offer);
         [DllImport("__Internal")]
         private static extern void RtcClose(int peerId);
 
@@ -107,21 +121,8 @@ namespace Client.Rtc
         {
             var offerStr = await ObtainOffer(cancellationToken);
             StaticLog.Info("WebglRtcLink: Connect: request");
-            _peerId = RtcConnect(offerStr, ReceivedCallback);
+            _peerId = RtcConnect(offerStr);
             StaticLog.Info($"WebglRtcLink: Connect: peerId={_peerId}");
-        }
-
-        [MonoPInvokeCallback(typeof(Action<byte[]>))]
-        public static void ReceivedCallback(
-            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)] 
-            byte[] bytes, int length)
-        {
-            if (bytes != null)
-                StaticLog.Info($"WebglRtcLink: ReceivedCallback: [{string.Join(',', bytes)}]");
-            else
-                StaticLog.Info("WebglRtcLink: ReceivedCallback: disconnected");
-            //CallReceived(bytes);
-            //_receivedCallback(bytes);
         }
 
         public void AnswerCallback(string answerJson)

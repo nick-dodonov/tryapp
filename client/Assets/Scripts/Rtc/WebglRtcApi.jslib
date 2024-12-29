@@ -17,6 +17,33 @@ const RtcApi = {
             {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, null);
         }
     },
+    
+    receivedCallback: null,
+    CallReceived: function(peerId, data) {
+        //console.log("RtcApi: CallReceived:", peerId, typeof data, data);
+        if (data) {
+            if (data.constructor === String) {
+                // const ptr = stringToNewUTF8(data);
+                // const size = new TextEncoder().encode(data).length;
+                // {{{ makeDynCall('vii', 'RtcApi.receivedCallback') }}}(peerId, ptr, size);
+                // _free(ptr);
+                // return;
+                data = new TextEncoder().encode(data); //Uint8Array
+            } else if (data instanceof ArrayBuffer) {
+                data = new Uint8Array(data);
+            } else {
+                console.log("RtcApi: CallReceived: TODO: handle unsupported yet data type:", data);
+                return;
+            }
+            
+            const ptr = _malloc(data.byteLength);
+            HEAPU8.set(data, ptr);
+            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(peerId, ptr, data.byteLength);
+            _free(ptr);
+        } else {
+            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(peerId, null, 0);
+        }
+    },
 
     peers: [],
     next: 1,
@@ -34,13 +61,17 @@ const RtcApi = {
     },
 }
 
-function RtcInit(connectAnswerCallback, connectCompleteCallback) {
-    console.log("RtcInit:", connectAnswerCallback, connectCompleteCallback);
+function RtcInit(connectAnswerCallback, connectCompleteCallback, receivedCallback) {
+    console.log("RtcInit:", 
+        connectAnswerCallback, 
+        connectCompleteCallback, 
+        receivedCallback);
     RtcApi.connectAnswerCallback = connectAnswerCallback;
     RtcApi.connectCompleteCallback = connectCompleteCallback;
+    RtcApi.receivedCallback = receivedCallback;
 }
 
-function RtcConnect(offerPtr, receivedCallback) {
+function RtcConnect(offerPtr) {
     var offerStr = UTF8ToString(offerPtr);
     let offer = JSON.parse(offerStr);
     console.log("RtcConnect: offer:", offer);
@@ -65,11 +96,6 @@ function RtcConnect(offerPtr, receivedCallback) {
         console.log('RtcConnect: onicecandidate: ', event.candidate);
         if (event.candidate) {
             //TODO: send candidates to server
-            // await fetch(setIceCandidateUrl, {
-            //     method: 'POST',
-            //     body: JSON.stringify(event.candidate),
-            //     headers: { 'Content-Type': 'application/json' }
-            // });
         }
     };
     pc.onicecandidateerror = function (event) {
@@ -80,8 +106,8 @@ function RtcConnect(offerPtr, receivedCallback) {
         const channel = event.channel
         console.log("RtcConnect: ondatachannel: ", channel);
         channel.onmessage = function (event) {
-            console.log('RtcConnect: onmessage:', event.data);
-            //TODO: receivedCallback
+            //console.log('RtcConnect: onmessage:', event.data);
+            RtcApi.CallReceived(peerId, event.data);
         }
     }
 

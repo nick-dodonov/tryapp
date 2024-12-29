@@ -37,13 +37,15 @@ namespace Client.Rtc
             StaticLog.Info($"BaseRtcLink: ReportAnswer: result id={_clientId}: {candidate}");    
         }
 
-        protected void CallReceived(byte[] bytes)
+        internal void CallReceived(byte[] bytes)
         {
+            // StaticLog.Info(bytes != null
+            //     ? $"BaseRtcLink: CallReceived: id={_clientId}: {bytes.Length} bytes"
+            //     : $"BaseRtcLink: CallReceived: id={_clientId}: disconnect");
             // var messageStr = System.Text.Encoding.UTF8.GetString(bytes);
             // StaticLog.Info($"BaseRtcLink: CallReceived: {messageStr}");
-            StaticLog.Info(bytes != null
-                ? $"BaseRtcLink: CallReceived: id={_clientId}: {bytes.Length} bytes"
-                : $"BaseRtcLink: CallReceived: id={_clientId}: disconnect");
+            if (bytes == null)
+                StaticLog.Info($"BaseRtcLink: CallReceived: id={_clientId}: disconnect");
             _receivedCallback(bytes);
         }
     }

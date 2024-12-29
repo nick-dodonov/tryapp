@@ -33,7 +33,7 @@ public class HudLogic : MonoBehaviour
     private void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-        StaticLog.Info("==== starting client ====");
+        StaticLog.Info("HudLogic: ==== starting client ====");
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
         
@@ -88,7 +88,7 @@ public class HudLogic : MonoBehaviour
         {
             var env = ParseEnvFileToDictionary();
             if (env.TryGetValue("SERVER_URL", out url))
-                StaticLog.Info($"server url: {url}");
+                StaticLog.Info($"HudLogic: server url: {url}");
         }
 
         static Dictionary<string, string> ParseEnvFileToDictionary()
@@ -152,7 +152,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            StaticLog.Info("RtcStart");
+            StaticLog.Info("HudLogic: RtcStart");
             if (_rtcLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
             
@@ -172,7 +172,7 @@ public class HudLogic : MonoBehaviour
                     return;
                 }
                 var message = $"{frameId++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                StaticLog.Info($"RtcSend: {message}");
+                StaticLog.Info($"HudLogic: RtcSend: {message}");
                 var bytes = System.Text.Encoding.UTF8.GetBytes(message);
                 _rtcLink.Send(bytes);
             };
@@ -190,7 +190,7 @@ public class HudLogic : MonoBehaviour
     private void RtcStop() => RtcStop("user request");
     private void RtcStop(string reason)
     {
-        StaticLog.Info($"RtcStop: {reason}");
+        StaticLog.Info($"HudLogic: RtcStop: {reason}");
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;
@@ -206,7 +206,7 @@ public class HudLogic : MonoBehaviour
             return;
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
-        StaticLog.Info($"RtcReceived: {str}");
+        StaticLog.Info($"HudLogic: RtcReceived: {str}");
     }
 
     private IMeta CreateMetaClient()
