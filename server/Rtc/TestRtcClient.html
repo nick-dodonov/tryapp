@@ -163,7 +163,8 @@
         
         async function closeConnection() {
             console.log("======== closeConnection ========");
-            await pc?.close();
+            pc?.close();
+            pc = undefined;
         }
     </script>
 </head>

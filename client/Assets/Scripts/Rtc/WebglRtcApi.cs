@@ -38,10 +38,15 @@ namespace Client.Rtc
         async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
             StaticLog.Info("WebglRtcApi: Connect");
-            var link = new WebglRtcLink(_service, receivedCallback);
-            var peerId = await link.Connect(cancellationToken);
-            Links.Add(peerId, link);
+            var link = new WebglRtcLink(this, _service, receivedCallback);
+            await link.Connect(cancellationToken);
+            Links.Add(link.PeerId, link);
             return link;
+        }
+
+        internal void Remove(WebglRtcLink link)
+        {
+            Links.Remove(link.PeerId);
         }
 
         [MonoPInvokeCallback(typeof(Action<int, string>))]
@@ -65,17 +70,32 @@ namespace Client.Rtc
 
     public class WebglRtcLink : BaseRtcLink, IRtcLink
     {
+        private readonly WebglRtcApi _api;
+
+        private int _peerId = -1;
+        public int PeerId => _peerId;
+
         [DllImport("__Internal")]
         private static extern int RtcConnect(string offer, Action<byte[], int> receivedCallback);
+        [DllImport("__Internal")]
+        private static extern void RtcClose(int peerId);
 
-        public WebglRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
+        public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
             : base(service, receivedCallback)
         {
+            _api = api;
         }
 
         public void Dispose()
         {
-            //throw new NotImplementedException();
+            StaticLog.Info("WebglRtcLink: Dispose");
+            if (_peerId >= 0)
+            {
+                _api.Remove(this);
+
+                RtcClose(_peerId);
+                _peerId = -1;
+            }
         }
 
         public void Send(byte[] bytes)
@@ -83,13 +103,12 @@ namespace Client.Rtc
             //throw new NotImplementedException();
         }
 
-        public async Task<int> Connect(CancellationToken cancellationToken)
+        public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
             StaticLog.Info("WebglRtcLink: Connect: request");
-            var peerId = RtcConnect(offerStr, ReceivedCallback);
-            StaticLog.Info($"WebglRtcLink: Connect: result peerId={peerId}");
-            return peerId;
+            _peerId = RtcConnect(offerStr, ReceivedCallback);
+            StaticLog.Info($"WebglRtcLink: Connect: peerId={_peerId}");
         }
 
         [MonoPInvokeCallback(typeof(Action<byte[]>))]

@@ -101,10 +101,18 @@ function RtcConnect(offerPtr, receivedCallback) {
     return peerId;
 }
 
+function RtcClose(peerId) {
+    console.log("RtcClose: peerId:", peerId);
+    const pc = RtcApi.GetPeer(peerId);
+    pc.close();
+    RtcApi.RemovePeer(peerId);
+}
+
 const RtcApiLib = {
     $RtcApi: RtcApi,
     RtcInit,
     RtcConnect,
+    RtcClose,
 };
 
 autoAddDeps(RtcApiLib, "$RtcApi");
