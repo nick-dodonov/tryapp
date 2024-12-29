@@ -63,6 +63,27 @@ public class HudLogic : MonoBehaviour
         serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
     }
 
+    private const float UpdateSendSeconds = 1.0f;
+    private float _updateElapsedTime;
+    private int _updateSendFrame;
+    private void Update()
+    {
+        //stub update/send logic
+        if (_rtcLink != null)
+        {
+            _updateElapsedTime += Time.deltaTime;
+            if (_updateElapsedTime > UpdateSendSeconds)
+            {
+                _updateElapsedTime = 0;
+
+                var message = $"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
+                StaticLog.Info($"HudLogic: RtcSend: {message}");
+                var bytes = System.Text.Encoding.UTF8.GetBytes(message);
+                _rtcLink.Send(bytes);
+            }
+        }
+    }
+
     private static bool NeedServerLocalhostOptions(out string localhost)
     {
         localhost = "localhost";
@@ -160,24 +181,8 @@ public class HudLogic : MonoBehaviour
             _meta = CreateMetaClient();
             _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
             _rtcLink = await _rtcApi.Connect(RtcReceived, destroyCancellationToken);
-            
-            //start stub logic
-            var timer = new System.Timers.Timer(1000);
-            var frameId = 1;
-            timer.Elapsed += (_, _) =>
-            {
-                if (_rtcLink == null)
-                {
-                    timer.Stop();
-                    return;
-                }
-                var message = $"{frameId++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                StaticLog.Info($"HudLogic: RtcSend: {message}");
-                var bytes = System.Text.Encoding.UTF8.GetBytes(message);
-                _rtcLink.Send(bytes);
-            };
-            timer.Start();
-            
+            _updateSendFrame = 0;
+                
             serverResponseText.text = "RESULT:\nOK";
         }
         catch (Exception ex)

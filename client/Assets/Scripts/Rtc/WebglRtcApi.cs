@@ -93,6 +93,8 @@ namespace Client.Rtc
         private static extern int RtcConnect(string offer);
         [DllImport("__Internal")]
         private static extern void RtcClose(int peerId);
+        [DllImport("__Internal")]
+        private static extern void RtcSend(int peerId, byte[] bytes, int size);
 
         public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
             : base(service, receivedCallback)
@@ -114,7 +116,8 @@ namespace Client.Rtc
 
         public void Send(byte[] bytes)
         {
-            //throw new NotImplementedException();
+            StaticLog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
+            RtcSend(_peerId, bytes, bytes.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)

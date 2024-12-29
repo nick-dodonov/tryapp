@@ -46,9 +46,13 @@ const RtcApi = {
     },
 
     peers: [],
-    next: 1,
+    channels: [],
+    next: 0,
     GetPeer: function (id) {
        return RtcApi.peers[id];
+    },
+    GetChannel: function (id) {
+        return RtcApi.channels[id];
     },
     AddNextPeer: function (peer) {
        let id = RtcApi.next;
@@ -56,7 +60,11 @@ const RtcApi = {
        RtcApi.peers[id] = peer;
        return id;
     },
+    SetChannel: function (id, channel) {
+        RtcApi.channels[id] = channel;
+    },
     RemovePeer: function (id) {
+        RtcApi.channels[id] = undefined;
         RtcApi.peers[id] = undefined;
     },
 }
@@ -79,6 +87,7 @@ function RtcConnect(offerPtr) {
     //const STUN_URL = "stun:stun.sipsorcery.com";
     //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
     pc = new RTCPeerConnection();
+    const peerId = RtcApi.AddNextPeer(pc);
     
     pc.onconnectionstatechange = (event) => {
         console.log("RtcConnect: onconnectionstatechange: " + pc.connectionState, event);
@@ -105,13 +114,13 @@ function RtcConnect(offerPtr) {
     pc.ondatachannel = (event) => {
         const channel = event.channel
         console.log("RtcConnect: ondatachannel: ", channel);
+        RtcApi.SetChannel(peerId, channel);
+        RtcApi.CallConnectComplete(peerId, null);
         channel.onmessage = function (event) {
             //console.log('RtcConnect: onmessage:', event.data);
             RtcApi.CallReceived(peerId, event.data);
         }
     }
-
-    const peerId = RtcApi.AddNextPeer(pc);
 
     pc.setRemoteDescription(offer).then(async () => {
         console.log("RtcConnect: creating answer");
@@ -134,11 +143,23 @@ function RtcClose(peerId) {
     RtcApi.RemovePeer(peerId);
 }
 
+function RtcSend(peerId, bytes, size) {
+    const channel = RtcApi.GetChannel(peerId);
+    if (channel) {
+        console.log("RtcSend:", peerId, bytes, size);
+        const data = new Uint8Array(HEAPU8.buffer, bytes, size);
+        channel.send(data);
+    } else {
+        console.log("RtcSend: ERROR: failed to find peer", peerId, bytes, size);
+    }
+}
+
 const RtcApiLib = {
     $RtcApi: RtcApi,
     RtcInit,
     RtcConnect,
     RtcClose,
+    RtcSend,
 };
 
 autoAddDeps(RtcApiLib, "$RtcApi");
