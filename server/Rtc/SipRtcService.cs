@@ -16,7 +16,7 @@ public class SipRtcService : IRtcService, IHostedService
 {
     private readonly ILogger<SipRtcService> _logger;
 
-    private class Connection(RTCPeerConnection peerConnection)
+    private class Link(RTCPeerConnection peerConnection)
     {
         public readonly RTCPeerConnection PeerConnection = peerConnection;
         public readonly List<RTCIceCandidate> IceCandidates = [];
@@ -24,7 +24,7 @@ public class SipRtcService : IRtcService, IHostedService
         public RTCDataChannel? DataChannel;
     }
 
-    private readonly ConcurrentDictionary<string, Connection> _connections = new();
+    private readonly ConcurrentDictionary<string, Link> _link = new();
 
     /// <summary>
     /// Based on several samples
@@ -70,17 +70,18 @@ public class SipRtcService : IRtcService, IHostedService
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
-        if (_connections.ContainsKey(id))
+        if (_link.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
 
         _logger.LogDebug($"creating RTCPeerConnection and RTCDataChannel for id={id}");
-        // const string STUN_URL = "stun:stun.sipsorcery.com";
-        // var config = new RTCConfiguration {
-        //     iceServers = [new() { urls = STUN_URL }]
+        // var config = new RTCConfiguration
+        // {
+        //     iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
         // };
-        //var peerConnection = new RTCPeerConnection(config);
+        // var peerConnection = new RTCPeerConnection(config);
         var peerConnection = new RTCPeerConnection();
-        var connection = new Connection(peerConnection)
+
+        var link = new Link(peerConnection)
         {
             DataChannel = await peerConnection.createDataChannel("test", new()
             {
@@ -92,7 +93,7 @@ public class SipRtcService : IRtcService, IHostedService
         peerConnection.onicecandidate += candidate =>
         {
             _logger.LogDebug($"onicecandidate: {candidate}");
-            connection.IceCandidates.Add(candidate);
+            link.IceCandidates.Add(candidate);
         };
         peerConnection.onicecandidateerror += (candidate, error) =>
             _logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
@@ -102,7 +103,7 @@ public class SipRtcService : IRtcService, IHostedService
         {
             _logger.LogDebug($"onicegatheringstatechange: {state}");
             if (state == RTCIceGatheringState.complete)
-                connection.IceCollectCompleteTcs.SetResult(true);
+                link.IceCollectCompleteTcs.SetResult(true);
         };
 
         peerConnection.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt)
@@ -122,12 +123,12 @@ public class SipRtcService : IRtcService, IHostedService
                 RTCPeerConnectionState.closed or
                 RTCPeerConnectionState.disconnected or
                 RTCPeerConnectionState.failed)
-                _connections.TryRemove(id, out _);
+                _link.TryRemove(id, out _);
             else if (state == RTCPeerConnectionState.connected)
                 _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
 
-        var channel = connection.DataChannel;
+        var channel = link.DataChannel;
         channel.onopen += () =>
         {
             _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
@@ -176,7 +177,7 @@ public class SipRtcService : IRtcService, IHostedService
         var offerSdp = peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerSdp);
 
-        _connections.TryAdd(id, connection);
+        _link.TryAdd(id, link);
 
         _logger.LogDebug($"returning offer for id={id}: {offerSdp}");
         return offerSdp;
@@ -185,14 +186,14 @@ public class SipRtcService : IRtcService, IHostedService
     private async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description,
         CancellationToken cancellationToken)
     {
-        if (!_connections.TryGetValue(id, out var connection))
+        if (!_link.TryGetValue(id, out var link))
             throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
 
         _logger.LogDebug($"SetAnswer: setRemoteDescription: id={id}: {description.toJSON()}");
-        connection.PeerConnection.setRemoteDescription(description);
+        link.PeerConnection.setRemoteDescription(description);
 
         _logger.LogDebug($"SetAnswer: wait ice candidates complete: id={id}");
-        await connection.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
+        await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
 
         // //return one candidate
         // var candidate = connection.IceCandidates[0];
@@ -200,7 +201,7 @@ public class SipRtcService : IRtcService, IHostedService
         // return candidateJson;
 
         //return all candidates
-        var candidatesListJson = connection.IceCandidates
+        var candidatesListJson = link.IceCandidates
             .Select(candidate => candidate.toJSON())
             .ToArray()
             .ToJson();
@@ -211,14 +212,14 @@ public class SipRtcService : IRtcService, IHostedService
     private ValueTask AddIceCandidates(string id, CancellationToken cancellationToken,
         params RTCIceCandidateInit[] candidates)
     {
-        if (!_connections.TryGetValue(id, out var connection))
+        if (!_link.TryGetValue(id, out var link))
             throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
         _logger.LogDebug($"AddIceCandidates: id={id}: {candidates.Length} candidate");
         foreach (var candidate in candidates)
         {
             _logger.LogDebug($"AddIceCandidates: id={id}: {candidate.toJSON()}");
-            connection.PeerConnection.addIceCandidate(candidate);
+            link.PeerConnection.addIceCandidate(candidate);
         }
         return default;
     }
