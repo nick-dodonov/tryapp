@@ -90,34 +90,34 @@ function RtcConnect(offerPtr) {
     const peerId = RtcApi.AddNextPeer(pc);
     
     pc.onconnectionstatechange = (event) => {
-        console.log("RtcConnect: onconnectionstatechange: " + pc.connectionState, event);
+        console.log("RtcConnect: onconnectionstatechange:", pc.connectionState, event);
     }
     pc.onicegatheringstatechange = function () {
-        console.log("RtcConnect: onicegatheringstatechange: " + pc.iceGatheringState);
+        console.log("RtcConnect: onicegatheringstatechange:", pc.iceGatheringState);
     }
     pc.oniceconnectionstatechange = function () {
-        console.log("RtcConnect: oniceconnectionstatechange: " + pc.iceConnectionState);
+        console.log("RtcConnect: oniceconnectionstatechange:", pc.iceConnectionState);
     }
     pc.onsignalingstatechange = function () {
-        console.log("RtcConnect: onsignalingstatechange: " + pc.signalingState);
+        console.log("RtcConnect: onsignalingstatechange:", pc.signalingState);
     }
     pc.onicecandidate = async function (event) {
-        console.log('RtcConnect: onicecandidate: ', event.candidate);
+        console.log("RtcConnect: onicecandidate:", event.candidate);
         if (event.candidate) {
             //TODO: send candidates to server
         }
     };
     pc.onicecandidateerror = function (event) {
-        console.log("RtcConnect: onicecandidateerror: ", event);
+        console.log("RtcConnect: onicecandidateerror:", event);
     }
 
     pc.ondatachannel = (event) => {
         const channel = event.channel
-        console.log("RtcConnect: ondatachannel: ", channel);
+        console.log("RtcConnect: ondatachannel:", channel);
         RtcApi.SetChannel(peerId, channel);
         RtcApi.CallConnectComplete(peerId, null);
         channel.onmessage = function (event) {
-            //console.log('RtcConnect: onmessage:', event.data);
+            //console.log("RtcConnect: onmessage:", event.data);
             RtcApi.CallReceived(peerId, event.data);
         }
     }
@@ -125,7 +125,7 @@ function RtcConnect(offerPtr) {
     pc.setRemoteDescription(offer).then(async () => {
         console.log("RtcConnect: creating answer");
         let answer = await pc.createAnswer();
-        console.log("RtcConnect: assign answer: ", answer);
+        console.log("RtcConnect: assign answer:", answer);
         await pc.setLocalDescription(answer);
         RtcApi.CallConnectAnswer(peerId, JSON.stringify(answer));
     }).catch((e) => {

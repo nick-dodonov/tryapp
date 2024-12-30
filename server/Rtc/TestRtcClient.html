@@ -14,22 +14,22 @@
             }
             return base + "/api/";
         });
-        console.log("baseUrl: ", baseUrl);
+        console.log("baseUrl:", baseUrl);
         
         const id = Date.now().toString();
         const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
         const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
-        //const setIceCandidateUrl = `${baseUrl}addicecandidate?id=${id}`
+        const addIceCandidatesUrl = `${baseUrl}addicecandidates?id=${id}`
 
         //const DATA_CHANNEL_LABEL = "dc1";
         let pc;//, dc;
 
         async function startConnection() {
             console.log(">>>> startConnection");
-            console.log("getting offer: " + getOfferUrl);
+            console.log("getting offer:", getOfferUrl);
             let offerResponse = await fetch(getOfferUrl);
             let offer = await offerResponse.json();
-            console.log("result offer: ", offer);
+            console.log("result offer:", offer);
 
             console.log("creating peer connection and assigning remote description");
             //const STUN_URL = "stun:stun.sipsorcery.com";
@@ -37,54 +37,59 @@
             pc = new RTCPeerConnection();
             
             pc.onconnectionstatechange = () => {
-                console.log("onconnectionstatechange: " + pc.connectionState);
+                console.log("onconnectionstatechange:", pc.connectionState);
             }
             
             setupDataChannel(pc);
 
-            pc.onicegatheringstatechange = function () {
-                console.log("onicegatheringstatechange: " + pc.iceGatheringState);
+            const iceCandidates = []
+            pc.onicecandidate = async function (event) {
+                console.log("onicecandidate:", event.candidate);
+                if (event.candidate) {
+                    iceCandidates.push(event.candidate);
+                }
+            }
+            pc.onicegatheringstatechange = async function () {
+                const iceGatheringState = pc.iceGatheringState;
+                console.log("onicegatheringstatechange:", iceGatheringState);
+                if (iceGatheringState === "complete") {
+                    console.log("onicegatheringstatechange: posting local candidates:", iceCandidates);
+                    await fetch(addIceCandidatesUrl, {
+                        method: 'POST',
+                        body: JSON.stringify(iceCandidates),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
             }
             pc.oniceconnectionstatechange = function () {
-                console.log("oniceconnectionstatechange: " + pc.iceConnectionState);
+                console.log("oniceconnectionstatechange:", pc.iceConnectionState);
             }
             pc.onsignalingstatechange = function () {
-                console.log("onsignalingstatechange: " + pc.signalingState);
+                console.log("onsignalingstatechange:", pc.signalingState);
             }
-            pc.onicecandidate = async function (event) {
-                console.log('onicecandidate: ', event.candidate);
-                if (event.candidate) {
-                    //TODO: send candidates to server
-                    // await fetch(setIceCandidateUrl, {
-                    //     method: 'POST',
-                    //     body: JSON.stringify(event.candidate),
-                    //     headers: { 'Content-Type': 'application/json' }
-                    // });
-                }
-            };
             pc.onicecandidateerror = function (event) {
-                console.log("onicecandidateerror: " + JSON.stringify(event));
+                console.log("onicecandidateerror:", JSON.stringify(event));
             }
 
             await pc.setRemoteDescription(offer);
 
             console.log("creating answer");
             let answer = await pc.createAnswer();
-            console.log("assigning answer as local description: ", answer);
+            console.log("assigning answer as local description:", answer);
             await pc.setLocalDescription(answer);
 
-            console.log("posting answer: " + setAnswerUrl);
+            console.log("posting answer:", setAnswerUrl);
             let answerResponse = await fetch(setAnswerUrl, {
                 method: 'POST',
                 body: JSON.stringify(answer),
                 headers: { 'Content-Type': 'application/json' }
             });
             let candidateListJson = await answerResponse.json();
-            console.log("result of answer (ice candidates list): ", candidateListJson);
+            console.log("result of answer (remote ice candidates list):", candidateListJson);
             for (let candidateJson of candidateListJson) {
                 let candidateObj = JSON.parse(candidateJson);
-                 let candidate = new RTCIceCandidate(candidateObj);
-                console.log("adding ice candidate: ", candidate);
+                let candidate = new RTCIceCandidate(candidateObj);
+                console.log("adding remote ice candidate:", candidate);
                 await pc.addIceCandidate(candidate);
             }
             
@@ -110,9 +115,9 @@
             
             pc.ondatachannel = (event) => {
                 const channel = event.channel
-                console.log("ondatachannel: ", channel);
+                console.log("ondatachannel:", channel);
                 channel.onmessage = function (event) {
-                    console.log('DataChannel: onmessage:', typeof event.data, event.data); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
+                    console.log("DataChannel: onmessage:", typeof event.data, event.data); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
 
                     const ptr = stringToNewUTF8(event.data);
                     _free(ptr);
