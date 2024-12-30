@@ -74,12 +74,13 @@ public class SipRtcService : IRtcService, IHostedService
             throw new ArgumentNullException(nameof(id), "ID is already in use");
 
         _logger.LogDebug($"creating RTCPeerConnection and RTCDataChannel for id={id}");
-        // var config = new RTCConfiguration
-        // {
-        //     iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
-        // };
-        // var peerConnection = new RTCPeerConnection(config);
-        var peerConnection = new RTCPeerConnection();
+        var config = new RTCConfiguration
+        {
+            //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
+            iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
+        };
+        var peerConnection = new RTCPeerConnection(config);
+        //var peerConnection = new RTCPeerConnection();
 
         var link = new Link(peerConnection)
         {
