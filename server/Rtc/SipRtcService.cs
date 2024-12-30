@@ -79,7 +79,7 @@ public class SipRtcService : IRtcService, IHostedService
             //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
             iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
         };
-        var peerConnection = new RTCPeerConnection(config);
+        var peerConnection = new RTCPeerConnection(config, bindPort: 11000, portRange: new(11000, 11500));
         //var peerConnection = new RTCPeerConnection();
 
         var link = new Link(peerConnection)

@@ -38,5 +38,10 @@ services:
     image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
-    #ports: #diagnostics
-    #  - '8080:8080'
+    ports:
+      # - '8080:8080' #diagnostics
+      # - mode: ingress
+      #   protocol: udp
+      #   published: "10000-20000"
+      #   target: "10000"
+      - "11000-11500:11000-11500/udp" # WebRTC in SIPSorcery
