@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Net;
 using Shared.Rtc;
 using SIPSorcery.Net;
+using TinyJson;
 
 namespace Server.Rtc;
 
@@ -19,6 +20,7 @@ public class SipRtcService : IRtcService, IHostedService
     {
         public readonly RTCPeerConnection PeerConnection = peerConnection;
         public readonly List<RTCIceCandidate> IceCandidates = [];
+        public readonly TaskCompletionSource<bool> IceCollectCompleteTcs = new();
         public RTCDataChannel? DataChannel;
     }
     private readonly ConcurrentDictionary<string, Connection> _connections = new();
@@ -90,7 +92,11 @@ public class SipRtcService : IRtcService, IHostedService
         peerConnection.oniceconnectionstatechange += state => 
             _logger.LogDebug($"oniceconnectionstatechange: {state}");
         peerConnection.onicegatheringstatechange += state =>
+        {
             _logger.LogDebug($"onicegatheringstatechange: {state}");
+            if (state == RTCIceGatheringState.complete)
+                connection.IceCollectCompleteTcs.SetResult(true);
+        };
         
         peerConnection.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt) 
             => _logger.LogDebug($"OnRtpPacketReceived: RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}, SeqNum {rtpPkt.Header.SequenceNumber}");
@@ -171,15 +177,23 @@ public class SipRtcService : IRtcService, IHostedService
         if (!_connections.TryGetValue(id, out var connection))
             throw new ApplicationException($"No peer connection is available for the specified id: {id}");
         
-        _logger.LogDebug($"SetAnswer for id={id}: {description.toJSON()}");
+        _logger.LogDebug($"SetAnswer: setRemoteDescription: id={id}: {description.toJSON()}");
         connection.PeerConnection.setRemoteDescription(description);
 
-        //TODO: wait at least one is ready
-        await Task.Yield();
-        
-        //TODO: answer all candidates
-        var candidate = connection.IceCandidates[0];
-        var result = candidate.toJSON();
-        return result;
+        _logger.LogDebug($"SetAnswer: wait ice candidates complete: id={id}");
+        await connection.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
+
+        // //return one candidate
+        // var candidate = connection.IceCandidates[0];
+        // var candidateJson = candidate.toJSON();
+        // return candidateJson;
+
+        //return all candidates
+        var candidatesListJson = connection.IceCandidates
+            .Select(candidate => candidate.toJSON())
+            .ToArray()
+            .ToJson();
+        _logger.LogDebug($"SetAnswer: result ice candidates: id={id}: {candidatesListJson}");
+        return candidatesListJson;
     }
 }
