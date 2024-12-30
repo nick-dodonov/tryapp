@@ -31,7 +31,7 @@ server {
 
         add_header 'Access-Control-Allow-Origin' '*';
         
-        proxy_pass http://server:8080/api;
+        proxy_pass http://host.docker.internal:8080/api;
     }
     
     location / {
@@ -148,6 +148,6 @@ server {
       proxy_set_header X-Real-IP $remote_addr;
       proxy_set_header X-Forwarded-Host $host;
       proxy_set_header X-Forwarded-Proto $scheme;
-      proxy_pass http://localhost:80;
+      proxy_pass http://host.docker.internal:80;
     }
 }
