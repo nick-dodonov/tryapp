@@ -30,11 +30,12 @@ namespace Client.Rtc
             return offerStr;
         }
 
-        protected async Task ReportAnswer(string answerStr, CancellationToken cancellationToken)
+        protected async Task<string> ReportAnswer(string answerStr, CancellationToken cancellationToken)
         {
             StaticLog.Info($"BaseRtcLink: ReportAnswer: request id={_clientId}: {answerStr}");
-            var candidate = await _service.SetAnswer(_clientId, answerStr, cancellationToken);
-            StaticLog.Info($"BaseRtcLink: ReportAnswer: result id={_clientId}: {candidate}");    
+            var candidatesListJson = await _service.SetAnswer(_clientId, answerStr, cancellationToken);
+            StaticLog.Info($"BaseRtcLink: ReportAnswer: result id={_clientId}: {candidatesListJson}");
+            return candidatesListJson;
         }
 
         internal void CallReceived(byte[] bytes)

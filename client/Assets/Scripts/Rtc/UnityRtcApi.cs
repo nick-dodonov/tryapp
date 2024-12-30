@@ -83,10 +83,23 @@ namespace Client.Rtc
             StaticLog.Info($"UnityRtcLink: Created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
+            // send answer to remote side and obtain remote ice candidates
             var answerStr = WebSerializer.SerializeObject(answer);
-            await ReportAnswer(answerStr, cancellationToken);
+            var candidatesListJson = await ReportAnswer(answerStr, cancellationToken);
             
-            //TODO: setup remote ICE candidates
+            // add remote ICE candidates
+            var candidatesList = WebSerializer.DeserializeObject<string[]>(candidatesListJson);
+            foreach (var candidateJson in candidatesList)
+            {
+                //StaticLog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
+                var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidateJson);
+                //StaticLog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
+                var candidate = new RTCIceCandidate(candidateInit);
+                StaticLog.Info($"UnityRtcLink: AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                var rc = _peerConnection.AddIceCandidate(candidate);
+                if (!rc) StaticLog.Info("UnityRtcLink: AddIceCandidate: FAILED");
+            }
+            
             //TODO: wait for DataChannel from server is opened
         }
 
@@ -98,7 +111,7 @@ namespace Client.Rtc
 
         public void Send(byte[] bytes)
         {
-            StaticLog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
+            //StaticLog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             _dataChannel.Send(bytes);
         }
     }
@@ -107,12 +120,12 @@ namespace Client.Rtc
     {
         public static string Describe(RTCDataChannel channel) 
             => $"id={channel.Id} label={channel.Label} ordered={channel.Ordered} maxRetransmits={channel.MaxRetransmits} protocol={channel.Protocol} negotiated={channel.Negotiated} bufferedAmount={channel.BufferedAmount} readyState={channel.ReadyState}";
-
         public static string Describe(in RTCSessionDescription description)
             => WebSerializer.SerializeObject(description); //$"type={description.type} sdp={description.sdp}";
-
+        public static string Describe(RTCIceCandidateInit candidate)
+            => $"candidate=\"{candidate.candidate}\" sdpMid={candidate.sdpMid} sdpMLineIndex={candidate.sdpMLineIndex}";
         public static string Describe(RTCIceCandidate candidate)
-            => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate={candidate.Candidate}";
+            => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate=\"{candidate.Candidate}\"";
     }
 }
 #endif
