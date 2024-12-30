@@ -1,4 +1,6 @@
 #if UNITY_EDITOR || !UNITY_WEBGL
+using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -34,11 +36,11 @@ namespace Client.Rtc
     {
         private RTCPeerConnection _peerConnection;
         private RTCDataChannel _dataChannel;
+        private readonly List<RTCIceCandidateInit> _iceCandidates = new();
 
         public UnityRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
             : base(service, receivedCallback)
-        {
-        }
+        {}
 
         public async Task Connect(CancellationToken cancellationToken)
         {
@@ -47,9 +49,34 @@ namespace Client.Rtc
             StaticLog.Info($"UnityRtcLink: Connect: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
-            _peerConnection.OnIceCandidate = candidate => StaticLog.Info($"UnityRtcLink: OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+            _peerConnection.OnIceCandidate = candidate =>
+            {
+                StaticLog.Info($"UnityRtcLink: OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                _iceCandidates.Add(new()
+                {
+                    candidate = candidate.Candidate,
+                    sdpMid = candidate.SdpMid,
+                    sdpMLineIndex = candidate.SdpMLineIndex
+                });
+            };
+            // ReSharper disable once AsyncVoidLambda
+            _peerConnection.OnIceGatheringStateChange = async state =>
+            {
+                try
+                {
+                    StaticLog.Info($"UnityRtcLink: OnIceGatheringStateChange: {state}");
+                    if (state == RTCIceGatheringState.Complete)
+                    {
+                        var candidatesJson = WebSerializer.SerializeObject(_iceCandidates);
+                        await ReportIceCandidates(candidatesJson, cancellationToken);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    StaticLog.Info($"UnityRtcLink: OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
+                }
+            };
             _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"UnityRtcLink: OnIceConnectionChange: {state}");
-            _peerConnection.OnIceGatheringStateChange = state => StaticLog.Info($"UnityRtcLink: OnIceGatheringStateChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
             {
                 StaticLog.Info($"UnityRtcLink: OnConnectionStateChange: {state}");
@@ -84,8 +111,8 @@ namespace Client.Rtc
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates
-            var answerStr = WebSerializer.SerializeObject(answer);
-            var candidatesListJson = await ReportAnswer(answerStr, cancellationToken);
+            var answerJson = WebSerializer.SerializeObject(answer);
+            var candidatesListJson = await ReportAnswer(answerJson, cancellationToken);
             
             // add remote ICE candidates
             var candidatesList = WebSerializer.DeserializeObject<string[]>(candidatesListJson);

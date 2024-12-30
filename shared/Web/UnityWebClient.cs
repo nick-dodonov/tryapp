@@ -20,15 +20,8 @@ namespace Shared.Web
     /// </summary>
     public class UnityWebClient : IWebClient
     {
-        public UnityWebClient(string baseUri)
-        {
-            BaseAddress = new(baseUri);
-        }
-
-        public UnityWebClient(Uri baseUri)
-        {
-            BaseAddress = baseUri;
-        }
+        public UnityWebClient(string baseUri) : this(new Uri(baseUri)) { }
+        private UnityWebClient(Uri baseUri) => BaseAddress = baseUri;
 
         public Uri BaseAddress { get; set; }
         public HttpRequestHeaders DefaultRequestHeaders => _httpClient.DefaultRequestHeaders;
