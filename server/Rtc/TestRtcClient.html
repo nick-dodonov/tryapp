@@ -185,9 +185,10 @@
         }
         
         async function closeConnection() {
-            console.log("======== closeConnection ========");
+            console.log(">>>> closeConnection");
             pc?.close();
             pc = undefined;
+            console.log("<<<< closeConnection");
         }
     </script>
 </head>

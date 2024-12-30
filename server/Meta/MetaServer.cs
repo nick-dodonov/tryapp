@@ -27,7 +27,7 @@ public sealed class MetaServer(IRtcService rtcService) : IMeta
             RequestTime = DateTime.Now
         };
 
-        StaticLog.Info($"==== Info request/result: {result.RandomName} {result.RequestId} {result.RequestTime}");
+        StaticLog.Info($"MetaServer: GetInfo: {result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
 
