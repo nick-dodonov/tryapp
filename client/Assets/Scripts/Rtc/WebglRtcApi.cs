@@ -25,6 +25,11 @@ namespace Client.Rtc
             Action<int, string> connectCompleteCallback,
             Action<int, byte[], int> receivedCallback
             );
+        [DllImport("__Internal")]
+        private static extern int RtcSetAnswerResult(
+            int peerId,
+            string candidatesListJson
+        );
 
         public WebglRtcApi(IRtcService service)
         {
@@ -52,11 +57,18 @@ namespace Client.Rtc
         }
 
         [MonoPInvokeCallback(typeof(Action<int, string>))]
-        public static void ConnectAnswerCallback(int peerId, string answer)
+        public static void ConnectAnswerCallback(int peerId, string answerJson)
         {
-            StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: peerId={peerId} {answer}");
+            StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: peerId={peerId}: {answerJson}");
             if (Links.TryGetValue(peerId, out var link))
-                link.AnswerCallback(answer);
+            {
+                link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
+                {
+                    var candidatesListJson = t.Result;
+                    StaticLog.Info($"WebglRtcApi: RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
+                    RtcSetAnswerResult(peerId, candidatesListJson);
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
             else
                 StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: ERROR: failed to find peerId={peerId}");
         }
@@ -126,12 +138,6 @@ namespace Client.Rtc
             StaticLog.Info("WebglRtcLink: Connect: request");
             _peerId = RtcConnect(offerStr);
             StaticLog.Info($"WebglRtcLink: Connect: peerId={_peerId}");
-        }
-
-        public void AnswerCallback(string answerJson)
-        {
-            //TODO: wait answer result candidate
-            _ = ReportAnswer(answerJson, CancellationToken.None);
         }
     }
 }

@@ -125,7 +125,7 @@ function RtcConnect(offerPtr) {
     pc.setRemoteDescription(offer).then(async () => {
         console.log("RtcConnect: creating answer");
         let answer = await pc.createAnswer();
-        console.log("RtcConnect: assign and return answer: ", answer);
+        console.log("RtcConnect: assign answer: ", answer);
         await pc.setLocalDescription(answer);
         RtcApi.CallConnectAnswer(peerId, JSON.stringify(answer));
     }).catch((e) => {
@@ -134,6 +134,22 @@ function RtcConnect(offerPtr) {
 
     console.log("RtcConnect: peerId:", peerId);
     return peerId;
+}
+
+function RtcSetAnswerResult(peerId, candidatesJsonPtr) {
+    var candidatesJson = UTF8ToString(candidatesJsonPtr);
+    console.log("RtcSetAnswerResult:", peerId, candidatesJson);
+    const pc = RtcApi.GetPeer(peerId);
+
+    let candidates = JSON.parse(candidatesJson);
+    for (let candidateJson of candidates) {
+        let candidateObj = JSON.parse(candidateJson);
+        let candidate = new RTCIceCandidate(candidateObj);
+        console.log("RtcSetAnswerResult:", peerId, candidate);
+        pc.addIceCandidate(candidate).catch((e) => {
+            console.log("RtcSetAnswerResult: addIceCandidate: failed:", peerId, candidate, e);
+        });
+    }
 }
 
 function RtcClose(peerId) {
@@ -158,6 +174,7 @@ const RtcApiLib = {
     $RtcApi: RtcApi,
     RtcInit,
     RtcConnect,
+    RtcSetAnswerResult,
     RtcClose,
     RtcSend,
 };

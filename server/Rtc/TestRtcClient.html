@@ -83,7 +83,7 @@
             console.log("result of answer (ice candidates list): ", candidateListJson);
             for (let candidateJson of candidateListJson) {
                 let candidateObj = JSON.parse(candidateJson);
-                let candidate = new RTCIceCandidate(candidateObj);
+                 let candidate = new RTCIceCandidate(candidateObj);
                 console.log("adding ice candidate: ", candidate);
                 await pc.addIceCandidate(candidate);
             }
