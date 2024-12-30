@@ -13,11 +13,18 @@ WORKDIR /src
 
 COPY . .
 WORKDIR "/src/server"
-RUN dotnet build "server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet build "server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish "server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

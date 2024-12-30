@@ -179,7 +179,7 @@ public class SipRtcService : IRtcService, IHostedService
 
         _link.TryAdd(id, link);
 
-        _logger.LogDebug($"returning offer for id={id}: {offerSdp}");
+        _logger.LogDebug($"returning offer for id={id}: {offerSdp.toJSON()}");
         return offerSdp;
     }
 
