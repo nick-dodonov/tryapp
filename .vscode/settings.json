@@ -1,0 +1,8 @@
+{
+    //https://github.com/yandeu/five-server-vscode
+    //https://ritwickdey.github.io/vscode-live-server/docs/settings.html
+    "fiveServer.host": "localhost",
+    "fiveServer.ignore": [
+        "**"
+    ],
+}

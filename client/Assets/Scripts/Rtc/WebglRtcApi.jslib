@@ -146,7 +146,7 @@ function RtcClose(peerId) {
 function RtcSend(peerId, bytes, size) {
     const channel = RtcApi.GetChannel(peerId);
     if (channel) {
-        console.log("RtcSend:", peerId, bytes, size);
+        //console.log("RtcSend:", peerId, bytes, size);
         const data = new Uint8Array(HEAPU8.buffer, bytes, size);
         channel.send(data);
     } else {

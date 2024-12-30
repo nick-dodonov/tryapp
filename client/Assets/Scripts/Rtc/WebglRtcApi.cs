@@ -116,7 +116,7 @@ namespace Client.Rtc
 
         public void Send(byte[] bytes)
         {
-            StaticLog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
+            //StaticLog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
             RtcSend(_peerId, bytes, bytes.Length);
         }
 
