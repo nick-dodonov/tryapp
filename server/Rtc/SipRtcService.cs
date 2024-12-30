@@ -133,7 +133,7 @@ public class SipRtcService : IRtcService, IHostedService
         {
             _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
 
-            var frameId = 1;
+            var frameId = 0;
             var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
             timer.Elapsed += (sender, e) =>
             {

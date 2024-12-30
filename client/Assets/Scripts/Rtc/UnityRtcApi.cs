@@ -139,7 +139,10 @@ namespace Client.Rtc
         public void Send(byte[] bytes)
         {
             //StaticLog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
-            _dataChannel.Send(bytes);
+            if (_dataChannel != null)
+                _dataChannel.Send(bytes);
+            else
+                StaticLog.Info("UnityRtcLink: Send: ERROR: no data channel yet (TODO: wait on connect)");
         }
     }
     
