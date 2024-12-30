@@ -6,6 +6,14 @@ const RtcApi = {
         {{{ makeDynCall('vii', 'RtcApi.connectAnswerCallback') }}}(peerId, ptr);
         _free(ptr);
     },
+    connectCandidatesCallback: null,
+    CallConnectCandidates: function(peerId, candidates) {
+        console.log("RtcApi: CallCandidates:", peerId, candidates);
+        const candidateJson = JSON.stringify(candidates)
+        const ptr = stringToNewUTF8(candidateJson)
+        {{{ makeDynCall('vii', 'RtcApi.connectCandidatesCallback') }}}(peerId, ptr)
+        _free(ptr)
+    },
     connectCompleteCallback: null,
     CallConnectComplete: function(peerId, error) {
         console.log("RtcApi: CallConnectComplete:", peerId, error);
@@ -17,7 +25,6 @@ const RtcApi = {
             {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, null);
         }
     },
-    
     receivedCallback: null,
     CallReceived: function(peerId, data) {
         //console.log("RtcApi: CallReceived:", peerId, typeof data, data);
@@ -69,12 +76,14 @@ const RtcApi = {
     },
 }
 
-function RtcInit(connectAnswerCallback, connectCompleteCallback, receivedCallback) {
+function RtcInit(connectAnswerCallback, connectCandidatesCallback, connectCompleteCallback, receivedCallback) {
     console.log("RtcInit:", 
         connectAnswerCallback, 
-        connectCompleteCallback, 
+        connectCandidatesCallback, 
+        connectCompleteCallback,
         receivedCallback);
     RtcApi.connectAnswerCallback = connectAnswerCallback;
+    RtcApi.connectCandidatesCallback = connectCandidatesCallback;
     RtcApi.connectCompleteCallback = connectCompleteCallback;
     RtcApi.receivedCallback = receivedCallback;
 }
@@ -92,21 +101,30 @@ function RtcConnect(offerPtr) {
     pc.onconnectionstatechange = (event) => {
         console.log("RtcConnect: onconnectionstatechange:", pc.connectionState, event);
     }
-    pc.onicegatheringstatechange = function () {
-        console.log("RtcConnect: onicegatheringstatechange:", pc.iceGatheringState);
+
+    const iceCandidates = []
+    pc.onicecandidate = async function (event) {
+        const candidate = event.candidate;
+        console.log("RtcConnect: onicecandidate:", candidate);
+        if (candidate && candidate.candidate) {
+            iceCandidates.push(candidate);
+        }
+    };
+    pc.onicegatheringstatechange = async function () {
+        const iceGatheringState = pc.iceGatheringState;
+        console.log("RtcConnect: onicegatheringstatechange:", iceGatheringState);
+        if (iceGatheringState === "complete") {
+            console.log("RtcConnect: onicegatheringstatechange: posting local candidates:", iceCandidates);
+            RtcApi.CallConnectCandidates(peerId, iceCandidates);
+        }
     }
+
     pc.oniceconnectionstatechange = function () {
         console.log("RtcConnect: oniceconnectionstatechange:", pc.iceConnectionState);
     }
     pc.onsignalingstatechange = function () {
         console.log("RtcConnect: onsignalingstatechange:", pc.signalingState);
     }
-    pc.onicecandidate = async function (event) {
-        console.log("RtcConnect: onicecandidate:", event.candidate);
-        if (event.candidate) {
-            //TODO: send candidates to server
-        }
-    };
     pc.onicecandidateerror = function (event) {
         console.log("RtcConnect: onicecandidateerror:", event);
     }

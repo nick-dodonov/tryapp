@@ -38,7 +38,7 @@ namespace Client.Rtc
             return candidatesListJson;
         }
 
-        protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
+        protected internal async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
         {
             StaticLog.Info($"BaseRtcLink: ReportIceCandidates: request id={_clientId}: {candidatesJson}");
             await _service.AddIceCandidates(_clientId, candidatesJson, cancellationToken);
