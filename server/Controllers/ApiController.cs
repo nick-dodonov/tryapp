@@ -26,9 +26,17 @@ public sealed class ApiController(IMeta meta)
         var answerJson = await reader.ReadToEndAsync(cancellationToken);
         return await meta.SetAnswer(id, answerJson, cancellationToken);
     }
-
     // [HttpPost]
     // [Route("setanswer-TODO")]
     // public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
     //     => rtcService.SetAnswer(id, answer, cancellationToken);
+    
+    [HttpPost]
+    [Route("addicecandidates")]
+    public async ValueTask AddIceCandidates(string id, CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(HttpContext.Request.Body);
+        var candidatesJson = await reader.ReadToEndAsync(cancellationToken);
+        await meta.AddIceCandidates(id, candidatesJson, cancellationToken);
+    }
 }

@@ -36,4 +36,7 @@ public sealed class MetaServer(IRtcService rtcService) : IMeta
 
     public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
         => rtcService.SetAnswer(id, answerJson, cancellationToken);
+
+    public ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
+        => rtcService.AddIceCandidates(id, candidates, cancellationToken);
 }

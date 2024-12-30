@@ -44,9 +44,10 @@
 
             const iceCandidates = []
             pc.onicecandidate = async function (event) {
-                console.log("onicecandidate:", event.candidate);
-                if (event.candidate) {
-                    iceCandidates.push(event.candidate);
+                const candidate = event.candidate;
+                console.log("onicecandidate:", candidate);
+                if (candidate && candidate.candidate) {
+                    iceCandidates.push(candidate);
                 }
             }
             pc.onicegatheringstatechange = async function () {
