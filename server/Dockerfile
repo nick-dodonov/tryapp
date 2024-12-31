@@ -1,4 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
+#TEMPORARY: for diagnostics
+RUN apt-get update && apt-get install -y procps lsof dnsutils net-tools mc
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
