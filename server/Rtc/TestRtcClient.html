@@ -4,28 +4,55 @@
     <meta charset="UTF-8">
 
     <script type="text/javascript">
-        //const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
-        const currentUrl = window.location.href;
-        console.log("currentUrl: ", currentUrl);
-        //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
-        const baseUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
-            if (base.includes("localhost") || base.includes("127.0.0.1")) {
-                return base.replace(/:\d+/, ":5270") + "/api/";
-            }
-            return base + "/api/";
+        // On page load, populate serverSelect options with sample values
+        window.addEventListener('DOMContentLoaded', () => {
+            //const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
+            const currentUrl = window.location.href;
+            console.log("currentUrl: ", currentUrl);
+            //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
+            let locationUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+                if (base.includes("localhost") || base.includes("127.0.0.1")) {
+                    return base.replace(/:\d+/, ":5270") + "/api/";
+                }
+                return base + "/api/";
+            });
+            console.log("locationUrl:", locationUrl);
+            
+            const serverSelect = document.getElementById('serverSelect');
+            const sampleServers = [
+                locationUrl,
+                "http://localhost/api/", //docker compose variant
+                //TODO: add hosting variant but without revealing it in repo 
+            ];
+
+            // Clear existing options
+            serverSelect.innerHTML = '';
+
+            // Add options
+            sampleServers.forEach(server => {
+                const option = document.createElement('option');
+                option.value = server;
+                option.text = server;
+                serverSelect.appendChild(option);
+            });
         });
-        console.log("baseUrl:", baseUrl);
         
         const id = Date.now().toString();
-        const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
-        const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
-        const addIceCandidatesUrl = `${baseUrl}addicecandidates?id=${id}`
 
         //const DATA_CHANNEL_LABEL = "dc1";
         let pc;//, dc;
 
         async function startConnection() {
             console.log(">>>> startConnection");
+
+            const serverSelect = document.getElementById('serverSelect');
+            const baseUrl = serverSelect.value;
+            console.log("baseUrl:", baseUrl);
+
+            const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
+            const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
+            const addIceCandidatesUrl = `${baseUrl}addicecandidates?id=${id}`
+            
             console.log("getting offer:", getOfferUrl);
             let offerResponse = await fetch(getOfferUrl);
             let offer = await offerResponse.json();
@@ -33,8 +60,16 @@
 
             console.log("creating peer connection and assigning remote description");
             //const STUN_URL = "stun:stun.sipsorcery.com";
-            //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
-            pc = new RTCPeerConnection();
+            pc = new RTCPeerConnection({
+                iceServers: [
+                    {
+                        urls: [
+                            "stun:stun.cloudflare.com:3478",
+                        ],
+                    }
+                ]
+            });
+            //pc = new RTCPeerConnection();
             
             pc.onconnectionstatechange = () => {
                 console.log("onconnectionstatechange:", pc.connectionState);
@@ -47,6 +82,11 @@
                 const candidate = event.candidate;
                 console.log("onicecandidate:", candidate);
                 if (candidate && candidate.candidate) {
+                    const address = candidate.address
+                    if (candidate.type === "host" && address && address.endsWith(".local")) {
+                        console.log("onicecandidate: skipping host candidate with .local address");
+                        return;
+                    }
                     iceCandidates.push(candidate);
                 }
             }
@@ -198,6 +238,12 @@
 <div>
 <!--    <input type="checkbox" id="makeoffer" name="makfeoffer" value="makeoffer" onchange="seturl();"> Make Offer-->
 <!--    <input type="text" id="websockurl" size="40"/>-->
+    
+    <select id="serverSelect" name="serverSelect">
+        <option value="server1">Server 1</option>
+        <option value="server2">Server 2</option>
+        <option value="server3">Server 3</option>
+    </select>
     <button type="button" class="btn btn-success" onclick="startConnection();">Open</button>
     <button type="button" class="btn btn-success" onclick="closeConnection();">Close</button>
 </div>
