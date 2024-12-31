@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
   #TODO: add renew part to service

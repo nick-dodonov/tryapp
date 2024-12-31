@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   web:
     image: nginx:latest
@@ -38,10 +36,11 @@ services:
     image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
-    ports:
+    network_mode: host
+    #ports:
       # - '8080:8080' #diagnostics
-      # - mode: ingress
+      # - "50100-50200:50100-50200/udp"
+      # - mode: host
       #   protocol: udp
-      #   published: "10000-20000"
-      #   target: "10000"
-      - "11000-11500:11000-11500/udp" # WebRTC in SIPSorcery
+      #   published: "50100-50200"
+      #   target: 50100

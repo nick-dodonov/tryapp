@@ -1,5 +1,3 @@
-version: '3.9'
-
 services:
   # development: generate fake self-signed certificate with `openssl` for localhost nginx
   cert:
