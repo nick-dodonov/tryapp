@@ -77,9 +77,13 @@ public class SipRtcService : IRtcService, IHostedService
         var config = new RTCConfiguration
         {
             //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
-            iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
+            //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
+            iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
         };
-        var peerConnection = new RTCPeerConnection(config, bindPort: 11000, portRange: new(11000, 11500));
+        var peerConnection = new RTCPeerConnection(config
+            // , bindPort: 50100
+            // , portRange: new(50100, 50200)
+            );
         //var peerConnection = new RTCPeerConnection();
 
         var link = new Link(peerConnection)
@@ -94,6 +98,11 @@ public class SipRtcService : IRtcService, IHostedService
         peerConnection.onicecandidate += candidate =>
         {
             _logger.LogDebug($"onicecandidate: {candidate}");
+            if (candidate.type == RTCIceCandidateType.host)
+            {
+                _logger.LogDebug($"onicecandidate: skip host candidate");
+                return;
+            }
             link.IceCandidates.Add(candidate);
         };
         peerConnection.onicecandidateerror += (candidate, error) =>
