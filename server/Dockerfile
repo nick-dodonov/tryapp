@@ -1,7 +1,8 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 
 #TEMPORARY: for diagnostics
-RUN apt-get update && apt-get install -y procps lsof dnsutils net-tools mc
+RUN apt-get update
+RUN apt-get install -y procps lsof dnsutils net-tools iputils-ping iproute2 netcat-openbsd mc
 
 USER $APP_UID
 WORKDIR /app
