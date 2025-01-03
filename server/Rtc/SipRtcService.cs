@@ -78,12 +78,13 @@ public class SipRtcService : IRtcService, IHostedService
         {
             //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
             //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
-            iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
+            //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
+            iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
         };
         var peerConnection = new RTCPeerConnection(config
             // , bindPort: 50100
             // , portRange: new(50100, 50200)
-            );
+        );
         //var peerConnection = new RTCPeerConnection();
 
         var link = new Link(peerConnection)

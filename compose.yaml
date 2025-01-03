@@ -36,7 +36,7 @@ services:
     image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
-    network_mode: host
+    #network_mode: host
     #ports:
       # - '8080:8080' #diagnostics
       # - "50100-50200:50100-50200/udp"
