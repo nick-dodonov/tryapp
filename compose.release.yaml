@@ -1,8 +1,20 @@
+networks:
+  host:
+    name: host
+    external: true
+
 services:
+  # temporary solution to test webrtc udp-connectivity
+  web:
+    networks:
+      - host
+  server:
+    networks:
+      - host
+
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
   #TODO: add renew part to service
   cert:
-    container_name: cert
     image: certbot/certbot:latest
     deploy:
       restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy

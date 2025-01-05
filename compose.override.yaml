@@ -1,7 +1,14 @@
 services:
+  # temporary solution to test webrtc udp-connectivity
+  web:
+    network_mode: host
+  server:
+    network_mode: host
+    build:
+      dockerfile: server/Dockerfile
+
   # development: generate fake self-signed certificate with `openssl` for localhost nginx
   cert:
-    container_name: cert
     image: certbot/certbot:latest
     volumes:
       - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw

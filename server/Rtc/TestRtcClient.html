@@ -22,7 +22,7 @@
             const sampleServers = [
                 locationUrl,
                 "http://localhost/api/", //docker compose variant
-                //TODO: add hosting variant but without revealing it in repo 
+                //TODO: add hosting variant but without revealing it in repo
             ];
 
             // Clear existing options
@@ -58,18 +58,19 @@
             let offer = await offerResponse.json();
             console.log("result offer:", offer);
 
-            console.log("creating peer connection and assigning remote description");
-            //const STUN_URL = "stun:stun.sipsorcery.com";
-            pc = new RTCPeerConnection({
+            const config = {
                 iceServers: [
                     {
                         urls: [
-                            "stun:stun.cloudflare.com:3478",
+                            //"stun:stun.sipsorcery.com"
+                            //"stun:stun.cloudflare.com:3478",
+                            "stun:stun.l.google.com:3478",
                         ],
                     }
                 ]
-            });
-            //pc = new RTCPeerConnection();
+            }
+            console.log("creating peer connection and assigning remote description", config);
+            pc = new RTCPeerConnection(config);
             
             pc.onconnectionstatechange = () => {
                 console.log("onconnectionstatechange:", pc.connectionState);
@@ -265,4 +266,8 @@
 <!--    <input type="text" id="rndByteLength"/>-->
 <!--    <button type="button" class="btn btn-success" onclick="sendRandomEcho();">Send Random Echo</button>-->
 <!--</div>-->
+
+    <!-- Eruda is console for mobile browsers -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 </body>
