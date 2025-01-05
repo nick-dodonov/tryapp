@@ -20,7 +20,7 @@ public class SipRtcService : IRtcService, IHostedService
     {
         public readonly RTCPeerConnection PeerConnection = peerConnection;
         public readonly List<RTCIceCandidate> IceCandidates = [];
-        public readonly TaskCompletionSource<bool> IceCollectCompleteTcs = new();
+        public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
         public RTCDataChannel? DataChannel;
     }
 
@@ -99,11 +99,11 @@ public class SipRtcService : IRtcService, IHostedService
         peerConnection.onicecandidate += candidate =>
         {
             _logger.LogDebug($"onicecandidate: {candidate}");
-            if (candidate.type == RTCIceCandidateType.host)
-            {
-                _logger.LogDebug($"onicecandidate: skip host candidate");
-                return;
-            }
+            // if (candidate.type == RTCIceCandidateType.host)
+            // {
+            //     _logger.LogDebug("onicecandidate: skip host candidate");
+            //     return;
+            // }
             link.IceCandidates.Add(candidate);
         };
         peerConnection.onicecandidateerror += (candidate, error) =>
@@ -114,7 +114,7 @@ public class SipRtcService : IRtcService, IHostedService
         {
             _logger.LogDebug($"onicegatheringstatechange: {state}");
             if (state == RTCIceGatheringState.complete)
-                link.IceCollectCompleteTcs.SetResult(true);
+                link.IceCollectCompleteTcs.SetResult(link.IceCandidates);
         };
 
         peerConnection.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt)
@@ -203,20 +203,13 @@ public class SipRtcService : IRtcService, IHostedService
         _logger.LogDebug($"SetAnswer: setRemoteDescription: id={id}: {description.toJSON()}");
         link.PeerConnection.setRemoteDescription(description);
 
-        _logger.LogDebug($"SetAnswer: wait ice candidates complete: id={id}");
-        await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
-
-        // //return one candidate
-        // var candidate = connection.IceCandidates[0];
-        // var candidateJson = candidate.toJSON();
-        // return candidateJson;
-
-        //return all candidates
-        var candidatesListJson = link.IceCandidates
+        _logger.LogDebug($"SetAnswer: wait ice candidates gathering complete: id={id}");
+        var candidates = await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
+        var candidatesListJson = candidates
             .Select(candidate => candidate.toJSON())
             .ToArray()
             .ToJson();
-        _logger.LogDebug($"SetAnswer: result ice candidates: id={id}: {candidatesListJson}");
+        _logger.LogDebug($"SetAnswer: return ice candidates ({candidates.Count} count): id={id}: {candidatesListJson}");
         return candidatesListJson;
     }
 
@@ -226,11 +219,12 @@ public class SipRtcService : IRtcService, IHostedService
         if (!_link.TryGetValue(id, out var link))
             throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
-        _logger.LogDebug($"AddIceCandidates: id={id}: {candidates.Length} candidate");
+        _logger.LogDebug($"AddIceCandidates: id={id}: adding {candidates.Length} candidates");
         foreach (var candidate in candidates)
         {
             _logger.LogDebug($"AddIceCandidates: id={id}: {candidate.toJSON()}");
             link.PeerConnection.addIceCandidate(candidate);
+            cancellationToken.ThrowIfCancellationRequested();
         }
         return default;
     }

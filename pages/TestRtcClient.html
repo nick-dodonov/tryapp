@@ -94,11 +94,11 @@
                 const candidate = event.candidate;
                 console.log("onicecandidate:", candidate);
                 if (candidate && candidate.candidate) {
-                    const address = candidate.address
-                    if (candidate.type === "host" && address && address.endsWith(".local")) {
-                        console.log("onicecandidate: skipping host candidate with .local address");
-                        return;
-                    }
+                    // const address = candidate.address
+                    // if (candidate.type === "host" && address && address.endsWith(".local")) {
+                    //     console.log("onicecandidate: skipping host candidate with .local address");
+                    //     return;
+                    // }
                     iceCandidates.push(candidate);
                 }
             }
@@ -250,7 +250,8 @@
 <div>
 <!--    <input type="checkbox" id="makeoffer" name="makfeoffer" value="makeoffer" onchange="seturl();"> Make Offer-->
 <!--    <input type="text" id="websockurl" size="40"/>-->
-    
+
+    <label for="serverSelect">RTC:</label>
     <select id="serverSelect" name="serverSelect">
         <option value="server1">Server 1</option>
         <option value="server2">Server 2</option>
