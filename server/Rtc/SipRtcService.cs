@@ -82,8 +82,8 @@ public class SipRtcService : IRtcService, IHostedService
             iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
         };
         var peerConnection = new RTCPeerConnection(config
-            // , bindPort: 50100
-            // , portRange: new(50100, 50200)
+            //, bindPort: 40000
+            , portRange: new(40000, 60000)
         );
         //var peerConnection = new RTCPeerConnection();
 
