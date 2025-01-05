@@ -5,25 +5,34 @@
 
     <script type="text/javascript">
         // On page load, populate serverSelect options with sample values
-        window.addEventListener('DOMContentLoaded', () => {
-            //const baseUrl = "http://localhost:5270/api/"; //"api/webrtc/";
+        window.addEventListener('DOMContentLoaded', async () => {
             const currentUrl = window.location.href;
             console.log("currentUrl: ", currentUrl);
+
             //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
-            let locationUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+            let hostingApi = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+                //ide develop variant
                 if (base.includes("localhost") || base.includes("127.0.0.1")) {
                     return base.replace(/:\d+/, ":5270") + "/api/";
                 }
                 return base + "/api/";
             });
-            console.log("locationUrl:", locationUrl);
+            console.log("locationUrl:", hostingApi);
             
             const serverSelect = document.getElementById('serverSelect');
             const sampleServers = [
-                locationUrl,
+                hostingApi,
                 "http://localhost/api/", //docker compose variant
-                //TODO: add hosting variant but without revealing it in repo
             ];
+
+            let response = await fetch("options.json");
+            if (response.ok) {
+                let options = await response.json();
+                console.log("options", options);
+                if (options.servers) {
+                    sampleServers.push(...options.servers);
+                }
+            }
 
             // Clear existing options
             serverSelect.innerHTML = '';
@@ -267,7 +276,11 @@
 <!--    <button type="button" class="btn btn-success" onclick="sendRandomEcho();">Send Random Echo</button>-->
 <!--</div>-->
 
-    <!-- Eruda is console for mobile browsers -->
+    <!-- Eruda (Console for Mobile Browsers) 
+    https://github.com/liriliri/eruda 
+    https://eruda.liriliri.io/docs/
+    TODO: enable only for debug (?eruda=true) and only selected tools ['console', 'network']
+    -->
     <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
     <script>eruda.init();</script>
 </body>

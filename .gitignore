@@ -3,6 +3,7 @@
 .env
 .local-deploy.sh
 *.DotSettings.user
+/pages/options.json
 
 # auto-generated for development
 /certbot/
