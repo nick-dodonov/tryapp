@@ -18,30 +18,30 @@ services:
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     network_mode: host
-    # ports:
-    #   # using 'host' mode now to simplify diagnostics
-    #   # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
-    #   # * TODO: custom balancer for X-Real-IP
-    #   #- '80:80'
-    #   #- '443:443'
-    #   - mode: host
-    #     protocol: tcp
-    #     published: 80
-    #     target: 80
-    #   - mode: host
-    #     protocol: tcp
-    #     published: 443
-    #     target: 443
+    ports:
+      # using 'host' mode now to simplify diagnostics
+      # * https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
+      # * TODO: custom balancer for X-Real-IP
+      - '80:80'
+      - '443:443'
+      # - mode: host
+      #   protocol: tcp
+      #   published: 80
+      #   target: 80
+      # - mode: host
+      #   protocol: tcp
+      #   published: 443
+      #   target: 443
 
   server:
     image: ${SERVER_IMAGE:-server}
     build:
       dockerfile: server/Dockerfile
     network_mode: host
-    # ports:
-    #   - '8080:8080' #diagnostics
-    #   # - "50100-50200:50100-50200/udp"
-    #   # - mode: host
-    #   #   protocol: udp
-    #   #   published: "50100-50200"
-    #   #   target: 50100
+    ports:
+      - '8080:8080'
+      # - "50100-50200:50100-50200/udp"
+      # - mode: host
+      #   protocol: udp
+      #   published: "50100-50200"
+      #   target: 50100
