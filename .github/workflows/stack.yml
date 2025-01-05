@@ -76,3 +76,16 @@ jobs:
             # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
             echo "==== docker service update"
             docker service update --force tt_web
+
+            echo "==== deploy test pages"
+            set -x # test echo on
+            COMMIT_SHA=${{ github.sha }}
+            COMMIT_SHA=${COMMIT_SHA:0:7}
+            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
+            echo "COMMIT_SHA=${COMMIT_SHA}"
+            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
+            sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
+            sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
+            ## trailing / in rsync is important to copy source directory content to different destination folder
+            #rsync -rvv --times pages/ $SSH_TARGET:./pages/
+            scp -r pages/ $SSH_TARGET:.
