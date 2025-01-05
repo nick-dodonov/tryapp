@@ -25,14 +25,16 @@
                 "http://localhost/api/", //docker compose variant
             ];
 
-            let response = await fetch("options.json");
-            if (response.ok) {
-                let options = await response.json();
-                console.log("options", options);
-                if (options.servers) {
-                    sampleServers.push(...options.servers);
+            try {
+                let response = await fetch("options.json");
+                if (response.ok) {
+                    let options = await response.json();
+                    console.log("options", options);
+                    if (options.servers) {
+                        sampleServers.push(...options.servers);
+                    }
                 }
-            }
+            } catch (e) {}
 
             // Clear existing options
             serverSelect.innerHTML = '';
