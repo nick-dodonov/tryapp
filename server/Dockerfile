@@ -2,7 +2,17 @@
 
 #TEMPORARY: for diagnostics
 RUN apt-get update
-RUN apt-get install -y procps lsof dnsutils net-tools iputils-ping iproute2 netcat-openbsd mc tmux
+RUN apt-get install \
+    procps \
+    lsof \
+    dnsutils \
+    net-tools \
+    iputils-ping \
+    iproute2 \
+    netcat-openbsd \
+    mc \
+    tmux \
+    -y
 
 USER $APP_UID
 WORKDIR /app
