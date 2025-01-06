@@ -43,8 +43,11 @@ public class HudLogic : MonoBehaviour
             _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
             _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
         }
-        if (NeedServerHostingOption(out var url))
-            _serverOptions.Add(new("hosting", url));
+        if (NeedServerHostingOption(out var url, out var originDescription))
+        {
+            StaticLog.Info($"HudLogic: server: {url} ({originDescription})");
+            _serverOptions.Add(new(originDescription, url));
+        }
         serverDropdown.options.Clear();
         serverDropdown.options.AddRange(
             _serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
@@ -98,54 +101,30 @@ public class HudLogic : MonoBehaviour
         return false;
     }
 
-    private static bool NeedServerHostingOption(out string url)
+    private static bool NeedServerHostingOption(out string url, out string originDescription)
     {
-        url = Application.absoluteURL;
-        if (!string.IsNullOrEmpty(url))
-            url = new Uri(url).GetLeftPart(UriPartial.Authority);
-
 #if UNITY_EDITOR
         if (NeedServerLocalhostOptions(out _))
         {
-            var env = ParseEnvFileToDictionary();
+            var env = OptionsReader.ParseEnvFileToDictionary();
             if (env.TryGetValue("SERVER_URL", out url))
-                StaticLog.Info($"HudLogic: server url: {url}");
-        }
-
-        static Dictionary<string, string> ParseEnvFileToDictionary()
-        {
-            var directory = System.IO.Directory.GetCurrentDirectory();
-            Dictionary<string, string> envVariables = new();
-
-            while (!string.IsNullOrEmpty(directory))
             {
-                var envFilePath = System.IO.Path.Combine(directory, ".env");
-                if (System.IO.File.Exists(envFilePath))
-                {
-                    var lines = System.IO.File.ReadAllLines(envFilePath);
-                    foreach (var line in lines)
-                    {
-                        var trimmedLine = line.Trim();
-                        if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith("#"))
-                            continue;
-
-                        var splitIndex = trimmedLine.IndexOf('=');
-                        if (splitIndex <= 0)
-                            continue;
-                    
-                        var key = trimmedLine[..splitIndex].Trim();
-                        var value = trimmedLine[(splitIndex + 1)..].Trim();
-                        envVariables[key] = value;
-                    }
-                    break; // Stop searching once the .env file is found and processed
-                }
-                directory = System.IO.Path.GetDirectoryName(directory); // Move up one directory
+                originDescription = ".env";
+                return true;
             }
-
-            return envVariables;
         }
 #endif
-        return true;
+
+        url = Application.absoluteURL;
+        if (!string.IsNullOrEmpty(url))
+        {
+            url = new Uri(url).GetLeftPart(UriPartial.Authority);
+            originDescription = "hosting";
+            return true;
+        }
+
+        originDescription = null;
+        return false;
     }
 
     private async void OnServerRequestButtonClick()
