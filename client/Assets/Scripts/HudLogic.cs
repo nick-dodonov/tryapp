@@ -45,7 +45,7 @@ public class HudLogic : MonoBehaviour
         }
         if (NeedServerHostingOption(out var url, out var originDescription))
         {
-            StaticLog.Info($"HudLogic: server: {url} ({originDescription})");
+            StaticLog.Info($"HudLogic: server ({originDescription}): {url}");
             _serverOptions.Add(new(originDescription, url));
         }
         serverDropdown.options.Clear();
@@ -112,6 +112,13 @@ public class HudLogic : MonoBehaviour
                 originDescription = ".env";
                 return true;
             }
+
+            if (OptionsReader.TryParseOptionsJsonServerFirst(out url))
+            {
+                url = new Uri(url).GetLeftPart(UriPartial.Authority);
+                originDescription = "options.json";
+                return true;
+            } 
         }
 #endif
 
