@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Threading.Tasks;
 using Shared;
 using Shared.Web;
+using UnityEngine;
+using UnityEngine.Networking;
 
 public static class OptionsReader
 {
@@ -35,33 +38,48 @@ public static class OptionsReader
                 break; // Stop searching once the .env file is found and processed
             }
 
-            directory = System.IO.Path.GetDirectoryName(directory); // Move up one directory
+            directory = Path.GetDirectoryName(directory); // Move up one directory
         }
 
         return envVariables;
     }
 
-    private const string OptionsJsonPath = "../pages/options.json";
-    public static bool TryParseOptionsJsonServerFirst(out string server)
+    public static async ValueTask<string> TryParseOptionsJsonServerFirst()
     {
-        server = null;
-        if (!File.Exists(OptionsJsonPath))
-            return false;
-
         try
         {
-            var content = File.ReadAllText(OptionsJsonPath);
+            var content = await ReadOptionsJson();
+            if (content == null)
+                return null;
             var options = WebSerializer.DeserializeObject<Options>(content);
-            server = options.Servers[0];
-            return true;
+            return options.Servers[0];
         }
         catch (Exception e)
         {
             StaticLog.Info($"TryParseOptionsJsonServerFirst failed: {e}");
-            return false;
         }
+        return null;
     }
-    
+
+    private static async ValueTask<string> ReadOptionsJson()
+    {
+        if (Application.isEditor)
+        {
+            const string optionsJsonPath = "../pages/options.json";
+            if (!File.Exists(optionsJsonPath))
+                return null;
+            return await File.ReadAllTextAsync(optionsJsonPath);
+        }
+        var absoluteUrl = Application.absoluteURL;
+        var optionsUri = new Uri(new(absoluteUrl), "options.json");
+        StaticLog.Info($"11111111111111: {optionsUri}");
+        var request = UnityWebRequest.Get(optionsUri);
+        await request.SendWebRequest();
+        StaticLog.Info($"22222222222222: {request.result}");
+        var content = request.downloadHandler.text;
+        return content;
+    }
+
     [Serializable]
     public class Options
     {

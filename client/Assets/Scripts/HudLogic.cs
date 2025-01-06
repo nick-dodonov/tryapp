@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Diagnostics;
@@ -12,7 +11,6 @@ using Shared.Rtc;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class HudLogic : MonoBehaviour
@@ -33,6 +31,7 @@ public class HudLogic : MonoBehaviour
     private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
+    // ReSharper disable once AsyncVoidMethod
     private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
@@ -55,6 +54,7 @@ public class HudLogic : MonoBehaviour
         serverDropdown.options.Clear();
         serverDropdown.options.AddRange(
             _serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
+        serverDropdown.RefreshShownValue();
         serverResponseText.text = "";
         
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
@@ -106,7 +106,7 @@ public class HudLogic : MonoBehaviour
     }
 
     private record ServerOptions(string Url, string OriginDescription);
-    private static async Task<ServerOptions> NeedServerHostingOption()
+    private static async ValueTask<ServerOptions> NeedServerHostingOption()
     {
         if (NeedServerLocalhostOptions(out _))
         {
@@ -114,29 +114,10 @@ public class HudLogic : MonoBehaviour
             var env = OptionsReader.ParseEnvFileToDictionary();
             if (env.TryGetValue("SERVER_URL", out var envUrl))
                 return new(envUrl, ".env");
-
-            if (OptionsReader.TryParseOptionsJsonServerFirst(out var optionsUrl))
-                return new(new Uri(optionsUrl).GetLeftPart(UriPartial.Authority), "options.json");
 #endif
-            // try
-            // {
-            //     var absoluteUrl = Application.absoluteURL;
-            //     var optionsUri = new Uri(new(absoluteUrl), "options.json");
-            //     StaticLog.Info($"11111111111111: {optionsUri}");
-            //     var request = UnityWebRequest.Get(optionsUri);
-            //     await request.SendWebRequest();
-            //     StaticLog.Info($"22222222222222: {request.result}");
-            //     var content = request.downloadHandler.text;
-            //     StaticLog.Info($"33333333333333: {content}");
-            //     var options = WebSerializer.DeserializeObject<OptionsReader.Options>(content);
-            //     StaticLog.Info($"44444444444444: {options}");
-            //     var server = options.Servers[0];
-            //     StaticLog.Info($"55555555555555: {server}");
-            // }
-            // catch (Exception e)
-            // {
-            //     StaticLog.Info($"EEEEEEEEEEEEEE: {e}");
-            // }
+            var optionsUrl = await OptionsReader.TryParseOptionsJsonServerFirst();
+            if (optionsUrl != null)
+                return new(new Uri(optionsUrl).GetLeftPart(UriPartial.Authority), "options.json");
         }
 
         var url = Application.absoluteURL;
