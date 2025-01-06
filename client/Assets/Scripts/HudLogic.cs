@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Diagnostics;
 using Client.Rtc;
 using Shared;
@@ -10,6 +12,7 @@ using Shared.Rtc;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UI;
 
 public class HudLogic : MonoBehaviour
@@ -30,23 +33,24 @@ public class HudLogic : MonoBehaviour
     private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
-    private void OnEnable()
+    private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
         StaticLog.Info("HudLogic: ==== starting client ====");
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
-        
+
         if (NeedServerLocalhostOptions(out var localhost))
         {
             _serverOptions.Add(new("localhost-debug", $"http://{localhost}:5270"));
             _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
             _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
         }
-        if (NeedServerHostingOption(out var url, out var originDescription))
+        var hostingOption = await NeedServerHostingOption();
+        if (hostingOption != null)
         {
-            StaticLog.Info($"HudLogic: server ({originDescription}): {url}");
-            _serverOptions.Add(new(originDescription, url));
+            StaticLog.Info($"HudLogic: server ({hostingOption.OriginDescription}): {hostingOption.Url}");
+            _serverOptions.Add(new(hostingOption.OriginDescription, hostingOption.Url));
         }
         serverDropdown.options.Clear();
         serverDropdown.options.AddRange(
@@ -101,37 +105,48 @@ public class HudLogic : MonoBehaviour
         return false;
     }
 
-    private static bool NeedServerHostingOption(out string url, out string originDescription)
+    private record ServerOptions(string Url, string OriginDescription);
+    private static async Task<ServerOptions> NeedServerHostingOption()
     {
-#if UNITY_EDITOR
         if (NeedServerLocalhostOptions(out _))
         {
+#if UNITY_EDITOR
             var env = OptionsReader.ParseEnvFileToDictionary();
-            if (env.TryGetValue("SERVER_URL", out url))
-            {
-                originDescription = ".env";
-                return true;
-            }
+            if (env.TryGetValue("SERVER_URL", out var envUrl))
+                return new(envUrl, ".env");
 
-            if (OptionsReader.TryParseOptionsJsonServerFirst(out url))
-            {
-                url = new Uri(url).GetLeftPart(UriPartial.Authority);
-                originDescription = "options.json";
-                return true;
-            } 
-        }
+            if (OptionsReader.TryParseOptionsJsonServerFirst(out var optionsUrl))
+                return new(new Uri(optionsUrl).GetLeftPart(UriPartial.Authority), "options.json");
 #endif
+            // try
+            // {
+            //     var absoluteUrl = Application.absoluteURL;
+            //     var optionsUri = new Uri(new(absoluteUrl), "options.json");
+            //     StaticLog.Info($"11111111111111: {optionsUri}");
+            //     var request = UnityWebRequest.Get(optionsUri);
+            //     await request.SendWebRequest();
+            //     StaticLog.Info($"22222222222222: {request.result}");
+            //     var content = request.downloadHandler.text;
+            //     StaticLog.Info($"33333333333333: {content}");
+            //     var options = WebSerializer.DeserializeObject<OptionsReader.Options>(content);
+            //     StaticLog.Info($"44444444444444: {options}");
+            //     var server = options.Servers[0];
+            //     StaticLog.Info($"55555555555555: {server}");
+            // }
+            // catch (Exception e)
+            // {
+            //     StaticLog.Info($"EEEEEEEEEEEEEE: {e}");
+            // }
+        }
 
-        url = Application.absoluteURL;
+        var url = Application.absoluteURL;
         if (!string.IsNullOrEmpty(url))
         {
             url = new Uri(url).GetLeftPart(UriPartial.Authority);
-            originDescription = "hosting";
-            return true;
+            return new(url, "hosting");
         }
 
-        originDescription = null;
-        return false;
+        return null;
     }
 
     private async void OnServerRequestButtonClick()
