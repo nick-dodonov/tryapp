@@ -1,8 +1,9 @@
-/.idea/
 
 # user develop settings
 .env
+.local-deploy.sh
 *.DotSettings.user
+/pages/options.json
 
 # auto-generated for development
 /certbot/
@@ -16,3 +17,6 @@ bin/
 
 # macOS specifics
 .DS_Store
+
+# IDE settings
+/.idea/

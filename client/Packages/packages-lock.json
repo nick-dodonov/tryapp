@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "7c0f199fe0d3fc528024488ccd671e6c7b27745b"
     },
+    "com.unity.editorcoroutines": {
+      "version": "1.0.0",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ext.nunit": {
       "version": "2.0.5",
       "depth": 1,
@@ -48,6 +55,17 @@
         "com.unity.modules.imgui": "1.0.0"
       }
     },
+    "com.unity.webrtc": {
+      "version": "3.0.0-pre.8",
+      "depth": 0,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.modules.audio": "1.0.0",
+        "com.unity.editorcoroutines": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "shared": {
       "version": "file:../../shared",
       "depth": 0,
@@ -78,7 +96,7 @@
     },
     "com.unity.modules.jsonserialize": {
       "version": "1.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "builtin",
       "dependencies": {}
     },

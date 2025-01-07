@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 15003, guid: 0000000000000000e000000000000000, type: 0}
-  m_Name: Web Debug
+  m_Name: WebDebug
   m_EditorClassIdentifier: 
   m_AssetVersion: 1
   m_BuildTarget: 20
   m_Subtarget: 0
   m_PlatformId: 84a3bb9e7420477f885e98145999eb20
   m_PlatformBuildProfile:
-    rid: 5939325909823390319
+    rid: 5939325971174261363
   m_OverrideGlobalSceneList: 0
   m_Scenes: []
   m_ScriptingDefines: []
@@ -78,7 +78,7 @@ MonoBehaviour:
     - line: '|   mipStripping: 0'
     - line: '|   numberOfMipsStripped: 0'
     - line: '|   numberOfMipsStrippedPerMipmapLimitGroup: {}'
-    - line: '|   m_StackTraceTypes: 010000000100000001000000000000000100000001000000'
+    - line: '|   m_StackTraceTypes: 010000000100000001000000010000000100000001000000'
     - line: '|   iosShowActivityIndicatorOnLoading: -1'
     - line: '|   androidShowActivityIndicatorOnLoading: -1'
     - line: '|   iosUseCustomAppBackgroundBehavior: 0'
@@ -655,8 +655,8 @@ MonoBehaviour:
     - line: '|   blurSplashScreenBackground: 1'
     - line: '|   spritePackerPolicy: '
     - line: '|   webGLMemorySize: 16'
-    - line: '|   webGLExceptionSupport: 2'
-    - line: '|   webGLNameFilesAsHashes: 0'
+    - line: '|   webGLExceptionSupport: 1'
+    - line: '|   webGLNameFilesAsHashes: 1'
     - line: '|   webGLShowDiagnostics: 1'
     - line: '|   webGLDataCaching: 1'
     - line: '|   webGLDebugSymbols: 0'
@@ -803,10 +803,10 @@ MonoBehaviour:
   references:
     version: 2
     RefIds:
-    - rid: 5939325909823390319
+    - rid: 5939325971174261363
       type: {class: WebGLPlatformSettings, ns: UnityEditor.WebGL, asm: UnityEditor.WebGL.Extensions}
       data:
-        m_Development: 1
+        m_Development: 0
         m_ConnectProfiler: 0
         m_BuildWithDeepProfilingSupport: 0
         m_AllowDebugging: 0
@@ -817,7 +817,7 @@ MonoBehaviour:
         m_ExplicitArrayBoundsChecks: 0
         m_CompressionType: -1
         m_InstallInBuildFolder: 0
-        m_CodeOptimization: 0
+        m_CodeOptimization: 4
         m_WebGLClientBrowserPath: 
         m_WebGLClientBrowserType: 0
         m_WebGLTextureSubtarget: 0

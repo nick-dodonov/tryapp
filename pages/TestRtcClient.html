@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<head>
+    <title>TestRtcClient</title>
+    <meta charset="UTF-8">
+
+    <script type="text/javascript">
+        // On page load, populate serverSelect options with sample values
+        window.addEventListener('DOMContentLoaded', async () => {
+            const currentUrl = window.location.href;
+            console.log("currentUrl: ", currentUrl);
+
+            //const apiUrl = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, '$1/api/');
+            let hostingApi = currentUrl.replace(/^(https?:\/\/[^\/]+)(\/.*)?$/, (match, base) => {
+                //ide develop variant
+                if (base.includes("localhost") || base.includes("127.0.0.1")) {
+                    return base.replace(/:\d+/, ":5270") + "/api/";
+                }
+                return base + "/api/";
+            });
+            console.log("locationUrl:", hostingApi);
+            
+            const serverSelect = document.getElementById('serverSelect');
+            const sampleServers = [
+                hostingApi,
+                "http://localhost/api/", //docker compose variant
+            ];
+
+            try {
+                let response = await fetch("options.json");
+                if (response.ok) {
+                    let options = await response.json();
+                    console.log("options", options);
+                    if (options.servers) {
+                        sampleServers.push(...options.servers);
+                    }
+                }
+            } catch (e) {}
+
+            // Clear existing options
+            serverSelect.innerHTML = '';
+
+            // Add options
+            sampleServers.forEach(server => {
+                const option = document.createElement('option');
+                option.value = server;
+                option.text = server;
+                serverSelect.appendChild(option);
+            });
+        });
+        
+        const id = Date.now().toString();
+
+        //const DATA_CHANNEL_LABEL = "dc1";
+        let pc;//, dc;
+
+        async function startConnection() {
+            console.log(">>>> startConnection");
+
+            const serverSelect = document.getElementById('serverSelect');
+            const baseUrl = serverSelect.value;
+            console.log("baseUrl:", baseUrl);
+
+            const getOfferUrl = `${baseUrl}getoffer?id=${id}`;
+            const setAnswerUrl = `${baseUrl}setanswer?id=${id}`;
+            const addIceCandidatesUrl = `${baseUrl}addicecandidates?id=${id}`
+            
+            console.log("getting offer:", getOfferUrl);
+            let offerResponse = await fetch(getOfferUrl);
+            let offer = await offerResponse.json();
+            console.log("result offer:", offer);
+
+            const config = {
+                iceServers: [
+                    {
+                        urls: [
+                            //"stun:stun.sipsorcery.com"
+                            //"stun:stun.cloudflare.com:3478",
+                            "stun:stun.l.google.com:3478",
+                        ],
+                    }
+                ]
+            }
+            console.log("creating peer connection and assigning remote description", config);
+            pc = new RTCPeerConnection(config);
+            
+            pc.onconnectionstatechange = () => {
+                console.log("onconnectionstatechange:", pc.connectionState);
+            }
+            
+            setupDataChannel(pc);
+
+            const iceCandidates = []
+            pc.onicecandidate = async function (event) {
+                const candidate = event.candidate;
+                console.log("onicecandidate:", candidate);
+                if (candidate && candidate.candidate) {
+                    // const address = candidate.address
+                    // if (candidate.type === "host" && address && address.endsWith(".local")) {
+                    //     console.log("onicecandidate: skipping host candidate with .local address");
+                    //     return;
+                    // }
+                    iceCandidates.push(candidate);
+                }
+            }
+            pc.onicegatheringstatechange = async function () {
+                const iceGatheringState = pc.iceGatheringState;
+                console.log("onicegatheringstatechange:", iceGatheringState);
+                if (iceGatheringState === "complete") {
+                    console.log("onicegatheringstatechange: posting local candidates:", iceCandidates);
+                    await fetch(addIceCandidatesUrl, {
+                        method: 'POST',
+                        body: JSON.stringify(iceCandidates),
+                        headers: { 'Content-Type': 'application/json' }
+                    });
+                }
+            }
+            pc.oniceconnectionstatechange = function () {
+                console.log("oniceconnectionstatechange:", pc.iceConnectionState);
+            }
+            pc.onsignalingstatechange = function () {
+                console.log("onsignalingstatechange:", pc.signalingState);
+            }
+            pc.onicecandidateerror = function (event) {
+                console.log("onicecandidateerror:", JSON.stringify(event));
+            }
+
+            await pc.setRemoteDescription(offer);
+
+            console.log("creating answer");
+            let answer = await pc.createAnswer();
+            console.log("assigning answer as local description:", answer);
+            await pc.setLocalDescription(answer);
+
+            console.log("posting answer:", setAnswerUrl);
+            let answerResponse = await fetch(setAnswerUrl, {
+                method: 'POST',
+                body: JSON.stringify(answer),
+                headers: { 'Content-Type': 'application/json' }
+            });
+            let candidateListJson = await answerResponse.json();
+            console.log("result of answer (remote ice candidates list):", candidateListJson);
+            for (let candidateJson of candidateListJson) {
+                let candidateObj = JSON.parse(candidateJson);
+                let candidate = new RTCIceCandidate(candidateObj);
+                console.log("adding remote ice candidate:", candidate);
+                await pc.addIceCandidate(candidate);
+            }
+            
+            console.log("<<<< startConnection");
+        }
+
+        function stringToNewUTF8(str) {
+            const encoder = new TextEncoder();
+            return encoder.encode(str).buffer;
+        }
+        function _free(buffer) {
+        }
+        
+        function setupDataChannel(pc) {
+            let messagesOk = 0
+            let messagesLost = 0
+            let messagesLate = 0
+            let messagesOkElement = document.getElementById('ok')
+            let messagesLostElement = document.getElementById('lost')
+            let messagesLateElement = document.getElementById('late')
+            let lastMessageId = 0
+            let firstMessage = true
+            
+            pc.ondatachannel = (event) => {
+                const channel = event.channel
+                console.log("ondatachannel:", channel);
+                channel.onmessage = function (event) {
+                    console.log("DataChannel: onmessage:", typeof event.data, event.data); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
+
+                    const ptr = stringToNewUTF8(event.data);
+                    _free(ptr);
+
+                    // if (event.data instanceof ArrayBuffer) {
+                    //     console.log(`binary data of length ${event.data.byteLength}.`);
+                    //     event.target.send(event.data);
+                    // }
+                    // Ideally this wouldn't be a string, but that's out of scope here.
+
+                    const messageId = parseInt(event.data.split(";")[0], 10)
+
+                    if (messageId <= lastMessageId) {
+                        // This message is old. We can either skip it, or handle it
+                        // differently knowing it is old.
+                        if (messageId < lastMessageId) {
+                            messagesLost--
+                            messagesLate++
+                        }
+                    } else {
+                        messagesOk++
+                    }
+
+                    if (messageId > lastMessageId + 1) {
+                        if (firstMessage) {
+                            firstMessage = false
+                        } else {
+                            // Some messages before this one are late or were lost. 
+                            // If this happens a lot we may want to alert the user that the
+                            // connection seems unstable.
+                            messagesLost += messageId - lastMessageId - 1
+                        }
+                    }
+                    lastMessageId = messageId
+
+                    messagesOkElement.innerText = messagesOk
+                    messagesLostElement.innerText = messagesLost
+                    messagesLateElement.innerText = messagesLate
+                }
+
+                console.log(`DataChannel: timer: starting to send data`);
+                let frameId = 1;
+                let timer = setInterval(() => {
+                    const readyState = channel.readyState;
+                    if (readyState !== "open") {
+                        console.log(`DataChannel: timer: stop: readyState=${readyState}`);
+                        clearInterval(timer);
+                        return;
+                    }
+                    const connectionState = pc.connectionState;
+                    if (connectionState !== "connected") {
+                        console.log(`DataChannel: timer: stop: connectionState=${connectionState}`);
+                        clearInterval(timer);
+                        return;
+                    }
+                    const message = frameId + ";TODO-FROM-CLIENT;" + Date.now();
+                    console.log(`DataChannel: make send: ${message}`);
+                    channel.send(message);
+                    frameId++;
+                }, 1000); // every second
+            }
+
+            //dc = pc.createDataChannel(DATA_CHANNEL_LABEL);
+        }
+        
+        async function closeConnection() {
+            console.log(">>>> closeConnection");
+            pc?.close();
+            pc = undefined;
+            console.log("<<<< closeConnection");
+        }
+    </script>
+</head>
+<body>
+<h1>TestRtcClient</h1>
+
+<div>
+<!--    <input type="checkbox" id="makeoffer" name="makfeoffer" value="makeoffer" onchange="seturl();"> Make Offer-->
+<!--    <input type="text" id="websockurl" size="40"/>-->
+
+    <label for="serverSelect">RTC:</label>
+    <select id="serverSelect" name="serverSelect">
+        <option value="server1">Server 1</option>
+        <option value="server2">Server 2</option>
+        <option value="server3">Server 3</option>
+    </select>
+    <button type="button" class="btn btn-success" onclick="startConnection();">Open</button>
+    <button type="button" class="btn btn-success" onclick="closeConnection();">Close</button>
+</div>
+
+<h2>Result</h2>
+
+<div>Messages OK: <span id="ok">0</span></div>
+<div>Messages Lost: <span id="lost">0</span></div>
+<div>Messages Late: <span id="late">0</span></div>
+
+<!--<div>-->
+<!--    <input type="text" id="message" value="hello world"/>-->
+<!--    <button type="button" class="btn btn-success" onclick="sendMessage(document.querySelector('#message').value);">Send-->
+<!--        Message-->
+<!--    </button>-->
+<!--</div>-->
+
+<!--<div>-->
+<!--    <input type="text" id="rndByteLength"/>-->
+<!--    <button type="button" class="btn btn-success" onclick="sendRandomEcho();">Send Random Echo</button>-->
+<!--</div>-->
+
+    <!-- Eruda (Console for Mobile Browsers) 
+    https://github.com/liriliri/eruda 
+    https://eruda.liriliri.io/docs/
+    TODO: enable only for debug (?eruda=true) and only selected tools ['console', 'network']
+    -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
+</body>

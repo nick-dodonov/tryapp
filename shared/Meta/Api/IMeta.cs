@@ -1,10 +1,11 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Rtc;
 
 namespace Shared.Meta.Api
 {
-    public interface IMeta
+    public interface IMeta : IRtcService, IDisposable
     {
         public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken);
     }

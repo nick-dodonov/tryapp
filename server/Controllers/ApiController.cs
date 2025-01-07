@@ -5,25 +5,38 @@ namespace server.Controllers;
 
 [ApiController]
 [Route("[controller]")]
-public class ApiController(IMeta meta, ILogger<ApiController> logger) 
-    : ControllerBase, IMeta
+public sealed class ApiController(IMeta meta) 
+    : ControllerBase
 {
-    private static readonly string[] Summaries = ["Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"];
+    public void Dispose() { }
 
-    [HttpGet]
-    public IEnumerable<WeatherForecast> Get()
-    {
-        Shared.StaticLog.Info("==== api request ====");
-        return Enumerable.Range(1, 5).Select(index => new WeatherForecast
-            {
-                Date = DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                TemperatureC = Random.Shared.Next(-20, 55),
-                Summary = Summaries[Random.Shared.Next(Summaries.Length)]
-            })
-            .ToArray();
-    }
-    
     [Route("info")]
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
         => meta.GetInfo(cancellationToken);
+    
+    [Route("getoffer")]
+    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
+        => meta.GetOffer(id, cancellationToken);
+
+    [HttpPost]
+    [Route("setanswer")]
+    public async ValueTask<string> SetAnswer(string id, CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(HttpContext.Request.Body);
+        var answerJson = await reader.ReadToEndAsync(cancellationToken);
+        return await meta.SetAnswer(id, answerJson, cancellationToken);
+    }
+    // [HttpPost]
+    // [Route("setanswer-TODO")]
+    // public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
+    //     => rtcService.SetAnswer(id, answer, cancellationToken);
+    
+    [HttpPost]
+    [Route("addicecandidates")]
+    public async ValueTask AddIceCandidates(string id, CancellationToken cancellationToken)
+    {
+        using var reader = new StreamReader(HttpContext.Request.Body);
+        var candidatesJson = await reader.ReadToEndAsync(cancellationToken);
+        await meta.AddIceCandidates(id, candidatesJson, cancellationToken);
+    }
 }

@@ -1,4 +1,19 @@
 ﻿FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
+
+#TEMPORARY: for diagnostics
+RUN apt-get update
+RUN apt-get install \
+    procps \
+    lsof \
+    dnsutils \
+    net-tools \
+    iputils-ping \
+    iproute2 \
+    netcat-openbsd \
+    mc \
+    tmux \
+    -y
+
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
@@ -6,15 +21,25 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["server/server.csproj", "server/"]
-RUN dotnet restore "server/server.csproj"
+
+#TODO: copy and dotnet restore all csproj deps in separate docker image layer
+#COPY ["server/server.csproj", "server/"]
+#RUN dotnet restore "server/server.csproj"
+
 COPY . .
 WORKDIR "/src/server"
-RUN dotnet build "server.csproj" -c $BUILD_CONFIGURATION -o /app/build
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet build "server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
-RUN dotnet publish "server.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+    dotnet publish "server.csproj" \
+    -c $BUILD_CONFIGURATION \
+    -o /app/publish \
+    /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app

@@ -1,9 +1,10 @@
 using Shared;
 using Shared.Meta.Api;
+using Shared.Rtc;
 
 namespace Server.Meta;
 
-public class MetaServer : IMeta
+public sealed class MetaServer(IRtcService rtcService) : IMeta
 {
     private static readonly string[] RandomNames =
     [
@@ -15,6 +16,8 @@ public class MetaServer : IMeta
     ];
     private int _uid;
 
+    public void Dispose() { }
+
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
     {
         var result = new ServerInfo
@@ -24,7 +27,16 @@ public class MetaServer : IMeta
             RequestTime = DateTime.Now
         };
 
-        StaticLog.Info($"==== Info request/result: {result.RandomName} {result.RequestId} {result.RequestTime}");
+        StaticLog.Info($"MetaServer: GetInfo: {result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
+
+    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
+        => rtcService.GetOffer(id, cancellationToken);
+
+    public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
+        => rtcService.SetAnswer(id, answerJson, cancellationToken);
+
+    public ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
+        => rtcService.AddIceCandidates(id, candidates, cancellationToken);
 }
