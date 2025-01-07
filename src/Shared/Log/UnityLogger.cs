@@ -1,6 +1,7 @@
 #if UNITY_5_6_OR_NEWER
 using System;
 using System.Runtime.CompilerServices;
+using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
@@ -33,14 +34,40 @@ namespace Shared.Log
 
         void ILogger.Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception? exception, Func<TState, Exception?, string> formatter)
         {
-            var message = formatter(state, exception);
-            // if (message.IndexOf('\n', StringComparison.Ordinal) >= 0)
-            //     message = message.Replace(Environment.NewLine, " ");
-            if (exception != null)
-                message = $"{message} : {exception}";
-            
             var logType = ConvertToUnityLogType(logLevel);
-            Debug.unityLogger.Log(logType, _categoryName, message);
+            if (state is MsgState msgState)
+            {
+                // gc-free logger usage (via Shared.Log.LoggerExtensions)
+                var sb = ZString.CreateStringBuilder(true);
+                try
+                {
+                    sb.Append(_categoryName);
+                    sb.Append(':');
+                    sb.Append(' ');
+                    msgState.WriteTo(ref sb);
+                    if (exception != null)
+                    {
+                        sb.Append(" : ");
+                        sb.Append(exception);
+                    }
+                    var message = sb.ToString();
+                    
+                    //TODO: speedup: replace with direct UnityEngine.DebugLogHandler.Internal_Log_Injected usage (spans support)
+                    Debug.unityLogger.Log(logType, message);
+                }
+                finally
+                {
+                    sb.Dispose();
+                }
+            }
+            else
+            {
+                // default logger usage
+                var message = formatter(state, exception);
+                if (exception != null)
+                    message = $"{message} : {exception}";
+                Debug.unityLogger.Log(logType, _categoryName, message);
+            }
         }
 
         bool ILogger.IsEnabled(LogLevel logLevel) => true; //TODO: setup settings

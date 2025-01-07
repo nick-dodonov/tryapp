@@ -86,11 +86,7 @@ public class HudLogic : MonoBehaviour
             if (_updateElapsedTime > UpdateSendSeconds)
             {
                 _updateElapsedTime = 0;
-
-                var message = $"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                Slog.Info($"Send: {message}");
-                var bytes = System.Text.Encoding.UTF8.GetBytes(message);
-                _rtcLink.Send(bytes);
+                RtcSend($"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
             }
         }
     }
@@ -186,6 +182,13 @@ public class HudLogic : MonoBehaviour
         _rtcApi = null;
         _meta?.Dispose();
         _meta = null;
+    }
+
+    private void RtcSend(string message)
+    {
+        Slog.Info(message);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(message);
+        _rtcLink.Send(bytes);
     }
 
     private void RtcReceived(byte[] data)

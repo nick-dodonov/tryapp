@@ -10,11 +10,12 @@ namespace Shared.Meta.Client
     public class MetaClient : IMeta
     {
         private readonly IWebClient _client;
+        private readonly ILogger<MetaClient> _logger;
 
         public MetaClient(IWebClient client, ILogger<MetaClient> logger)
         {
             _client = client;
-            logger.LogInformation("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
+            _logger = logger;
         }
 
         public void Dispose()
@@ -25,11 +26,11 @@ namespace Shared.Meta.Client
         public async ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
         {
             const string uri = "api/info";
-            Slog.Info($"request: {_client.BaseAddress}{uri}");
+            _logger.Info($"request: {_client.BaseAddress}{uri}");
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            Slog.Info($"response: {content}");
+            _logger.Info($"response: {content}");
             var result = WebSerializer.DeserializeObject<ServerInfo>(content);
             return result;
 
@@ -45,7 +46,7 @@ namespace Shared.Meta.Client
         public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
         {
             var uri = $"api/getoffer?id={id}";
-            Slog.Info($"{_client.BaseAddress}{uri}");
+            _logger.Info($"{_client.BaseAddress}{uri}");
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
@@ -54,7 +55,7 @@ namespace Shared.Meta.Client
         public async ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken)
         {
             var uri = $"api/setanswer?id={id}";
-            Slog.Info($"{_client.BaseAddress}{uri}");
+            _logger.Info($"{_client.BaseAddress}{uri}");
             using var response = await _client.PostAsync(uri, answer, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
@@ -63,7 +64,7 @@ namespace Shared.Meta.Client
         public async ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
         {
             var uri = $"api/addicecandidates?id={id}";
-            Slog.Info($"{_client.BaseAddress}{uri}");
+            _logger.Info($"{_client.BaseAddress}{uri}");
             using var response = await _client.PostAsync(uri, candidates, cancellationToken);
             response.EnsureSuccessStatusCode();
         }
