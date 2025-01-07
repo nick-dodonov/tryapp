@@ -205,5 +205,17 @@
       document.body.appendChild(script);
 
     </script>
+
+    <!-- Eruda is console for mobile browsers -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>
+      // https://eruda.liriliri.io/docs/api.html
+      eruda.init({
+          tool: ['console', 'network', 'resources'] //, 'info', 'snippets']
+      });
+      eruda.position({x: 200, y: 0});
+      //eruda.show();
+    </script>
+
   </body>
 </html>
