@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using UnityEngine;
 
 namespace Shared.Log
 {
@@ -32,7 +33,8 @@ namespace Shared.Log
 #if UNITY_5_6_OR_NEWER
                 //TODO: speedup: replace with direct UnityEngine.DebugLogHandler.Internal_Log_Injected usage (spans support)
                 message = sb.ToString();
-                UnityEngine.Debug.unityLogger.Log(message);
+                //UnityEngine.Debug.unityLogger.Log(message);
+                DebugLogHandler.Internal_Log(LogType.Log, LogOption.None, message);
 #else
                 //TODO: output with separate initialized ILogger (to get json output too for logging services)
                 var span = sb.AsSpan();
