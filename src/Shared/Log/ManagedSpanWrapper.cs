@@ -8,6 +8,10 @@ using System.Runtime.CompilerServices;
 // ReSharper disable InconsistentNaming
 namespace UnityEngine.Bindings
 {
+    /// <summary>
+    /// Modified copy of internal UnityEngine implementation
+    ///     helps with gc-free logging usage
+    /// </summary>
     internal readonly unsafe ref struct ManagedSpanWrapper
     {
         public readonly void* begin;

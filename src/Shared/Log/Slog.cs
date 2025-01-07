@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using UnityEngine;
 
 namespace Shared.Log
 {
@@ -16,10 +15,9 @@ namespace Shared.Log
         public static void SetFactory(ILoggerFactory factory) => Factory = factory;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Info(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "")
+        private static void Write(LogLevel level, string message, in Category category, string member)
         {
-            var category = new Category(path);
-            // gc-free logger usage (via Shared.Log.LoggerExtensions)
+            // gc-free logger usage
             var sb = ZString.CreateStringBuilder(true);
             try
             {
@@ -30,14 +28,18 @@ namespace Shared.Log
                 sb.Append(':');
                 sb.Append(' ');
                 sb.Append(message);
+
+                var span = sb.AsSpan();
 #if UNITY_5_6_OR_NEWER
-                //TODO: speedup: replace with direct UnityEngine.DebugLogHandler.Internal_Log_Injected usage (spans support)
-                message = sb.ToString();
-                //UnityEngine.Debug.unityLogger.Log(message);
-                DebugLogHandler.Internal_Log(LogType.Log, LogOption.None, message);
+                var logType = UnityLogger.ConvertToUnityLogType(level);
+                
+                // message = sb.ToString();
+                // UnityEngine.Debug.unityLogger.Log(logType, message);
+                // UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, message);
+
+                UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, span);
 #else
                 //TODO: output with separate initialized ILogger (to get json output too for logging services)
-                var span = sb.AsSpan();
                 Console.Out.WriteLine(span);
 #endif
             }
@@ -46,6 +48,16 @@ namespace Shared.Log
                 sb.Dispose();
             }
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Info(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
+            => Write(LogLevel.Information, message, new(path), member);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Warn(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
+            => Write(LogLevel.Warning, message, new(path), member);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Error(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
+            => Write(LogLevel.Error, message, new(path), member);
     }
 
     public readonly ref struct Category

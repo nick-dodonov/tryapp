@@ -50,10 +50,12 @@ namespace Shared.Log
                         sb.Append(" : ");
                         sb.Append(exception);
                     }
-                    var message = sb.ToString();
                     
-                    //TODO: speedup: replace with direct UnityEngine.DebugLogHandler.Internal_Log_Injected usage (spans support)
-                    Debug.unityLogger.Log(logType, message);
+                    // var message = sb.ToString();
+                    // Debug.unityLogger.Log(logType, message);
+                    
+                    var span = sb.AsSpan();
+                    DebugLogHandler.Internal_Log(logType, LogOption.None, span);
                 }
                 finally
                 {
@@ -74,7 +76,7 @@ namespace Shared.Log
         IDisposable? ILogger.BeginScope<TState>(TState state) => null;
         
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static LogType ConvertToUnityLogType(LogLevel level)
+        public static LogType ConvertToUnityLogType(LogLevel level)
         {
             return level switch
             {

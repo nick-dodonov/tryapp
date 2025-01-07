@@ -7,24 +7,32 @@ using UnityEngine.Bindings;
 // ReSharper disable once CheckNamespace
 namespace UnityEngine
 {
-  internal sealed class DebugLogHandler
-  {
-    internal static unsafe void Internal_Log(LogType level, LogOption options, string msg)
+    /// <summary>
+    /// Modified copy of internal UnityEngine implementation
+    ///     helps with gc-free logging usage
+    /// </summary>
+    internal sealed class DebugLogHandler
     {
-      var readOnlySpan = msg.AsSpan();
-      fixed (char* begin = &readOnlySpan.GetPinnableReference())
-      {
-        var managedSpanWrapper = new ManagedSpanWrapper(begin, readOnlySpan.Length);
-        Internal_Log_Injected(level, options, ref managedSpanWrapper, IntPtr.Zero);
-      }
-    }
+        // [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        // internal static void Internal_Log(LogType level, LogOption options, string msg) 
+        //     => Internal_Log(level, options, msg.AsSpan());
 
-    [MethodImpl(MethodImplOptions.InternalCall)]
-    private static extern void Internal_Log_Injected(
-      LogType level,
-      LogOption options,
-      ref ManagedSpanWrapper msg,
-      IntPtr obj);
-  }
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal static unsafe void Internal_Log(LogType level, LogOption options, ReadOnlySpan<char> msg)
+        {
+            fixed (char* begin = msg) //&msg.GetPinnableReference())
+            {
+                var managedSpanWrapper = new ManagedSpanWrapper(begin, msg.Length);
+                Internal_Log_Injected(level, options, ref managedSpanWrapper, IntPtr.Zero);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.InternalCall)]
+        private static extern void Internal_Log_Injected(
+            LogType level,
+            LogOption options,
+            ref ManagedSpanWrapper msg,
+            IntPtr obj);
+    }
 }
 #endif
