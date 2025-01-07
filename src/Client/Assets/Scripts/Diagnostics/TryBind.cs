@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using AOT;
-using Shared;
+using Shared.Log;
 
 namespace Diagnostics
 {
@@ -18,7 +18,7 @@ namespace Diagnostics
 
         public static void TestCallbacks()
         {
-            StaticLog.Info("WebglRtcApi: TestCallbacks");
+            Slog.Info("WebglRtcApi: TestCallbacks");
             SetupTestCallbackString("test-string", TestCallbackString);
 
             var bytes = new byte[] { 1, 2, 3, 4, 5 };
@@ -29,12 +29,12 @@ namespace Diagnostics
         
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void TestCallbackString(string message) 
-            => StaticLog.Info($"WebglRtcApi: TestCallbackString: \"{message}\"");
+            => Slog.Info($"WebglRtcApi: TestCallbackString: \"{message}\"");
 
         [MonoPInvokeCallback(typeof(Action<byte[]>))]
         public static void TestCallbackBytes(
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)]
             byte[] bytes, int length) =>
-            StaticLog.Info($"WebglRtcApi: TestCallbackBytes: [{string.Join(',', bytes)}]");
+            Slog.Info($"WebglRtcApi: TestCallbackBytes: [{string.Join(',', bytes)}]");
     }
 }

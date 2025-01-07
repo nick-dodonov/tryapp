@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
-using Shared;
+using Shared.Log;
 using Shared.Web;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -56,7 +56,7 @@ public static class OptionsReader
         }
         catch (Exception e)
         {
-            StaticLog.Info($"TryParseOptionsJsonServerFirst failed: {e}");
+            Slog.Info($"TryParseOptionsJsonServerFirst failed: {e}");
         }
         return null;
     }

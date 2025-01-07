@@ -1,5 +1,5 @@
 using System.Text;
-using Shared;
+using Shared.Log;
 using UnityEngine;
 
 namespace Diagnostics
@@ -13,7 +13,7 @@ namespace Diagnostics
                 sb.Append("absoluteURL: ").AppendLine(Application.absoluteURL);
             sb.Append("dataPath: ").AppendLine(Application.dataPath);
             sb.Append("persistentDataPath: ").AppendLine(Application.persistentDataPath);
-            StaticLog.Info(sb.ToString());
+            Slog.Info(sb.ToString());
         }
     }
 }

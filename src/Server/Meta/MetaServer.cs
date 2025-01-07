@@ -1,4 +1,4 @@
-using Shared;
+using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Rtc;
 
@@ -27,7 +27,7 @@ public sealed class MetaServer(IRtcService rtcService) : IMeta
             RequestTime = DateTime.Now
         };
 
-        StaticLog.Info($"MetaServer: GetInfo: {result.RandomName} {result.RequestId} {result.RequestTime}");
+        Slog.Info($"MetaServer: GetInfo: {result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
 

@@ -1,4 +1,4 @@
 <Solution>
-  <Project Path="server\server.csproj" Type="Classic C#" />
-  <Project Path="shared\shared.csproj" Type="Classic C#" />
+  <Project Path="src\Server\Server.csproj" Type="Classic C#" />
+  <Project Path="src\Shared\Shared.csproj" Type="Classic C#" />
 </Solution>

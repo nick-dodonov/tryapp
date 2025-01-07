@@ -5,7 +5,7 @@ services:
   server:
     network_mode: host
     build:
-      dockerfile: server/Dockerfile
+      dockerfile: src/Server/Dockerfile
 
   # development: generate fake self-signed certificate with `openssl` for localhost nginx
   cert:

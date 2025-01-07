@@ -24,5 +24,9 @@
 LICENSE
 README.md
 
+# Shared artifacts
+**/bin~
+**/obj~
+
 # unity client isn't required in `COPY . .`
-client/
+src/Client/
