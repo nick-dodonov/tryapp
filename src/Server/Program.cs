@@ -1,9 +1,10 @@
 using Server.Meta;
 using Server.Rtc;
+using Shared;
 using Shared.Meta.Api;
 using Shared.Rtc;
 
-Shared.StaticLog.Info("==== starting server ====");
+StaticLog.Info("==== starting server ====");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
