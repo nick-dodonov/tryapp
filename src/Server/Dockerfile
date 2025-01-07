@@ -27,6 +27,11 @@ WORKDIR /repo
 #RUN dotnet restore "/repo/src/Server/Server.csproj"
 
 COPY . .
+
+#TEMP diagnose content and stack.yml action build issue
+RUN pwd
+RUN ls -lR /repo
+
 WORKDIR "/repo/src/Server"
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet build "Server.csproj" \
