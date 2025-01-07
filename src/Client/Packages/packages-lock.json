@@ -67,7 +67,7 @@
       "url": "https://packages.unity.com"
     },
     "shared": {
-      "version": "file:../../shared",
+      "version": "file:../../Shared",
       "depth": 0,
       "source": "local",
       "dependencies": {

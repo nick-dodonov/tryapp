@@ -2,18 +2,19 @@ name: Stack Deploy
 
 on:
   workflow_dispatch:
-  push: # auto-deploy on change (simplify deploy development)
-    #TMP branches: [ 'main' ]
-    paths:
-      - '.github/workflows/stack.yml'
-      - '.github/composites/ssh-remote-host/**'
-      - 'compose.yaml'
-      - 'compose.release.yaml'
-      - 'deploy/nginx/**'
+  #DISABLE until frequent refactoring via main branch
+  # push: # auto-deploy on change (simplify deploy development)
+  #   #TMP branches: [ 'main' ]
+  #   paths:
+  #     - '.github/workflows/stack.yml'
+  #     - '.github/composites/ssh-remote-host/**'
+  #     - 'compose.yaml'
+  #     - 'compose.release.yaml'
+  #     - 'deploy/nginx/**'
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/server
+  IMAGE_NAME: ${{ github.repository }}/src/Server
 
 jobs:
   deploy:
@@ -41,7 +42,7 @@ jobs:
       - uses: docker/build-push-action@v6 #https://github.com/marketplace/actions/build-and-push-docker-images
         with:
           context: .
-          file: server/Dockerfile
+          file: src/Server/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

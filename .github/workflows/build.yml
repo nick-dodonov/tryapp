@@ -2,12 +2,13 @@ name: Build Deploy
 
 on:
   workflow_dispatch:
-  push: # auto-deploy on change (simplify deploy development)
-    branches: [ 'main' ]
-    paths:
-      - '.github/workflows/build.yml'
-      - '.github/composites/ssh-remote-host/**'
-      - 'client/**'
+  #DISABLE until frequent refactoring via main branch
+  # push: # auto-deploy on change (simplify deploy development)
+  #   branches: [ 'main' ]
+  #   paths:
+  #     - '.github/workflows/build.yml'
+  #     - '.github/composites/ssh-remote-host/**'
+  #     - 'src/Client/**'
 
 jobs:
 #  echo_job:
@@ -23,8 +24,8 @@ jobs:
       
       - uses: actions/cache@v3
         with:
-          path: client/Library
-          key: Library-${{ hashFiles('client/Assets/**', 'client/Packages/**', 'client/ProjectSettings/**') }}
+          path: src/Client/Library
+          key: Library-${{ hashFiles('src/Client/Assets/**', 'src/Client/Packages/**', 'src/Client/ProjectSettings/**') }}
           restore-keys: |
             Library-
       
@@ -34,7 +35,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: client
+          projectPath: src/Client
           targetPlatform: WebGL
           buildName: client
       

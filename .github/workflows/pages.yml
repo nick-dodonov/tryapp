@@ -3,11 +3,11 @@ name: Pages Deploy
 on:
   workflow_dispatch:
   #DISABLE auto-deploy to GitHub Pages (prepare for another hosting with meta-data)
-#  push:
-#    branches: [ 'main' ]
-#    paths:
-#      - '.github/workflows/pages.yml'
-#      - 'pages/**'
+  # push:
+  #   branches: [ 'main' ]
+  #   paths:
+  #     - '.github/workflows/pages.yml'
+  #     - 'pages/**'
 
 # Sets permissions of the GITHUB_TOKEN to allow deployment to GitHub Pages
 permissions:
