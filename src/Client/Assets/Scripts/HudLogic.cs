@@ -37,13 +37,14 @@ public class HudLogic : MonoBehaviour
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
         UnityLogger.Initialize();
-        Slog.Info("HudLogic: ==== starting client ====");
+        Slog.Info("==== starting client ====");
         
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
 
         if (NeedServerLocalhostOptions(out var localhost))
         {
+            Slog.Info("add localhost servers");
             _serverOptions.Add(new("localhost-debug", $"http://{localhost}:5270"));
             _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
             _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
@@ -51,7 +52,7 @@ public class HudLogic : MonoBehaviour
         var hostingOption = await NeedServerHostingOption();
         if (hostingOption != null)
         {
-            Slog.Info($"HudLogic: server ({hostingOption.OriginDescription}): {hostingOption.Url}");
+            Slog.Info($"add server ({hostingOption.OriginDescription}): {hostingOption.Url}");
             _serverOptions.Add(new(hostingOption.OriginDescription, hostingOption.Url));
         }
         serverDropdown.options.Clear();
@@ -87,7 +88,7 @@ public class HudLogic : MonoBehaviour
                 _updateElapsedTime = 0;
 
                 var message = $"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                Slog.Info($"HudLogic: RtcSend: {message}");
+                Slog.Info($"Send: {message}");
                 var bytes = System.Text.Encoding.UTF8.GetBytes(message);
                 _rtcLink.Send(bytes);
             }
@@ -157,7 +158,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            Slog.Info("HudLogic: RtcStart");
+            Slog.Info(".");
             if (_rtcLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
             
@@ -179,7 +180,7 @@ public class HudLogic : MonoBehaviour
     private void RtcStop() => RtcStop("user request");
     private void RtcStop(string reason)
     {
-        Slog.Info($"HudLogic: RtcStop: {reason}");
+        Slog.Info(reason);
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;
@@ -195,7 +196,7 @@ public class HudLogic : MonoBehaviour
             return;
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
-        Slog.Info($"HudLogic: RtcReceived: {str}");
+        Slog.Info(str);
     }
 
     private IMeta CreateMetaClient()

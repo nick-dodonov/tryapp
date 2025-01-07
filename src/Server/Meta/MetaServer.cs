@@ -27,7 +27,7 @@ public sealed class MetaServer(IRtcService rtcService) : IMeta
             RequestTime = DateTime.Now
         };
 
-        Slog.Info($"MetaServer: GetInfo: {result.RandomName} {result.RequestId} {result.RequestTime}");
+        Slog.Info($"{result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
 

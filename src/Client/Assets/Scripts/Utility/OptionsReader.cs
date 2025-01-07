@@ -56,7 +56,7 @@ public static class OptionsReader
         }
         catch (Exception e)
         {
-            Slog.Info($"TryParseOptionsJsonServerFirst failed: {e}");
+            Slog.Info($"ERROR: failed: {e}");
         }
         return null;
     }
