@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using Shared;
+using Shared.Log;
 using Shared.Rtc;
 using Shared.Web;
 using Unity.WebRTC;
@@ -17,7 +17,7 @@ namespace Client.Rtc
 
         public UnityRtcApi(IRtcService service)
         {
-            StaticLog.Info("UnityRtcApi: ctr");
+            Slog.Info("UnityRtcApi: ctr");
             //Disabled because Unity Editor crashes (macOS)
             //WebRTC.ConfigureNativeLogging(true, NativeLoggingSeverity.Info);
 
@@ -46,12 +46,12 @@ namespace Client.Rtc
         {
             var offerStr = await ObtainOffer(cancellationToken);
             var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
-            StaticLog.Info($"UnityRtcLink: Connect: {UnityRtcDebug.Describe(offer)}");
+            Slog.Info($"UnityRtcLink: Connect: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
             {
-                StaticLog.Info($"UnityRtcLink: OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                Slog.Info($"UnityRtcLink: OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
                 _iceCandidates.Add(new()
                 {
                     candidate = candidate.Candidate,
@@ -64,7 +64,7 @@ namespace Client.Rtc
             {
                 try
                 {
-                    StaticLog.Info($"UnityRtcLink: OnIceGatheringStateChange: {state}");
+                    Slog.Info($"UnityRtcLink: OnIceGatheringStateChange: {state}");
                     if (state == RTCIceGatheringState.Complete)
                     {
                         var candidatesJson = WebSerializer.SerializeObject(_iceCandidates);
@@ -73,13 +73,14 @@ namespace Client.Rtc
                 }
                 catch (Exception ex)
                 {
-                    StaticLog.Info($"UnityRtcLink: OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
+                    Slog.Info($"UnityRtcLink: OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
                 }
             };
-            _peerConnection.OnIceConnectionChange = state => StaticLog.Info($"UnityRtcLink: OnIceConnectionChange: {state}");
+            _peerConnection.OnIceConnectionChange = state => 
+                Slog.Info($"UnityRtcLink: OnIceConnectionChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
             {
-                StaticLog.Info($"UnityRtcLink: OnConnectionStateChange: {state}");
+                Slog.Info($"UnityRtcLink: OnConnectionStateChange: {state}");
                 if (_dataChannel == null)
                     return;
                 switch (state)
@@ -94,20 +95,20 @@ namespace Client.Rtc
             };
             _peerConnection.OnDataChannel = channel =>
             {
-                StaticLog.Info($"UnityRtcLink: OnDataChannel: {UnityRtcDebug.Describe(channel)}");
+                Slog.Info($"UnityRtcLink: OnDataChannel: {UnityRtcDebug.Describe(channel)}");
                 _dataChannel = channel;
                 channel.OnMessage = CallReceived;
-                channel.OnOpen = () => StaticLog.Info($"UnityRtcLink: DataChannel: OnOpen: {channel}");
-                channel.OnClose = () => StaticLog.Info($"UnityRtcLink: DataChannel: OnClose: {channel}");
-                channel.OnError = error => StaticLog.Info($"UnityRtcLink: DataChannel: OnError: {error}");
+                channel.OnOpen = () => Slog.Info($"UnityRtcLink: DataChannel: OnOpen: {channel}");
+                channel.OnClose = () => Slog.Info($"UnityRtcLink: DataChannel: OnClose: {channel}");
+                channel.OnError = error => Slog.Info($"UnityRtcLink: DataChannel: OnError: {error}");
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
-            StaticLog.Info("UnityRtcLink: Creating answer");
+            Slog.Info("UnityRtcLink: Creating answer");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            StaticLog.Info($"UnityRtcLink: Created answer: {UnityRtcDebug.Describe(answer)}");
+            Slog.Info($"UnityRtcLink: Created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates
@@ -118,13 +119,13 @@ namespace Client.Rtc
             var candidatesList = WebSerializer.DeserializeObject<string[]>(candidatesListJson);
             foreach (var candidateJson in candidatesList)
             {
-                //StaticLog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
+                //Slog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
                 var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidateJson);
-                //StaticLog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
+                //Slog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
                 var candidate = new RTCIceCandidate(candidateInit);
-                StaticLog.Info($"UnityRtcLink: AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                Slog.Info($"UnityRtcLink: AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
                 var rc = _peerConnection.AddIceCandidate(candidate);
-                if (!rc) StaticLog.Info("UnityRtcLink: AddIceCandidate: FAILED");
+                if (!rc) Slog.Info("UnityRtcLink: AddIceCandidate: FAILED");
             }
             
             //TODO: wait for DataChannel from server is opened
@@ -132,17 +133,17 @@ namespace Client.Rtc
 
         public void Dispose()
         {
-            StaticLog.Info("UnityRtcLink: Dispose");
+            Slog.Info("UnityRtcLink: Dispose");
             _peerConnection?.Dispose();
         }
 
         public void Send(byte[] bytes)
         {
-            //StaticLog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
+            //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)
                 _dataChannel.Send(bytes);
             else
-                StaticLog.Info("UnityRtcLink: Send: ERROR: no data channel yet (TODO: wait on connect)");
+                Slog.Info("UnityRtcLink: Send: ERROR: no data channel yet (TODO: wait on connect)");
         }
     }
     

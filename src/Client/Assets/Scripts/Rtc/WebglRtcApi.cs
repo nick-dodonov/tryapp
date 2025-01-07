@@ -4,7 +4,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AOT;
-using Shared;
+using Shared.Log;
 using Shared.Rtc;
 
 namespace Client.Rtc
@@ -34,7 +34,7 @@ namespace Client.Rtc
 
         public WebglRtcApi(IRtcService service)
         {
-            StaticLog.Info("WebglRtcApi: ctr");
+            Slog.Info("WebglRtcApi: ctr");
             _service = service;
             RtcInit(
                 ConnectAnswerCallback,
@@ -46,7 +46,7 @@ namespace Client.Rtc
 
         async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
-            StaticLog.Info("WebglRtcApi: Connect");
+            Slog.Info("WebglRtcApi: Connect");
             var link = new WebglRtcLink(this, _service, receivedCallback);
             await link.Connect(cancellationToken);
             Links.Add(link.PeerId, link);
@@ -61,40 +61,40 @@ namespace Client.Rtc
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectAnswerCallback(int peerId, string answerJson)
         {
-            StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: peerId={peerId}: {answerJson}");
+            Slog.Info($"WebglRtcApi: ConnectAnswerCallback: peerId={peerId}: {answerJson}");
             if (Links.TryGetValue(peerId, out var link))
             {
                 link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
                 {
                     var candidatesListJson = t.Result;
-                    StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
+                    Slog.Info($"WebglRtcApi: ConnectAnswerCallback: RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
                     RtcSetAnswerResult(peerId, candidatesListJson);
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
-                StaticLog.Info($"WebglRtcApi: ConnectAnswerCallback: ERROR: failed to find peerId={peerId}");
+                Slog.Info($"WebglRtcApi: ConnectAnswerCallback: ERROR: failed to find peerId={peerId}");
         }
         
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectCandidatesCallback(int peerId, string candidatesJson)
         {
-            StaticLog.Info($"WebglRtcApi: ConnectCandidatesCallback: peerId={peerId}: {candidatesJson}");
+            Slog.Info($"WebglRtcApi: ConnectCandidatesCallback: peerId={peerId}: {candidatesJson}");
             if (Links.TryGetValue(peerId, out var link))
             {
                 link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
                 {
                     var status = t.Status;
-                    StaticLog.Info($"WebglRtcApi: ConnectCandidatesCallback: ReportIceCandidates: peerId={peerId}: {status}");
+                    Slog.Info($"WebglRtcApi: ConnectCandidatesCallback: ReportIceCandidates: peerId={peerId}: {status}");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
-                StaticLog.Info($"WebglRtcApi: ConnectCandidatesCallback: ERROR: failed to find peerId={peerId}");
+                Slog.Info($"WebglRtcApi: ConnectCandidatesCallback: ERROR: failed to find peerId={peerId}");
         }
 
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectCompleteCallback(int peerId, string error)
         {
-            StaticLog.Info(error != null
+            Slog.Info(error != null
                 ? $"WebglRtcApi: ConnectCompleteCallback: failure: peerId={peerId} {error}"
                 : $"WebglRtcApi: ConnectCompleteCallback: success: peerId={peerId}");
         }
@@ -108,7 +108,7 @@ namespace Client.Rtc
             if (Links.TryGetValue(peerId, out var link))
                 link.CallReceived(bytes);
             else
-                StaticLog.Info($"WebglRtcApi: ReceivedCallback: ERROR: failed to find peerId={peerId}");
+                Slog.Info($"WebglRtcApi: ReceivedCallback: ERROR: failed to find peerId={peerId}");
         }
     }
 
@@ -134,7 +134,7 @@ namespace Client.Rtc
 
         public void Dispose()
         {
-            StaticLog.Info("WebglRtcLink: Dispose");
+            Slog.Info("WebglRtcLink: Dispose");
             if (_peerId >= 0)
             {
                 _api.Remove(this);
@@ -146,16 +146,16 @@ namespace Client.Rtc
 
         public void Send(byte[] bytes)
         {
-            //StaticLog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
+            //Slog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
             RtcSend(_peerId, bytes, bytes.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
-            StaticLog.Info("WebglRtcLink: Connect: request");
+            Slog.Info("WebglRtcLink: Connect: request");
             _peerId = RtcConnect(offerStr);
-            StaticLog.Info($"WebglRtcLink: Connect: peerId={_peerId}");
+            Slog.Info($"WebglRtcLink: Connect: peerId={_peerId}");
         }
     }
 }

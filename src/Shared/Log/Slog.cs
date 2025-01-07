@@ -1,6 +1,9 @@
-﻿namespace Shared
+﻿namespace Shared.Log
 {
-    public static class StaticLog
+    /// <summary>
+    /// Static logger (useful for quick usage without additional setup in ASP or in shared with client code)
+    /// </summary>
+    public static class Slog
     {
         public static void Info(string message)
         {
