@@ -29,7 +29,6 @@ WORKDIR /repo
 COPY . .
 
 #TEMP diagnose content and stack.yml action build issue
-RUN pwd
 RUN ls -lR /repo
 
 WORKDIR "/repo/src/Server"
