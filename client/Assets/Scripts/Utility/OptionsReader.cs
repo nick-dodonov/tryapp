@@ -72,10 +72,8 @@ public static class OptionsReader
         }
         var absoluteUrl = Application.absoluteURL;
         var optionsUri = new Uri(new(absoluteUrl), "options.json");
-        StaticLog.Info($"11111111111111: {optionsUri}");
         var request = UnityWebRequest.Get(optionsUri);
         await request.SendWebRequest();
-        StaticLog.Info($"22222222222222: {request.result}");
         var content = request.downloadHandler.text;
         return content;
     }
