@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Runtime.CompilerServices;
+using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 
@@ -17,13 +18,31 @@ namespace Shared.Log
         public static void Info(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "")
         {
             var category = new Category(path);
-            message = $"{category.NameSpan.ToString()}: {member}: {message}"; //TODO: use zero-allocate
+            // gc-free logger usage (via Shared.Log.LoggerExtensions)
+            var sb = ZString.CreateStringBuilder(true);
+            try
+            {
+                sb.Append(category.NameSpan);
+                sb.Append(':');
+                sb.Append(' ');
+                sb.Append(member);
+                sb.Append(':');
+                sb.Append(' ');
+                sb.Append(message);
 #if UNITY_5_6_OR_NEWER
-            UnityEngine.Debug.unityLogger.Log(message);
+                //TODO: speedup: replace with direct UnityEngine.DebugLogHandler.Internal_Log_Injected usage (spans support)
+                message = sb.ToString();
+                UnityEngine.Debug.unityLogger.Log(message);
 #else
-            //TODO: setup with ILogger
-            Console.WriteLine(message);
+                //TODO: output with separate initialized ILogger (to get json output too for logging services)
+                var span = sb.AsSpan();
+                Console.Out.WriteLine(span);
 #endif
+            }
+            finally
+            {
+                sb.Dispose();
+            }
         }
     }
 
