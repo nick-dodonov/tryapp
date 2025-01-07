@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Diagnostics;
 using Client.Rtc;
+using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
@@ -35,7 +36,9 @@ public class HudLogic : MonoBehaviour
     private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
+        UnityLogger.Initialize();
         Slog.Info("HudLogic: ==== starting client ====");
+        
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
 
@@ -134,8 +137,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            TryBind.TestCallbacks(); //TODO: mv to debug console for testing
-
+            //TryBind.TestCallbacks(); //TODO: mv to debug console for testing
             serverResponseText.text = "Requesting...";
             using var meta = CreateMetaClient();
             var result = await meta.GetInfo(destroyCancellationToken);
@@ -199,7 +201,7 @@ public class HudLogic : MonoBehaviour
     private IMeta CreateMetaClient()
     {
         var url = _serverOptions[serverDropdown.value].Url;
-        var meta = new MetaClient(new UnityWebClient(url));
+        var meta = new MetaClient(new UnityWebClient(url), Slog.Factory.CreateLogger<MetaClient>());
         return meta;
     }
 }

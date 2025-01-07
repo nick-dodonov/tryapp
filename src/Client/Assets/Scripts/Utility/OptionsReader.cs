@@ -65,7 +65,7 @@ public static class OptionsReader
     {
         if (Application.isEditor)
         {
-            const string optionsJsonPath = "../pages/options.json";
+            const string optionsJsonPath = "../../pages/options.json";
             if (!File.Exists(optionsJsonPath))
                 return null;
             return await File.ReadAllTextAsync(optionsJsonPath);

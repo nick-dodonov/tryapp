@@ -4,6 +4,8 @@
   "displayName": "Shared",
   "dependencies": {
     "com.cysharp.unitask": "2.5.10",
+    "org.nuget.microsoft.extensions.logging.abstractions": "9.0.0",
+    "org.nuget.microsoft.extensions.logging": "9.0.0",
     "com.unity.modules.unitywebrequest": "1.0.0",
     "com.unity.nuget.newtonsoft-json": "3.2.1"
   }

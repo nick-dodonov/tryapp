@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Web;
@@ -10,9 +11,10 @@ namespace Shared.Meta.Client
     {
         private readonly IWebClient _client;
 
-        public MetaClient(IWebClient client)
+        public MetaClient(IWebClient client, ILogger<MetaClient> logger)
         {
             _client = client;
+            logger.LogInformation("XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX");
         }
 
         public void Dispose()
