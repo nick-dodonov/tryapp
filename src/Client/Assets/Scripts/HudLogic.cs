@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -236,19 +237,43 @@ public class HudLogic : MonoBehaviour
         try
         {
             var serverState = WebSerializer.DeserializeObject<ServerState>(str);
-            foreach (var peerState in serverState.Peers)
+
+            var count = 0;
+            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
+            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
+            try
             {
-                var peerId = peerState.Id;
-                if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                foreach (var kv in _peerTaps)
                 {
-                    var peerGameObject = Instantiate(peerPrefab, transform);
-                    peerTap = peerGameObject.GetComponent<PeerTap>();
-                    _peerTaps.Add(peerId, peerTap);
+                    peerKvs[count++] = kv;
+                    kv.Value.SetChanged(false);
                 }
-                peerTap.Apply(peerState.ClientState);
+                
+                foreach (var peerState in serverState.Peers)
+                {
+                    var peerId = peerState.Id;
+                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                    {
+                        var peerGameObject = Instantiate(peerPrefab, transform);
+                        peerTap = peerGameObject.GetComponent<PeerTap>();
+                        _peerTaps.Add(peerId, peerTap);
+                    }
+                    peerTap.Apply(peerState.ClientState);
+                }
+                
+                //remove peer taps that don't exist
+                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
+                {
+                    if (peerTap.Changed) 
+                        continue;
+                    _peerTaps.Remove(id);
+                    Destroy(peerTap.gameObject);
+                }
             }
-            
-            //TODO: remove peer taps that don't exist
+            finally
+            {
+                peerKvsPool.Return(peerKvs);
+            }
         }
         catch (Exception e)
         {
