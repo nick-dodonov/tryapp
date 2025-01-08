@@ -20,6 +20,7 @@ public class HudLogic : MonoBehaviour
     private static readonly Slog.Area _log = new();
     
     public PlayerTap PlayerTap;
+    public GameObject PeerPrefab;
     
     public TMP_Text versionText;
 
@@ -37,6 +38,8 @@ public class HudLogic : MonoBehaviour
     private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
+    private Dictionary<string, PeerTap> _peerTaps = new();
+    
     // ReSharper disable once AsyncVoidMethod
     private async void OnEnable()
     {
@@ -219,6 +222,28 @@ public class HudLogic : MonoBehaviour
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
         _log.Info(str);
+        
+        try
+        {
+            var serverState = WebSerializer.DeserializeObject<ServerState>(str);
+            foreach (var peerState in serverState.Peers)
+            {
+                var peerId = peerState.Id;
+                if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                {
+                    var peerGameObject = Instantiate(PeerPrefab, transform);
+                    peerTap = peerGameObject.GetComponent<PeerTap>();
+                    _peerTaps.Add(peerId, peerTap);
+                }
+                peerTap.Apply(peerState.ClientState);
+            }
+            
+            //TODO: remove peer taps that don't exist
+        }
+        catch (Exception e)
+        {
+            _log.Error($"{e}");
+        }
     }
 
     private IMeta CreateMetaClient()

@@ -2994,6 +2994,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   PlayerTap: {fileID: 1914052456}
+  PeerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
   versionText: {fileID: 581918655}
   serverDropdown: {fileID: 1488578567}
   serverRequestButton: {fileID: 2123365215}
