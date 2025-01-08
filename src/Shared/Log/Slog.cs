@@ -2,6 +2,7 @@
 using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
+using UnityEngine;
 
 namespace Shared.Log
 {
@@ -22,7 +23,7 @@ namespace Shared.Log
 #endif
         public static ILoggerFactory Factory { get; } = _initializer.CreateDefaultFactory();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Write(LogLevel level, string message, in Category category, string member)
         {
             // gc-free logger usage
@@ -45,7 +46,7 @@ namespace Shared.Log
                 // UnityEngine.Debug.unityLogger.Log(logType, message);
                 // UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, message);
 
-                UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, span);
+                DebugLogHandler.Internal_Log(logType, LogOption.None, span);
 #else
                 //TODO: output with separate initialized ILogger (to get json output too for logging services)
                 Console.Out.WriteLine(span);
@@ -57,13 +58,13 @@ namespace Shared.Log
             }
         }
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Info(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
             => Write(LogLevel.Information, message, new(path), member);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Warn(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
             => Write(LogLevel.Warning, message, new(path), member);
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Error(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
             => Write(LogLevel.Error, message, new(path), member);
     }

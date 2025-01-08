@@ -17,8 +17,7 @@ namespace UnityEngine
         // internal static void Internal_Log(LogType level, LogOption options, string msg) 
         //     => Internal_Log(level, options, msg.AsSpan());
 
-        [HideInCallstack]
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         internal static unsafe void Internal_Log(LogType level, LogOption options, ReadOnlySpan<char> msg)
         {
             fixed (char* begin = msg) //&msg.GetPinnableReference())
@@ -28,8 +27,7 @@ namespace UnityEngine
             }
         }
 
-        [HideInCallstack]
-        [MethodImpl(MethodImplOptions.InternalCall)]
+        [HideInCallstack, MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void Internal_Log_Injected(
             LogType level,
             LogOption options,
