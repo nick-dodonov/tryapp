@@ -1,10 +1,11 @@
+using Server.Info;
 using Server.Meta;
 using Server.Rtc;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Rtc;
 
-Slog.Info("==== starting server ====");
+Slog.Info($"==== starting server build {BuildInfo.Timestamp} ====");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -36,7 +37,6 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
-app.Logger.LogInformation("Starting server (TODO: build version)");
 
 // Configure the HTTP request pipeline.
 app.UseAuthorization();
