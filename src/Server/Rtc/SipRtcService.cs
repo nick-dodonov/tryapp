@@ -27,7 +27,7 @@ public class SipRtcService : IRtcService, IHostedService
         public ClientState LastClientState;
     }
 
-    private readonly ConcurrentDictionary<string, Link> _link = new();
+    private readonly ConcurrentDictionary<string, Link> _links = new();
 
     /// <summary>
     /// Based on several samples
@@ -73,7 +73,7 @@ public class SipRtcService : IRtcService, IHostedService
     {
         if (string.IsNullOrWhiteSpace(id))
             throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
-        if (_link.ContainsKey(id))
+        if (_links.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
 
         _logger.LogDebug($"creating RTCPeerConnection and RTCDataChannel for id={id}");
@@ -137,7 +137,7 @@ public class SipRtcService : IRtcService, IHostedService
                 RTCPeerConnectionState.closed or
                 RTCPeerConnectionState.disconnected or
                 RTCPeerConnectionState.failed)
-                _link.TryRemove(id, out _);
+                _links.TryRemove(id, out _);
             else if (state == RTCPeerConnectionState.connected)
                 _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
@@ -175,7 +175,7 @@ public class SipRtcService : IRtcService, IHostedService
                 var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                 //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
 
-                var peerStates = _link.Select(kv => new PeerState
+                var peerStates = _links.Select(kv => new PeerState
                 {
                     Id = kv.Key,
                     ClientState = kv.Value.LastClientState
@@ -215,7 +215,7 @@ public class SipRtcService : IRtcService, IHostedService
         var offerSdp = peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerSdp);
 
-        _link.TryAdd(id, link);
+        _links.TryAdd(id, link);
 
         _logger.LogDebug($"returning offer for id={id}: {offerSdp.toJSON()}");
         return offerSdp;
@@ -224,7 +224,7 @@ public class SipRtcService : IRtcService, IHostedService
     private async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description,
         CancellationToken cancellationToken)
     {
-        if (!_link.TryGetValue(id, out var link))
+        if (!_links.TryGetValue(id, out var link))
             throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
 
         _logger.LogDebug($"SetAnswer: setRemoteDescription: id={id}: {description.toJSON()}");
@@ -243,7 +243,7 @@ public class SipRtcService : IRtcService, IHostedService
     private ValueTask AddIceCandidates(string id, CancellationToken cancellationToken,
         params RTCIceCandidateInit[] candidates)
     {
-        if (!_link.TryGetValue(id, out var link))
+        if (!_links.TryGetValue(id, out var link))
             throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
         _logger.LogDebug($"AddIceCandidates: id={id}: adding {candidates.Length} candidates");
