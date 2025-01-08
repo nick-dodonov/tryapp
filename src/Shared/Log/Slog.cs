@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Shared.Log
 {
@@ -11,8 +10,17 @@ namespace Shared.Log
     /// </summary>
     public static class Slog
     {
-        public static ILoggerFactory Factory { get; private set; } = NullLoggerFactory.Instance;
-        public static void SetFactory(ILoggerFactory factory) => Factory = factory;
+        public interface IInitializer
+        {
+            ILoggerFactory CreateDefaultFactory();
+        }
+        private static readonly IInitializer _initializer =
+#if UNITY_5_6_OR_NEWER
+            new Unity.UnitySlogInitializer();
+#else
+            new Asp.AspSlogInitializer();
+#endif
+        public static ILoggerFactory Factory { get; } = _initializer.CreateDefaultFactory();
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Write(LogLevel level, string message, in Category category, string member)

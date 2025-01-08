@@ -36,8 +36,9 @@ public class HudLogic : MonoBehaviour
     private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-        UnityLogger.Initialize();
-        Slog.Info("==== starting client ====");
+        Slog.Info("==== starting client (static) ====");
+        var logger = Slog.Factory.CreateLogger<HudLogic>();
+        logger.Info("==== starting client (logger) ====");
         
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";

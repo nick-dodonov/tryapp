@@ -10,19 +10,10 @@ namespace Shared.Log
 {
     public class UnityLogger : ILogger
     {
-        private class Provider : ILoggerProvider
+        internal class Provider : ILoggerProvider
         {
             void IDisposable.Dispose() { }
             ILogger ILoggerProvider.CreateLogger(string categoryName) => new UnityLogger(categoryName);
-        }
-
-        public static void Initialize()
-        {
-            var factory = LoggerFactory.Create(builder => builder.AddProvider(new Provider()));
-            Slog.SetFactory(factory);
-            
-            var logger = factory.CreateLogger<UnityLogger>();
-            logger.Info("complete");
         }
 
         private readonly string _categoryName;

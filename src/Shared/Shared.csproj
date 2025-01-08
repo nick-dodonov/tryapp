@@ -8,9 +8,18 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <!-- shared deps-->
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="ZString" Version="2.6.0" />
+
+        <!--asm impls deps-->
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Log\Unity\" />
     </ItemGroup>
 
 </Project>
