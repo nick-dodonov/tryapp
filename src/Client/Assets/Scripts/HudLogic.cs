@@ -9,6 +9,7 @@ using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
 using Shared.Rtc;
+using Shared.Session;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
@@ -17,6 +18,8 @@ using UnityEngine.UI;
 public class HudLogic : MonoBehaviour
 {
     private static readonly Slog.Area _log = new();
+    
+    public PlayerTap PlayerTap;
     
     public TMP_Text versionText;
 
@@ -89,7 +92,20 @@ public class HudLogic : MonoBehaviour
             if (_updateElapsedTime > UpdateSendSeconds)
             {
                 _updateElapsedTime = 0;
-                RtcSend($"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
+                
+                var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                
+                var clientStateMsg = new ClientStateMsg
+                {
+                    Id = _updateSendFrame,
+                    UtcMs = utcMs
+                };
+                PlayerTap.Fill(ref clientStateMsg);
+                var msg = WebSerializer.SerializeObject(clientStateMsg);
+                RtcSend(msg);
+
+                // RtcSend($"{_updateSendFrame};TODO-FROM-CLIENT;{utcMs}");
+                _updateSendFrame++;
             }
         }
     }

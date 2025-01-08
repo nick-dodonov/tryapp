@@ -1,3 +1,4 @@
+using Shared.Session;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,5 +26,12 @@ public class PlayerTap : MonoBehaviour
                 transform.position = pointValue;
             }
         }
+    }
+
+    public void Fill(ref ClientStateMsg msg)
+    {
+        var position = transform.position;
+        msg.X = position.x;
+        msg.Y = position.y;
     }
 }
