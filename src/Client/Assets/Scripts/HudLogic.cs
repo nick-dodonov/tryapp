@@ -94,18 +94,18 @@ public class HudLogic : MonoBehaviour
                 _updateElapsedTime = 0;
                 
                 var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                //msg = $"{_updateSendFrame};TODO-FROM-CLIENT;{utcMs}";
                 
-                var clientStateMsg = new ClientStateMsg
+                var clientState = new ClientState
                 {
-                    Id = _updateSendFrame,
+                    Frame = _updateSendFrame,
                     UtcMs = utcMs
                 };
-                PlayerTap.Fill(ref clientStateMsg);
-                var msg = WebSerializer.SerializeObject(clientStateMsg);
-                RtcSend(msg);
-
-                // RtcSend($"{_updateSendFrame};TODO-FROM-CLIENT;{utcMs}");
+                PlayerTap.Fill(ref clientState);
+                var msg = WebSerializer.SerializeObject(clientState);
+                
                 _updateSendFrame++;
+                RtcSend(msg);
             }
         }
     }

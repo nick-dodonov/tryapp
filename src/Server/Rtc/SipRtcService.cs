@@ -1,6 +1,8 @@
 using System.Collections.Concurrent;
 using System.Net;
 using Shared.Rtc;
+using Shared.Session;
+using Shared.Web;
 using SIPSorcery.Net;
 using TinyJson;
 
@@ -22,6 +24,7 @@ public class SipRtcService : IRtcService, IHostedService
         public readonly List<RTCIceCandidate> IceCandidates = [];
         public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
         public RTCDataChannel? DataChannel;
+        public ClientState LastClientState;
     }
 
     private readonly ConcurrentDictionary<string, Link> _link = new();
@@ -169,9 +172,25 @@ public class SipRtcService : IRtcService, IHostedService
                     return;
                 }
 
-                var message = $"{frameId++};TODO-FROM-SERVER;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                _logger.LogDebug($"DataChannel: sending: {message}");
-                channel.send(message);
+                var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
+
+                var peerStates = _link.Select(kv => new PeerState
+                {
+                    Id = kv.Key,
+                    ClientState = kv.Value.LastClientState
+                }).ToArray();
+                var serverStateMsg = new ServerState
+                {
+                    Frame = frameId,
+                    UtcMs = utcMs,
+                    Peers = peerStates
+                };
+                var msg = WebSerializer.SerializeObject(serverStateMsg);
+                
+                frameId++;
+                _logger.LogDebug($"DataChannel: sending: {msg}");
+                channel.send(msg);
             };
             timer.Start();
         };
@@ -180,6 +199,14 @@ public class SipRtcService : IRtcService, IHostedService
             //_logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
             var str = System.Text.Encoding.UTF8.GetString(data);
             _logger.LogDebug($"DataChannel: onmessage: {str}");
+            try
+            {
+                link.LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"DataChannel: onmessage: failed to deserialize: {e}");
+            }
         };
         channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
         channel.onerror += error => _logger.LogError($"DataChannel: error: {error}");

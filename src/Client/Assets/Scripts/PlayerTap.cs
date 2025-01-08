@@ -28,7 +28,7 @@ public class PlayerTap : MonoBehaviour
         }
     }
 
-    public void Fill(ref ClientStateMsg msg)
+    public void Fill(ref ClientState msg)
     {
         var position = transform.position;
         msg.X = position.x;
