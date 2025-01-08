@@ -12,16 +12,13 @@ namespace Shared.Log
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Info(this ILogger logger, string message, [CallerMemberName] string member = "") 
-            => logger.Log(LogLevel.Information, 0, new(message, member), null, _msgFormatter);
+            => logger.Log(LogLevel.Information, 0, new(message, member), null, MsgState.Formatter);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Warn(this ILogger logger, string message, [CallerMemberName] string member = "") 
-            => logger.Log(LogLevel.Warning, 0, new(message, member), null, _msgFormatter);
+            => logger.Log(LogLevel.Warning, 0, new(message, member), null, MsgState.Formatter);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Error(this ILogger logger, string message, [CallerMemberName] string member = "") 
-            => logger.Log(LogLevel.Error, 0, new(message, member), null, _msgFormatter);
-
-        private static readonly Func<MsgState, Exception?, string> _msgFormatter = MsgFormatter;
-        private static string MsgFormatter(MsgState state, Exception? error) => state.ToString();
+            => logger.Log(LogLevel.Error, 0, new(message, member), null, MsgState.Formatter);
     }
     
     /// <summary>
@@ -38,7 +35,7 @@ namespace Shared.Log
             _message = message;
             _member = member;
         }
-            
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string ToString()
         {
@@ -53,5 +50,26 @@ namespace Shared.Log
             sb.Append(' ');
             sb.Append(_message);
         }
+
+        internal static readonly Func<MsgState, Exception?, string> Formatter = MsgFormatter;
+        private static string MsgFormatter(MsgState state, Exception? error) => state.ToString();
+    }
+    
+    /// <summary>
+    /// Helper to be used for less gc-pressure in Slog ASP impl
+    /// TODO: possible shared array usage to get rid of gc completely 
+    /// </summary>
+    internal readonly struct MsgStaticState
+    {
+        private readonly string _message;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public MsgStaticState(string message) => _message = message;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public override string ToString() => _message;
+
+        internal static readonly Func<MsgStaticState, Exception?, string> Formatter = MsgFormatter;
+        private static string MsgFormatter(MsgStaticState state, Exception? error) => state.ToString();
     }
 }

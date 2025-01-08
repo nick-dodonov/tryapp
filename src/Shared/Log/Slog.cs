@@ -9,7 +9,7 @@ namespace Shared.Log
     /// <summary>
     /// Static logger (useful for quick usage without additional setup in ASP or in shared with client code)
     /// </summary>
-    public static class Slog
+    public class Slog
     {
         public interface IInitializer
         {
@@ -21,7 +21,11 @@ namespace Shared.Log
 #else
             new Asp.AspSlogInitializer();
 #endif
+
         public static ILoggerFactory Factory { get; } = _initializer.CreateDefaultFactory();
+#if !UNITY_5_6_OR_NEWER
+        private static readonly ILogger _staticLogger = Factory.CreateLogger("SLOG");
+#endif
 
         [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static void Write(LogLevel level, string message, in Category category, string member)
@@ -37,8 +41,6 @@ namespace Shared.Log
                 sb.Append(':');
                 sb.Append(' ');
                 sb.Append(message);
-
-                var span = sb.AsSpan();
 #if UNITY_5_6_OR_NEWER
                 var logType = Unity.UnityLogger.ConvertToUnityLogType(level);
 
@@ -46,10 +48,15 @@ namespace Shared.Log
                 // UnityEngine.Debug.unityLogger.Log(logType, message);
                 // UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, message);
 
+                var span = sb.AsSpan();
                 DebugLogHandler.Internal_Log(logType, LogOption.None, span);
 #else
-                //TODO: output with separate initialized ILogger (to get json output too for logging services)
-                Console.Out.WriteLine(span);
+                // var span = sb.AsSpan();
+                // Console.Out.WriteLine(span);
+
+                //output with separate ILogger (to get json output too for logging services)
+                //TODO: possible shared array usage to get rid of gc completely
+                _staticLogger.Log(level, 0, new(sb.ToString()), null, MsgStaticState.Formatter);
 #endif
             }
             finally
@@ -69,7 +76,7 @@ namespace Shared.Log
             => Write(LogLevel.Error, message, new(path), member);
     }
 
-    public readonly ref struct Category
+    public readonly struct Category
     {
         private static readonly char[] PathSeparators = { '/', '\\' };
         private readonly string _path;
