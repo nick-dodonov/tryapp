@@ -16,6 +16,8 @@ using UnityEngine.UI;
 
 public class HudLogic : MonoBehaviour
 {
+    private static readonly Slog.Area _log = new();
+    
     public TMP_Text versionText;
 
     public TMP_Dropdown serverDropdown;
@@ -36,16 +38,16 @@ public class HudLogic : MonoBehaviour
     private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-        Slog.Info("==== starting client (static) ====");
-        var logger = Slog.Factory.CreateLogger<HudLogic>();
-        logger.Info("==== starting client (logger) ====");
+        _log.Info("==== starting client (static) ====");
+        // var logger = Slog.Factory.CreateLogger<HudLogic>();
+        // logger.Info("==== starting client (logger) ====");
         
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
 
         if (NeedServerLocalhostOptions(out var localhost))
         {
-            Slog.Info("add localhost servers");
+            _log.Info("add localhost servers");
             _serverOptions.Add(new("localhost-debug", $"http://{localhost}:5270"));
             _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
             _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
@@ -53,7 +55,7 @@ public class HudLogic : MonoBehaviour
         var hostingOption = await NeedServerHostingOption();
         if (hostingOption != null)
         {
-            Slog.Info($"add server ({hostingOption.OriginDescription}): {hostingOption.Url}");
+            _log.Info($"add server ({hostingOption.OriginDescription}): {hostingOption.Url}");
             _serverOptions.Add(new(hostingOption.OriginDescription, hostingOption.Url));
         }
         serverDropdown.options.Clear();
@@ -155,7 +157,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            Slog.Info(".");
+            _log.Info(".");
             if (_rtcLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
             
@@ -177,7 +179,7 @@ public class HudLogic : MonoBehaviour
     private void RtcStop() => RtcStop("user request");
     private void RtcStop(string reason)
     {
-        Slog.Info(reason);
+        _log.Info(reason);
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;
@@ -187,7 +189,7 @@ public class HudLogic : MonoBehaviour
 
     private void RtcSend(string message)
     {
-        Slog.Info(message);
+        _log.Info(message);
         var bytes = System.Text.Encoding.UTF8.GetBytes(message);
         _rtcLink.Send(bytes);
     }
@@ -200,7 +202,7 @@ public class HudLogic : MonoBehaviour
             return;
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
-        Slog.Info(str);
+        _log.Info(str);
     }
 
     private IMeta CreateMetaClient()

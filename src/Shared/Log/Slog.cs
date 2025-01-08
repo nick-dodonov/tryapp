@@ -9,7 +9,7 @@ namespace Shared.Log
     /// <summary>
     /// Static logger (useful for quick usage without additional setup in ASP or in shared with client code)
     /// </summary>
-    public class Slog
+    public static class Slog
     {
         public interface IInitializer
         {
@@ -74,6 +74,25 @@ namespace Shared.Log
         [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Error(string message, [CallerFilePath] string path = "", [CallerMemberName] string member = "") 
             => Write(LogLevel.Error, message, new(path), member);
+
+        /// <summary>
+        /// Helper for unity's static loggin
+        /// </summary>
+        public class Area
+        {
+            private readonly Category _category;
+            public Area([CallerFilePath] string path = "") => _category = new(path);
+
+            [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Info(string message, [CallerMemberName] string member = "") 
+                => Write(LogLevel.Information, message, _category, member);
+            [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Warn(string message, [CallerMemberName] string member = "") 
+                => Write(LogLevel.Warning, message, _category, member);
+            [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void Error(string message, [CallerMemberName] string member = "") 
+                => Write(LogLevel.Error, message, _category, member);
+        }
     }
 
     public readonly struct Category
