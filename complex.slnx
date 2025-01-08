@@ -1,4 +1,5 @@
 <Solution>
   <Project Path="src\Server\Server.csproj" Type="Classic C#" />
+  <Project Path="src\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
   <Project Path="src\Shared\Runtime\Shared.csproj" Type="Classic C#" />
 </Solution>

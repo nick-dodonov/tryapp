@@ -46,6 +46,17 @@
       "dependencies": {},
       "url": "https://packages.unity.com"
     },
+    "com.unity.test-framework": {
+      "version": "1.4.5",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "com.unity.ext.nunit": "2.0.3",
+        "com.unity.modules.imgui": "1.0.0",
+        "com.unity.modules.jsonserialize": "1.0.0"
+      },
+      "url": "https://packages.unity.com"
+    },
     "com.unity.ugui": {
       "version": "2.0.0",
       "depth": 0,
@@ -220,7 +231,8 @@
         "org.nuget.microsoft.extensions.logging": "9.0.0",
         "org.nuget.zstring": "2.6.0",
         "com.unity.modules.unitywebrequest": "1.0.0",
-        "com.unity.nuget.newtonsoft-json": "3.2.1"
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.test-framework": "1.4.5"
       }
     },
     "com.unity.modules.audio": {

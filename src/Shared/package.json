@@ -8,6 +8,7 @@
     "org.nuget.microsoft.extensions.logging": "9.0.0",
     "org.nuget.zstring": "2.6.0",
     "com.unity.modules.unitywebrequest": "1.0.0",
-    "com.unity.nuget.newtonsoft-json": "3.2.1"
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.test-framework": "1.4.5"
   }
 }
