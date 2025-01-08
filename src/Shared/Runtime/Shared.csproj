@@ -18,8 +18,4 @@
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="Log\Unity\" />
-    </ItemGroup>
-
 </Project>
