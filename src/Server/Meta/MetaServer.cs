@@ -4,7 +4,7 @@ using Shared.Rtc;
 
 namespace Server.Meta;
 
-public sealed class MetaServer(IRtcService rtcService) : IMeta
+public sealed class MetaServer(IRtcService rtcService, ILogger<MetaServer> logger) : IMeta
 {
     private static readonly string[] RandomNames =
     [
@@ -27,7 +27,7 @@ public sealed class MetaServer(IRtcService rtcService) : IMeta
             RequestTime = DateTime.Now
         };
 
-        Slog.Info($"{result.RandomName} {result.RequestId} {result.RequestTime}");
+        logger.Info($"{result.RandomName} {result.RequestId} {result.RequestTime}");
         return new(result);
     }
 

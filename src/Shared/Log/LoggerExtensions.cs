@@ -5,26 +5,28 @@ using Microsoft.Extensions.Logging;
 
 namespace Shared.Log
 {
+    /// <summary>
+    /// Helpers with auto member addition and custom state/formatter to implement gc-free logging with unity logger
+    /// </summary>
     public static class LoggerExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static void Info(this ILogger logger, string message, [CallerMemberName] string member = "")
-        {
-            //logger.Log(LogLevel.Information, $"{member}: {message}");
-            
-            //via custom state and formatter to implement gc-free logging with unity logger
-            logger.Log(
-                LogLevel.Information,
-                0,
-                new(message, member),
-                null,
-                _msgFormatter);
-        }
+        public static void Info(this ILogger logger, string message, [CallerMemberName] string member = "") 
+            => logger.Log(LogLevel.Information, 0, new(message, member), null, _msgFormatter);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Warn(this ILogger logger, string message, [CallerMemberName] string member = "") 
+            => logger.Log(LogLevel.Warning, 0, new(message, member), null, _msgFormatter);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Error(this ILogger logger, string message, [CallerMemberName] string member = "") 
+            => logger.Log(LogLevel.Error, 0, new(message, member), null, _msgFormatter);
 
         private static readonly Func<MsgState, Exception?, string> _msgFormatter = MsgFormatter;
         private static string MsgFormatter(MsgState state, Exception? error) => state.ToString();
     }
     
+    /// <summary>
+    /// Custom state implementing $"{member}: {message}" gc-free interpolation
+    /// </summary>
     internal readonly struct MsgState
     {
         private readonly string _message;
