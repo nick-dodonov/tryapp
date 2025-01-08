@@ -8,6 +8,8 @@ namespace Client.Rtc
 {
     public class WebglRtcLink : BaseRtcLink, IRtcLink
     {
+        private static readonly Slog.Area _log = new();
+        
         private readonly WebglRtcApi _api;
 
         private int _peerId = -1;
@@ -28,7 +30,7 @@ namespace Client.Rtc
 
         public void Dispose()
         {
-            Slog.Info("Dispose");
+            _log.Info("Dispose");
             if (_peerId >= 0)
             {
                 _api.Remove(this);
@@ -40,16 +42,16 @@ namespace Client.Rtc
 
         public void Send(byte[] bytes)
         {
-            //Slog.Info($"WebglRtcLink: Send: {bytes.Length} bytes");
+            //_log.Info($"{bytes.Length} bytes");
             RtcSend(_peerId, bytes, bytes.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
-            Slog.Info("request");
+            _log.Info("request");
             _peerId = RtcConnect(offerStr);
-            Slog.Info($"peerId={_peerId}");
+            _log.Info($"peerId={_peerId}");
         }
     }
 }

@@ -16,6 +16,8 @@ namespace Client.Rtc
     /// </summary>
     public class WebglRtcApi : IRtcApi
     {
+        private static readonly Slog.Area _log = new();
+        
         private readonly IRtcService _service;
         private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
 
@@ -34,7 +36,7 @@ namespace Client.Rtc
 
         public WebglRtcApi(IRtcService service)
         {
-            Slog.Info(".");
+            _log.Info(".");
             _service = service;
             RtcInit(
                 ConnectAnswerCallback,
@@ -46,7 +48,7 @@ namespace Client.Rtc
 
         async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
         {
-            Slog.Info(".");
+            _log.Info(".");
             var link = new WebglRtcLink(this, _service, receivedCallback);
             await link.Connect(cancellationToken);
             Links.Add(link.PeerId, link);
@@ -61,42 +63,43 @@ namespace Client.Rtc
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectAnswerCallback(int peerId, string answerJson)
         {
-            Slog.Info($"peerId={peerId}: {answerJson}");
+            _log.Info($"peerId={peerId}: {answerJson}");
             if (Links.TryGetValue(peerId, out var link))
             {
                 link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
                 {
                     var candidatesListJson = t.Result;
-                    Slog.Info($"RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
+                    _log.Info($"RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
                     RtcSetAnswerResult(peerId, candidatesListJson);
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
-                Slog.Info($"ERROR: failed to find peerId={peerId}");
+                _log.Error($"failed to find peerId={peerId}");
         }
         
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectCandidatesCallback(int peerId, string candidatesJson)
         {
-            Slog.Info($"peerId={peerId}: {candidatesJson}");
+            _log.Info($"peerId={peerId}: {candidatesJson}");
             if (Links.TryGetValue(peerId, out var link))
             {
                 link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
                 {
                     var status = t.Status;
-                    Slog.Info($"ReportIceCandidates: peerId={peerId}: {status}");
+                    _log.Info($"ReportIceCandidates: peerId={peerId}: {status}");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
-                Slog.Info($"ERROR: failed to find peerId={peerId}");
+                _log.Error($"failed to find peerId={peerId}");
         }
 
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectCompleteCallback(int peerId, string error)
         {
-            Slog.Info(error != null
-                ? $"failure: peerId={peerId} {error}"
-                : $"success: peerId={peerId}");
+            if (error != null)
+                _log.Error($"failure: peerId={peerId}: {error}");
+            else
+                _log.Info($"success: peerId={peerId}");
         }
         
         [MonoPInvokeCallback(typeof(Action<int, byte[], int>))]
@@ -108,7 +111,7 @@ namespace Client.Rtc
             if (Links.TryGetValue(peerId, out var link))
                 link.CallReceived(bytes);
             else
-                Slog.Info($"ERROR: failed to find peerId={peerId}");
+                _log.Error($"failed to find peerId={peerId}");
         }
     }
 }

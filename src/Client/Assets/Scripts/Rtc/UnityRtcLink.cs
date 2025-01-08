@@ -13,6 +13,8 @@ namespace Client.Rtc
 {
     public class UnityRtcLink : BaseRtcLink, IRtcLink
     {
+        private static readonly Slog.Area _log = new();
+        
         private RTCPeerConnection _peerConnection;
         private RTCDataChannel _dataChannel;
         private readonly List<RTCIceCandidateInit> _iceCandidates = new();
@@ -25,12 +27,12 @@ namespace Client.Rtc
         {
             var offerStr = await ObtainOffer(cancellationToken);
             var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
-            Slog.Info($"{UnityRtcDebug.Describe(offer)}");
+            _log.Info($"{UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
             {
-                Slog.Info($"OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                _log.Info($"OnIceCandidate: {UnityRtcDebug.Describe(candidate)}");
                 _iceCandidates.Add(new()
                 {
                     candidate = candidate.Candidate,
@@ -43,7 +45,7 @@ namespace Client.Rtc
             {
                 try
                 {
-                    Slog.Info($"OnIceGatheringStateChange: {state}");
+                    _log.Info($"OnIceGatheringStateChange: {state}");
                     if (state == RTCIceGatheringState.Complete)
                     {
                         var candidatesJson = WebSerializer.SerializeObject(_iceCandidates);
@@ -52,14 +54,14 @@ namespace Client.Rtc
                 }
                 catch (Exception ex)
                 {
-                    Slog.Info($"OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
+                    _log.Error($"OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
                 }
             };
             _peerConnection.OnIceConnectionChange = state => 
-                Slog.Info($"OnIceConnectionChange: {state}");
+                _log.Info($"OnIceConnectionChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
             {
-                Slog.Info($"OnConnectionStateChange: {state}");
+                _log.Info($"OnConnectionStateChange: {state}");
                 if (_dataChannel == null)
                     return;
                 switch (state)
@@ -74,20 +76,20 @@ namespace Client.Rtc
             };
             _peerConnection.OnDataChannel = channel =>
             {
-                Slog.Info($"OnDataChannel: {UnityRtcDebug.Describe(channel)}");
+                _log.Info($"OnDataChannel: {UnityRtcDebug.Describe(channel)}");
                 _dataChannel = channel;
                 channel.OnMessage = CallReceived;
-                channel.OnOpen = () => Slog.Info($"OnDataChannel: OnOpen: {channel}");
-                channel.OnClose = () => Slog.Info($"OnDataChannel: OnClose: {channel}");
-                channel.OnError = error => Slog.Info($"OnDataChannel: OnError: {error}");
+                channel.OnOpen = () => _log.Info($"OnDataChannel: OnOpen: {channel}");
+                channel.OnClose = () => _log.Info($"OnDataChannel: OnClose: {channel}");
+                channel.OnError = error => _log.Info($"OnDataChannel: OnError: {error}");
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
-            Slog.Info("Creating answer");
+            _log.Info("Creating answer");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            Slog.Info($"Created answer: {UnityRtcDebug.Describe(answer)}");
+            _log.Info($"Created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates
@@ -102,10 +104,10 @@ namespace Client.Rtc
                 var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidateJson);
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
                 var candidate = new RTCIceCandidate(candidateInit);
-                Slog.Info($"AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
+                _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
                 var rc = _peerConnection.AddIceCandidate(candidate);
                 if (!rc) 
-                    Slog.Info("AddIceCandidate: FAILED");
+                    _log.Error("AddIceCandidate: FAILED");
             }
             
             //TODO: wait for DataChannel from server is opened
@@ -113,8 +115,9 @@ namespace Client.Rtc
 
         public void Dispose()
         {
-            Slog.Info("Dispose");
+            _log.Info("Dispose");
             _peerConnection?.Dispose();
+            _peerConnection = null;
         }
 
         public void Send(byte[] bytes)
@@ -123,7 +126,7 @@ namespace Client.Rtc
             if (_dataChannel != null)
                 _dataChannel.Send(bytes);
             else
-                Slog.Info("Send: ERROR: no data channel yet (TODO: wait on connect)");
+                _log.Error("no data channel yet (TODO: wait on connect)");
         }
     }
 }

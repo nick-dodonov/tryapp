@@ -10,11 +10,13 @@ namespace Client.Rtc
 {
     public class UnityRtcApi : IRtcApi
     {
+        private static readonly Slog.Area _log = new();
+        
         private readonly IRtcService _service;
 
         public UnityRtcApi(IRtcService service)
         {
-            Slog.Info(".");
+            _log.Info(".");
             //Disabled because Unity Editor crashes (macOS)
             //WebRTC.ConfigureNativeLogging(true, NativeLoggingSeverity.Info);
 
