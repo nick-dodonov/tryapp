@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using UnityEngine;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Shared.Log
+namespace Shared.Log.Unity
 {
     public class UnityLogger : ILogger
     {

@@ -39,8 +39,8 @@ namespace Shared.Log
 
                 var span = sb.AsSpan();
 #if UNITY_5_6_OR_NEWER
-                var logType = UnityLogger.ConvertToUnityLogType(level);
-                
+                var logType = Unity.UnityLogger.ConvertToUnityLogType(level);
+
                 // message = sb.ToString();
                 // UnityEngine.Debug.unityLogger.Log(logType, message);
                 // UnityEngine.DebugLogHandler.Internal_Log(logType, UnityEngine.LogOption.None, message);
