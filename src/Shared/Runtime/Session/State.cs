@@ -10,9 +10,10 @@ namespace Shared.Session
     {
         public int Frame;
         public long UtcMs;
-        
+
         public float X;
         public float Y;
+        public uint Color;
     }
 
     public struct PeerState

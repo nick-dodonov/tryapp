@@ -73,6 +73,8 @@ public class HudLogic : MonoBehaviour
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         rtcStartButton.onClick.AddListener(RtcStart);
         rtcStopButton.onClick.AddListener(RtcStop);
+        
+        clientTap.SetActive(false);
     }
 
     private void OnDisable()
@@ -185,7 +187,9 @@ public class HudLogic : MonoBehaviour
             _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
             _rtcLink = await _rtcApi.Connect(RtcReceived, destroyCancellationToken);
             _updateSendFrame = 0;
-                
+
+            clientTap.SetActive(true);
+            
             serverResponseText.text = "RESULT:\nOK";
         }
         catch (Exception ex)
@@ -199,6 +203,12 @@ public class HudLogic : MonoBehaviour
     private void RtcStop(string reason)
     {
         _log.Info(reason);
+
+        foreach (var kv in _peerTaps) 
+            Destroy(kv.Value.gameObject);
+        _peerTaps.Clear();
+        clientTap.SetActive(false);
+        
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;

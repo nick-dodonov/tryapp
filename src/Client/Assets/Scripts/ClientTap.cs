@@ -1,16 +1,31 @@
 using Shared.Session;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class ClientTap : MonoBehaviour
 {
+    public Image image;
+
     private InputAction _clickAction;
     private InputAction _pointAction;
+
+    private uint _clientColor;
 
     private void Start()
     {
         _clickAction = InputSystem.actions.FindAction("UI/Click");
         _pointAction = InputSystem.actions.FindAction("UI/Point");
+    }
+
+    public void SetActive(bool active) => gameObject.SetActive(active);
+    private void OnEnable()
+    {
+        var color = Random.ColorHSV();
+        image.color = color;
+
+        var color32 = (Color32)color;
+        _clientColor = (uint)((color32.r << 16) | (color32.g << 8) | color32.b);
     }
 
     private void Update()
@@ -28,10 +43,11 @@ public class ClientTap : MonoBehaviour
         }
     }
 
-    public void Fill(ref ClientState msg)
+    public void Fill(ref ClientState state)
     {
         var position = transform.position;
-        msg.X = position.x;
-        msg.Y = position.y;
+        state.X = position.x;
+        state.Y = position.y;
+        state.Color = _clientColor;
     }
 }
