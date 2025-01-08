@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Diagnostics;
 using Client.Rtc;
+using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
@@ -15,6 +16,8 @@ using UnityEngine.UI;
 
 public class HudLogic : MonoBehaviour
 {
+    private static readonly Slog.Area _log = new();
+    
     public TMP_Text versionText;
 
     public TMP_Dropdown serverDropdown;
@@ -35,12 +38,16 @@ public class HudLogic : MonoBehaviour
     private async void OnEnable()
     {
         //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-        Slog.Info("HudLogic: ==== starting client ====");
+        _log.Info("==== starting client (static) ====");
+        // var logger = Slog.Factory.CreateLogger<HudLogic>();
+        // logger.Info("==== starting client (logger) ====");
+        
         StartupInfo.Print();
         versionText.text = $"Version: {Application.version}";
 
         if (NeedServerLocalhostOptions(out var localhost))
         {
+            _log.Info("add localhost servers");
             _serverOptions.Add(new("localhost-debug", $"http://{localhost}:5270"));
             _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
             _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
@@ -48,7 +55,7 @@ public class HudLogic : MonoBehaviour
         var hostingOption = await NeedServerHostingOption();
         if (hostingOption != null)
         {
-            Slog.Info($"HudLogic: server ({hostingOption.OriginDescription}): {hostingOption.Url}");
+            _log.Info($"add server ({hostingOption.OriginDescription}): {hostingOption.Url}");
             _serverOptions.Add(new(hostingOption.OriginDescription, hostingOption.Url));
         }
         serverDropdown.options.Clear();
@@ -82,11 +89,7 @@ public class HudLogic : MonoBehaviour
             if (_updateElapsedTime > UpdateSendSeconds)
             {
                 _updateElapsedTime = 0;
-
-                var message = $"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}";
-                Slog.Info($"HudLogic: RtcSend: {message}");
-                var bytes = System.Text.Encoding.UTF8.GetBytes(message);
-                _rtcLink.Send(bytes);
+                RtcSend($"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
             }
         }
     }
@@ -134,8 +137,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            TryBind.TestCallbacks(); //TODO: mv to debug console for testing
-
+            //TryBind.TestCallbacks(); //TODO: mv to debug console for testing
             serverResponseText.text = "Requesting...";
             using var meta = CreateMetaClient();
             var result = await meta.GetInfo(destroyCancellationToken);
@@ -155,7 +157,7 @@ public class HudLogic : MonoBehaviour
     {
         try
         {
-            Slog.Info("HudLogic: RtcStart");
+            _log.Info(".");
             if (_rtcLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
             
@@ -177,12 +179,19 @@ public class HudLogic : MonoBehaviour
     private void RtcStop() => RtcStop("user request");
     private void RtcStop(string reason)
     {
-        Slog.Info($"HudLogic: RtcStop: {reason}");
+        _log.Info(reason);
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;
         _meta?.Dispose();
         _meta = null;
+    }
+
+    private void RtcSend(string message)
+    {
+        _log.Info(message);
+        var bytes = System.Text.Encoding.UTF8.GetBytes(message);
+        _rtcLink.Send(bytes);
     }
 
     private void RtcReceived(byte[] data)
@@ -193,13 +202,13 @@ public class HudLogic : MonoBehaviour
             return;
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
-        Slog.Info($"HudLogic: RtcReceived: {str}");
+        _log.Info(str);
     }
 
     private IMeta CreateMetaClient()
     {
         var url = _serverOptions[serverDropdown.value].Url;
-        var meta = new MetaClient(new UnityWebClient(url));
+        var meta = new MetaClient(new UnityWebClient(url), Slog.Factory.CreateLogger<MetaClient>());
         return meta;
     }
 }

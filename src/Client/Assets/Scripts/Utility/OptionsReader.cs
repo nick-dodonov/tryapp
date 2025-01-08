@@ -56,7 +56,7 @@ public static class OptionsReader
         }
         catch (Exception e)
         {
-            Slog.Info($"TryParseOptionsJsonServerFirst failed: {e}");
+            Slog.Error($"failed: {e}");
         }
         return null;
     }
@@ -65,7 +65,7 @@ public static class OptionsReader
     {
         if (Application.isEditor)
         {
-            const string optionsJsonPath = "../pages/options.json";
+            const string optionsJsonPath = "../../pages/options.json";
             if (!File.Exists(optionsJsonPath))
                 return null;
             return await File.ReadAllTextAsync(optionsJsonPath);

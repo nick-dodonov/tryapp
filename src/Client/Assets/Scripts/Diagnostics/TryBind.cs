@@ -18,7 +18,7 @@ namespace Diagnostics
 
         public static void TestCallbacks()
         {
-            Slog.Info("WebglRtcApi: TestCallbacks");
+            Slog.Info(".");
             SetupTestCallbackString("test-string", TestCallbackString);
 
             var bytes = new byte[] { 1, 2, 3, 4, 5 };
@@ -29,12 +29,12 @@ namespace Diagnostics
         
         [MonoPInvokeCallback(typeof(Action<string>))]
         public static void TestCallbackString(string message) 
-            => Slog.Info($"WebglRtcApi: TestCallbackString: \"{message}\"");
+            => Slog.Info($"\"{message}\"");
 
         [MonoPInvokeCallback(typeof(Action<byte[]>))]
         public static void TestCallbackBytes(
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)]
             byte[] bytes, int length) =>
-            Slog.Info($"WebglRtcApi: TestCallbackBytes: [{string.Join(',', bytes)}]");
+            Slog.Info($"[{string.Join(',', bytes)}]");
     }
 }
