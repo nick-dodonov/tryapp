@@ -11,6 +11,8 @@ namespace Client.Rtc
     /// </summary>
     public class BaseRtcLink
     {
+        private readonly Slog.Area _log;
+        
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
         private readonly IRtcService _service; 
         private readonly IRtcLink.ReceivedCallback _receivedCallback;
@@ -20,40 +22,37 @@ namespace Client.Rtc
             _clientId = Guid.NewGuid().ToString();
             _service = service;
             _receivedCallback = receivedCallback;
+
+            _log = new($"{nameof(BaseRtcLink)}[{_clientId}]");
         }
 
         protected async Task<string> ObtainOffer(CancellationToken cancellationToken)
         {
-            Slog.Info($"request id={_clientId}");
+            _log.Info("request");
             var offerStr = await _service.GetOffer(_clientId, cancellationToken);
-            Slog.Info($"result id={_clientId}: {offerStr}");
+            _log.Info($"result: {offerStr}");
             return offerStr;
         }
 
         protected internal async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
         {
-            Slog.Info($"request id={_clientId}: {answerJson}");
+            _log.Info($"request: {answerJson}");
             var candidatesListJson = await _service.SetAnswer(_clientId, answerJson, cancellationToken);
-            Slog.Info($"result id={_clientId}: {candidatesListJson}");
+            _log.Info($"result: {candidatesListJson}");
             return candidatesListJson;
         }
 
         protected internal async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
         {
-            Slog.Info($"request id={_clientId}: {candidatesJson}");
+            _log.Info($"request: {candidatesJson}");
             await _service.AddIceCandidates(_clientId, candidatesJson, cancellationToken);
-            Slog.Info($"complete id={_clientId}");
+            _log.Info("complete");
         }
 
         protected internal void CallReceived(byte[] bytes)
         {
-            // Slog.Info(bytes != null
-            //     ? $"id={_clientId}: {bytes.Length} bytes"
-            //     : $"id={_clientId}: disconnect");
-            // var messageStr = System.Text.Encoding.UTF8.GetString(bytes);
-            // Slog.Info(messageStr);
             if (bytes == null)
-                Slog.Info($"id={_clientId}: disconnect");
+                _log.Info("disconnected");
             _receivedCallback(bytes);
         }
     }

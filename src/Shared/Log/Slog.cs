@@ -81,7 +81,12 @@ namespace Shared.Log
         public class Area
         {
             private readonly Category _category;
-            public Area([CallerFilePath] string path = "") => _category = new(path);
+            public Area(string? customName = null, [CallerFilePath] string path = "")
+            {
+                _category = customName != null 
+                    ? new(customName) 
+                    : new(path);
+            }
 
             [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
             public void Info(string message, [CallerMemberName] string member = "") 
