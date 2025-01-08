@@ -2811,7 +2811,7 @@ GameObject:
   - component: {fileID: 1914052454}
   - component: {fileID: 1914052456}
   m_Layer: 5
-  m_Name: PlayerTap
+  m_Name: ClientTap
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2993,8 +2993,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98a457786b8144fbb85803c6ab300576, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  PlayerTap: {fileID: 1914052456}
-  PeerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
+  clientTap: {fileID: 1914052456}
+  peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
   versionText: {fileID: 581918655}
   serverDropdown: {fileID: 1488578567}
   serverRequestButton: {fileID: 2123365215}

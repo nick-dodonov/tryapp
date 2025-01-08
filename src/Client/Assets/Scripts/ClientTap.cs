@@ -2,7 +2,7 @@ using Shared.Session;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public class PlayerTap : MonoBehaviour
+public class ClientTap : MonoBehaviour
 {
     private InputAction _clickAction;
     private InputAction _pointAction;

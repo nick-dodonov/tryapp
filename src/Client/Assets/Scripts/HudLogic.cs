@@ -19,8 +19,8 @@ public class HudLogic : MonoBehaviour
 {
     private static readonly Slog.Area _log = new();
     
-    public PlayerTap PlayerTap;
-    public GameObject PeerPrefab;
+    public ClientTap clientTap;
+    public GameObject peerPrefab;
     
     public TMP_Text versionText;
 
@@ -104,7 +104,7 @@ public class HudLogic : MonoBehaviour
                     Frame = _updateSendFrame,
                     UtcMs = utcMs
                 };
-                PlayerTap.Fill(ref clientState);
+                clientTap.Fill(ref clientState);
                 var msg = WebSerializer.SerializeObject(clientState);
                 
                 _updateSendFrame++;
@@ -231,7 +231,7 @@ public class HudLogic : MonoBehaviour
                 var peerId = peerState.Id;
                 if (!_peerTaps.TryGetValue(peerId, out var peerTap))
                 {
-                    var peerGameObject = Instantiate(PeerPrefab, transform);
+                    var peerGameObject = Instantiate(peerPrefab, transform);
                     peerTap = peerGameObject.GetComponent<PeerTap>();
                     _peerTaps.Add(peerId, peerTap);
                 }
