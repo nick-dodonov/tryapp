@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,6 +10,7 @@ using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
 using Shared.Rtc;
+using Shared.Session;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
@@ -17,6 +19,9 @@ using UnityEngine.UI;
 public class HudLogic : MonoBehaviour
 {
     private static readonly Slog.Area _log = new();
+    
+    public ClientTap clientTap;
+    public GameObject peerPrefab;
     
     public TMP_Text versionText;
 
@@ -34,6 +39,8 @@ public class HudLogic : MonoBehaviour
     private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
+    private Dictionary<string, PeerTap> _peerTaps = new();
+    
     // ReSharper disable once AsyncVoidMethod
     private async void OnEnable()
     {
@@ -67,6 +74,8 @@ public class HudLogic : MonoBehaviour
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         rtcStartButton.onClick.AddListener(RtcStart);
         rtcStopButton.onClick.AddListener(RtcStop);
+        
+        clientTap.SetActive(false);
     }
 
     private void OnDisable()
@@ -89,7 +98,20 @@ public class HudLogic : MonoBehaviour
             if (_updateElapsedTime > UpdateSendSeconds)
             {
                 _updateElapsedTime = 0;
-                RtcSend($"{_updateSendFrame++};TODO-FROM-CLIENT;{DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()}");
+                
+                var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+                //msg = $"{_updateSendFrame};TODO-FROM-CLIENT;{utcMs}";
+                
+                var clientState = new ClientState
+                {
+                    Frame = _updateSendFrame,
+                    UtcMs = utcMs
+                };
+                clientTap.Fill(ref clientState);
+                var msg = WebSerializer.SerializeObject(clientState);
+                
+                _updateSendFrame++;
+                RtcSend(msg);
             }
         }
     }
@@ -166,7 +188,9 @@ public class HudLogic : MonoBehaviour
             _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
             _rtcLink = await _rtcApi.Connect(RtcReceived, destroyCancellationToken);
             _updateSendFrame = 0;
-                
+
+            clientTap.SetActive(true);
+            
             serverResponseText.text = "RESULT:\nOK";
         }
         catch (Exception ex)
@@ -180,6 +204,12 @@ public class HudLogic : MonoBehaviour
     private void RtcStop(string reason)
     {
         _log.Info(reason);
+
+        foreach (var kv in _peerTaps) 
+            Destroy(kv.Value.gameObject);
+        _peerTaps.Clear();
+        clientTap.SetActive(false);
+        
         _rtcLink?.Dispose();
         _rtcLink = null;
         _rtcApi = null;
@@ -203,6 +233,52 @@ public class HudLogic : MonoBehaviour
         }
         var str = System.Text.Encoding.UTF8.GetString(data);
         _log.Info(str);
+        
+        try
+        {
+            var serverState = WebSerializer.DeserializeObject<ServerState>(str);
+
+            var count = 0;
+            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
+            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
+            try
+            {
+                foreach (var kv in _peerTaps)
+                {
+                    peerKvs[count++] = kv;
+                    kv.Value.SetChanged(false);
+                }
+                
+                foreach (var peerState in serverState.Peers)
+                {
+                    var peerId = peerState.Id;
+                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                    {
+                        var peerGameObject = Instantiate(peerPrefab, transform);
+                        peerTap = peerGameObject.GetComponent<PeerTap>();
+                        _peerTaps.Add(peerId, peerTap);
+                    }
+                    peerTap.Apply(peerState.ClientState);
+                }
+                
+                //remove peer taps that don't exist
+                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
+                {
+                    if (peerTap.Changed) 
+                        continue;
+                    _peerTaps.Remove(id);
+                    Destroy(peerTap.gameObject);
+                }
+            }
+            finally
+            {
+                peerKvsPool.Return(peerKvs);
+            }
+        }
+        catch (Exception e)
+        {
+            _log.Error($"{e}");
+        }
     }
 
     private IMeta CreateMetaClient()
