@@ -1,5 +1,4 @@
 using System.Collections.Concurrent;
-using System.Net;
 using Shared.Rtc;
 using Shared.Session;
 using Shared.Web;
@@ -86,41 +85,8 @@ public class SipRtcService : IRtcService, IHostedService
             //, bindPort: 40000
             , portRange: _portRange
         );
-        //var peerConnection = new RTCPeerConnection();
-
-        var link = new SipRtcLink(id, peerConnection, _loggerFactory);
+        var link = new SipRtcLink(this, id, peerConnection, _loggerFactory);
         await link.Init();
-
-        peerConnection.onicecandidate += candidate =>
-        {
-            _logger.LogDebug($"onicecandidate: {candidate}");
-            // if (candidate.type == RTCIceCandidateType.host)
-            // {
-            //     _logger.LogDebug("onicecandidate: skip host candidate");
-            //     return;
-            // }
-            link.IceCandidates.Add(candidate);
-        };
-        peerConnection.onicecandidateerror += (candidate, error) =>
-            _logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
-        peerConnection.oniceconnectionstatechange += state =>
-            _logger.LogDebug($"oniceconnectionstatechange: {state}");
-        peerConnection.onicegatheringstatechange += state =>
-        {
-            _logger.LogDebug($"onicegatheringstatechange: {state}");
-            if (state == RTCIceGatheringState.complete)
-                link.IceCollectCompleteTcs.SetResult(link.IceCandidates);
-        };
-
-        peerConnection.OnRtpPacketReceived += (IPEndPoint rep, SDPMediaTypesEnum media, RTPPacket rtpPkt)
-            => _logger.LogDebug(
-                $"OnRtpPacketReceived: RTP {media} pkt received, SSRC {rtpPkt.Header.SyncSource}, SeqNum {rtpPkt.Header.SequenceNumber}");
-        peerConnection.OnReceiveReport += (IPEndPoint ip, SDPMediaTypesEnum media, RTCPCompoundPacket pkt)
-            => _logger.LogDebug($"OnReceiveReport: RTP {media}");
-        peerConnection.OnSendReport += (SDPMediaTypesEnum media, RTCPCompoundPacket pkt)
-            => _logger.LogDebug($"OnSendReport: RTP {media}");
-        peerConnection.OnTimeout += media
-            => _logger.LogWarning($"OnTimeout: {media}");
 
         peerConnection.onconnectionstatechange += state =>
         {
@@ -142,13 +108,13 @@ public class SipRtcService : IRtcService, IHostedService
         };
 
         var channel = link.DataChannel;
-        channel.onopen += () =>
+        channel!.onopen += () =>
         {
             _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
 
             var frameId = 0;
             var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
-            timer.Elapsed += (sender, e) =>
+            timer.Elapsed += (_, _) =>
             {
                 if (channel.readyState != RTCDataChannelState.open)
                 {
@@ -193,7 +159,7 @@ public class SipRtcService : IRtcService, IHostedService
             };
             timer.Start();
         };
-        channel.onmessage += (datachannel, type, data) =>
+        channel.onmessage += (_, _, data) =>
         {
             //_logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
             var str = System.Text.Encoding.UTF8.GetString(data);
@@ -254,4 +220,6 @@ public class SipRtcService : IRtcService, IHostedService
         }
         return default;
     }
+
+    public void RemoveLink(string id) => _links.TryRemove(id, out _);
 }

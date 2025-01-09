@@ -4,11 +4,12 @@ using SIPSorcery.Net;
 
 namespace Server.Rtc;
 
-internal class SipRtcLink(string id, RTCPeerConnection peerConnection, ILoggerFactory loggerFactory)
+internal class SipRtcLink(SipRtcService service, string id, RTCPeerConnection peerConnection, ILoggerFactory loggerFactory)
 {
     private readonly ILogger _logger = new PeerIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), id);
 
-    public readonly RTCPeerConnection PeerConnection = peerConnection;
+    public RTCPeerConnection PeerConnection => peerConnection;
+
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
     public RTCDataChannel? DataChannel;
@@ -17,13 +18,13 @@ internal class SipRtcLink(string id, RTCPeerConnection peerConnection, ILoggerFa
     public async Task Init()
     {
         _logger.Info(".");
-        DataChannel = await PeerConnection.createDataChannel("test", new()
+        DataChannel = await peerConnection.createDataChannel("test", new()
         {
             ordered = false,
             maxRetransmits = 0
         });
         
-        PeerConnection.onicecandidate += candidate =>
+        peerConnection.onicecandidate += candidate =>
         {
             _logger.LogDebug($"onicecandidate: {candidate}");
             // if (candidate.type == RTCIceCandidateType.host)
@@ -33,16 +34,32 @@ internal class SipRtcLink(string id, RTCPeerConnection peerConnection, ILoggerFa
             // }
             _iceCandidates.Add(candidate);
         };
-        PeerConnection.onicecandidateerror += (candidate, error) =>
-            _logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
-        PeerConnection.oniceconnectionstatechange += state =>
-            _logger.LogDebug($"oniceconnectionstatechange: {state}");
-        PeerConnection.onicegatheringstatechange += state =>
+        peerConnection.onicecandidateerror += (candidate, error) => _logger.LogWarning($"onicecandidateerror: '{error}' {candidate}");
+        peerConnection.oniceconnectionstatechange += state => _logger.LogDebug($"oniceconnectionstatechange: {state}");
+        peerConnection.onicegatheringstatechange += state =>
         {
             _logger.LogDebug($"onicegatheringstatechange: {state}");
             if (state == RTCIceGatheringState.complete)
                 IceCollectCompleteTcs.SetResult(_iceCandidates);
         };
+        
+        peerConnection.onconnectionstatechange += state =>
+        {
+            _logger.LogDebug($"onconnectionstatechange: state changed to {state}");
+            if (state is
+                RTCPeerConnectionState.closed or
+                RTCPeerConnectionState.disconnected or
+                RTCPeerConnectionState.failed)
+            {
+                _logger.LogDebug($"onconnectionstatechange: Peer {id} closing");
+                service.RemoveLink(id);
+                IceCollectCompleteTcs.TrySetCanceled();
+                peerConnection.close();
+            }
+            else if (state == RTCPeerConnectionState.connected)
+                _logger.LogDebug("onconnectionstatechange: connected");
+        };
+        
     }
 
     private class PeerIdLogger(ILogger inner, string peerId) : ILogger
