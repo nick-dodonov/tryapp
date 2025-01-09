@@ -107,75 +107,6 @@ public class SipRtcService : IRtcService, IHostedService
                 _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
 
-        var channel = link.DataChannel;
-        channel!.onopen += () =>
-        {
-            _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
-
-            var frameId = 0;
-            var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
-            timer.Elapsed += (_, _) =>
-            {
-                if (channel.readyState != RTCDataChannelState.open)
-                {
-                    _logger.LogDebug($"DataChannel: timer: stop: readyState={channel.readyState}");
-                    timer.Stop();
-                    return;
-                }
-
-                if (peerConnection.connectionState != RTCPeerConnectionState.connected)
-                {
-                    _logger.LogDebug($"DataChannel: timer: stop: connectionState={peerConnection.connectionState}");
-                    timer.Stop();
-                    return;
-                }
-
-                if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
-                {
-                    _logger.LogDebug($"DataChannel: timer: stop: sctp.state={peerConnection.sctp.state}");
-                    timer.Stop();
-                    return;
-                }
-
-                var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
-
-                var peerStates = _links.Select(kv => new PeerState
-                {
-                    Id = kv.Key,
-                    ClientState = kv.Value.LastClientState
-                }).ToArray();
-                var serverStateMsg = new ServerState
-                {
-                    Frame = frameId,
-                    UtcMs = utcMs,
-                    Peers = peerStates
-                };
-                var msg = WebSerializer.SerializeObject(serverStateMsg);
-                
-                frameId++;
-                _logger.LogDebug($"DataChannel: sending: {msg}");
-                channel.send(msg);
-            };
-            timer.Start();
-        };
-        channel.onmessage += (_, _, data) =>
-        {
-            //_logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
-            var str = System.Text.Encoding.UTF8.GetString(data);
-            _logger.LogDebug($"DataChannel: onmessage: {str}");
-            try
-            {
-                link.LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError($"DataChannel: onmessage: failed to deserialize: {e}");
-            }
-        };
-        channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
-        channel.onerror += error => _logger.LogError($"DataChannel: error: {error}");
-
         _logger.LogDebug($"creating offer for id={id}");
         var offerSdp = peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerSdp);
@@ -222,4 +153,54 @@ public class SipRtcService : IRtcService, IHostedService
     }
 
     public void RemoveLink(string id) => _links.TryRemove(id, out _);
+
+    public void StartLinkLogic(RTCDataChannel channel, RTCPeerConnection peerConnection)
+    {
+        var frameId = 0;
+        var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
+        timer.Elapsed += (_, _) =>
+        {
+            if (channel.readyState != RTCDataChannelState.open)
+            {
+                _logger.LogDebug($"DataChannel: timer: stop: readyState={channel.readyState}");
+                timer.Stop();
+                return;
+            }
+
+            if (peerConnection.connectionState != RTCPeerConnectionState.connected)
+            {
+                _logger.LogDebug($"DataChannel: timer: stop: connectionState={peerConnection.connectionState}");
+                timer.Stop();
+                return;
+            }
+
+            if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
+            {
+                _logger.LogDebug($"DataChannel: timer: stop: sctp.state={peerConnection.sctp.state}");
+                timer.Stop();
+                return;
+            }
+
+            var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
+
+            var peerStates = _links.Select(kv => new PeerState
+            {
+                Id = kv.Key,
+                ClientState = kv.Value.LastClientState
+            }).ToArray();
+            var serverStateMsg = new ServerState
+            {
+                Frame = frameId,
+                UtcMs = utcMs,
+                Peers = peerStates
+            };
+            var msg = WebSerializer.SerializeObject(serverStateMsg);
+                
+            frameId++;
+            _logger.LogDebug($"DataChannel: sending: {msg}");
+            channel.send(msg);
+        };
+        timer.Start();
+    }
 }

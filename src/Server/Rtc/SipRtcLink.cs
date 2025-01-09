@@ -1,5 +1,6 @@
 using Shared.Log;
 using Shared.Session;
+using Shared.Web;
 using SIPSorcery.Net;
 
 namespace Server.Rtc;
@@ -60,6 +61,28 @@ internal class SipRtcLink(SipRtcService service, string id, RTCPeerConnection pe
                 _logger.LogDebug("onconnectionstatechange: connected");
         };
         
+        var channel = DataChannel;
+        channel.onopen += () =>
+        {
+            _logger.LogDebug($"DataChannel: onopen: label={channel.label}");
+            service.StartLinkLogic(channel, peerConnection);
+        };
+        channel.onmessage += (_, _, data) =>
+        {
+            //_logger.LogDebug($"DataChannel: onmessage: type={type} data=[{data.Length}]");
+            var str = System.Text.Encoding.UTF8.GetString(data);
+            _logger.LogDebug($"DataChannel: onmessage: {str}");
+            try
+            {
+                LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError($"DataChannel: onmessage: failed to deserialize: {e}");
+            }
+        };
+        channel.onclose += () => _logger.LogDebug($"DataChannel: onclose: label={channel.label}");
+        channel.onerror += error => _logger.LogError($"DataChannel: error: {error}");
     }
 
     private class PeerIdLogger(ILogger inner, string peerId) : ILogger
