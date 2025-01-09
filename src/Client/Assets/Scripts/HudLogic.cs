@@ -175,10 +175,10 @@ namespace Client
             }
         }
 
-        void ISessionController.StartSession() => RtcStart();
+        Task ISessionController.StartSession() => RtcStart();
         void ISessionController.StopSession() => RtcStop();
 
-        private async void RtcStart()
+        private async Task RtcStart()
         {
             try
             {
@@ -200,6 +200,7 @@ namespace Client
             {
                 serverResponseText.text = $"ERROR:\n{ex.Message}";
                 RtcStop("connect error");
+                throw;
             }
         }
 

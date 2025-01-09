@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using Shared.Log;
 using TMPro;
 using UnityEngine;
@@ -7,13 +9,12 @@ namespace Client.UI
 {
     public interface ISessionController
     {
-        void StartSession();
+        Task StartSession();
         void StopSession();
     }
     
     /// <summary>
     /// Provides fool-protection against multiple starts
-    /// TODO: notify "starting" state and prohibit stop in it
     /// </summary>
     public class SessionControl : MonoBehaviour
     {
@@ -21,43 +22,82 @@ namespace Client.UI
         
         public Button actionButton;
         public TMP_Text actionText;
-        
-        private bool _started;
+
+        private enum State
+        {
+            Stopped,
+            Starting,
+            Started
+        }
+        private State _state = State.Stopped;
         public ISessionController Controller { get; set; }
 
         private void OnEnable()
         {
             actionButton.onClick.AddListener(() =>
             {
-                SetStarted(!_started);
+                switch (_state)
+                {
+                    case State.Stopped: Start(); break;
+                    case State.Started: Stop(); break;
+                    case State.Starting:
+                    default: 
+                        throw new InvalidOperationException("must not be interactable");
+                }
             });
-            BumpView();
+            UpdateState(State.Stopped);
         }
 
-        private void SetStarted(bool started)
+        private async void Start() //TODO: add FireAndForget for async Task 
         {
-            if (_started == started)
-                return;
-            _log.Info($"{_started} -> {started}");
+            if (_state != State.Stopped) throw new InvalidOperationException($"invalid state: {_state}");
+            UpdateState(State.Starting);
+            try
+            {
+                await Controller.StartSession();
 
-            _started = started;
-            BumpView();
-
-            if (Controller == null)
-                return;
-            if (started)
-                Controller.StartSession();
-            else
-                Controller.StopSession();
+                _log.Info("succeed");
+                UpdateState(State.Started);
+            }
+            catch (Exception e)
+            {
+                _log.Info($"failed: {e}");
+                UpdateState(State.Stopped);
+            }
         }
 
-        private void BumpView()
+        private void Stop()
         {
-            actionText.text = _started ? "Stop" : "Start";
-            Color32 color = _started 
-                ? new(180, 0, 0, 0xFF) 
-                : new(0, 180, 0, 0xFF);
-            actionText.color = color;
+            if (_state != State.Started) throw new InvalidOperationException($"invalid state: {_state}");
+            UpdateState(State.Stopped);
+            Controller.StopSession();
+        }
+
+        private void UpdateState(State state)
+        {
+            if (_state != state)
+                _log.Info($"{_state} -> {state}");
+            _state = state;
+            switch (_state)
+            {
+                case State.Stopped:
+                    actionText.text = "Start";
+                    actionText.color = new Color32(0, 180, 0, 0xFF);
+                    actionButton.interactable = true;
+                    break;
+                case State.Starting:
+                    actionText.text = "Starting...";
+                    actionText.color = new Color32(180, 180, 0, 0xFF);
+                    actionButton.interactable = false;
+                    break;
+                case State.Started:
+                    actionText.text = "Stop";
+                    actionText.color = new Color32(180, 0, 0, 0xFF);
+                    actionButton.interactable = true;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 }
