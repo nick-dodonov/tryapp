@@ -38,8 +38,8 @@ namespace Client.UI
             {
                 switch (_state)
                 {
-                    case State.Stopped: Start(); break;
-                    case State.Started: Stop(); break;
+                    case State.Stopped: StartSession(); break;
+                    case State.Started: StopSession(); break;
                     case State.Starting:
                     default: 
                         throw new InvalidOperationException("must not be interactable");
@@ -48,7 +48,7 @@ namespace Client.UI
             UpdateState(State.Stopped);
         }
 
-        private async void Start() //TODO: add FireAndForget for async Task 
+        private async void StartSession() //TODO: add FireAndForget for async Task 
         {
             if (_state != State.Stopped) throw new InvalidOperationException($"invalid state: {_state}");
             UpdateState(State.Starting);
@@ -66,7 +66,7 @@ namespace Client.UI
             }
         }
 
-        private void Stop()
+        private void StopSession()
         {
             if (_state != State.Started) throw new InvalidOperationException($"invalid state: {_state}");
             UpdateState(State.Stopped);
