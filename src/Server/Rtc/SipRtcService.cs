@@ -4,6 +4,7 @@ using Shared.Rtc;
 using Shared.Session;
 using Shared.Web;
 using SIPSorcery.Net;
+using SIPSorcery.Sys;
 using TinyJson;
 
 namespace Server.Rtc;
@@ -28,6 +29,10 @@ public class SipRtcService : IRtcService, IHostedService
     }
 
     private readonly ConcurrentDictionary<string, Link> _links = new();
+    /// <summary>
+    /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation 
+    /// </summary>
+    private readonly PortRange _portRange = new(40000, 60000);
 
     /// <summary>
     /// Based on several samples
@@ -82,11 +87,11 @@ public class SipRtcService : IRtcService, IHostedService
             //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
             //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
             //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
-            iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
+            //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
         };
         var peerConnection = new RTCPeerConnection(config
             //, bindPort: 40000
-            , portRange: new(40000, 60000)
+            , portRange: _portRange
         );
         //var peerConnection = new RTCPeerConnection();
 
