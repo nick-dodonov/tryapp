@@ -14,7 +14,7 @@ namespace Server.Rtc;
 ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
 ///     https://www.marksort.com/udp-like-networking-in-the-browser/
 /// </summary>
-public class SipRtcService : IRtcService, IHostedService
+public class SipRtcService : IHostedService, IRtcService, IRtcApi
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<SipRtcService> _logger;
@@ -38,29 +38,29 @@ public class SipRtcService : IRtcService, IHostedService
         SIPSorcery.LogFactory.Set(loggerFactory);
     }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("StartAsync");
         return Task.CompletedTask;
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    Task IHostedService.StopAsync(CancellationToken cancellationToken)
     {
         _logger.LogDebug("StopAsync");
         return Task.CompletedTask;
     }
 
-    public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
+    async ValueTask<string> IRtcService.GetOffer(string id, CancellationToken cancellationToken)
         => (await GetOffer(id)).toJSON();
 
-    public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
+    ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
     {
         if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
             throw new InvalidOperationException($"Body must contain SDP answer for id: {id}");
         return SetAnswer(id, answer, cancellationToken);
     }
 
-    public ValueTask AddIceCandidates(string id, string candidatesJson, CancellationToken cancellationToken)
+    ValueTask IRtcService.AddIceCandidates(string id, string candidatesJson, CancellationToken cancellationToken)
     {
         var candidates = candidatesJson.FromJson<RTCIceCandidateInit[]>();
         return AddIceCandidates(id, cancellationToken, candidates);
@@ -136,8 +136,7 @@ public class SipRtcService : IRtcService, IHostedService
         return candidatesListJson;
     }
 
-    private ValueTask AddIceCandidates(string id, CancellationToken cancellationToken,
-        params RTCIceCandidateInit[] candidates)
+    private ValueTask AddIceCandidates(string id, CancellationToken cancellationToken, params RTCIceCandidateInit[] candidates)
     {
         if (!_links.TryGetValue(id, out var link))
             throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
@@ -203,4 +202,11 @@ public class SipRtcService : IRtcService, IHostedService
         };
         timer.Start();
     }
+    
+    Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken) 
+        => throw new NotSupportedException();
+
+    private IRtcApi.ConnectionCallback _connectionCallback;
+    void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) 
+        => _connectionCallback = connectionCallback;
 }

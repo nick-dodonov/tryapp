@@ -55,6 +55,8 @@ namespace Client.Rtc
             return link;
         }
 
+        void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) => throw new NotSupportedException();
+
         internal void Remove(WebglRtcLink link)
         {
             Links.Remove(link.PeerId);

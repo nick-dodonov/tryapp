@@ -12,7 +12,10 @@ namespace Shared.Rtc
 
     public interface IRtcApi
     {
+        public delegate IRtcLink.ReceivedCallback ConnectionCallback(IRtcLink link); //null - disconnected
+
         Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
+        void Listen(ConnectionCallback connectionCallback);
     }
     
     /// <summary>
