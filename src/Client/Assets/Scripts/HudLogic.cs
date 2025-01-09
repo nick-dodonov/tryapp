@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Diagnostics;
 using Client.Rtc;
+using Client.UI;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
@@ -16,7 +17,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class HudLogic : MonoBehaviour
+public class HudLogic : MonoBehaviour, ISessionController
 {
     private static readonly Slog.Area _log = new();
     
@@ -31,6 +32,7 @@ public class HudLogic : MonoBehaviour
 
     public Button rtcStartButton;
     public Button rtcStopButton;
+    public SessionControl sessionControl;
 
     private record ServerOption(string Text, string Url);
     private readonly List<ServerOption> _serverOptions = new();
@@ -39,7 +41,7 @@ public class HudLogic : MonoBehaviour
     private IRtcApi _rtcApi;
     private IRtcLink _rtcLink;
 
-    private Dictionary<string, PeerTap> _peerTaps = new();
+    private readonly Dictionary<string, PeerTap> _peerTaps = new();
     
     // ReSharper disable once AsyncVoidMethod
     private async void OnEnable()
@@ -74,6 +76,8 @@ public class HudLogic : MonoBehaviour
         serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         rtcStartButton.onClick.AddListener(RtcStart);
         rtcStopButton.onClick.AddListener(RtcStop);
+
+        sessionControl.Controller = this;
         
         clientTap.SetActive(false);
     }
@@ -174,7 +178,10 @@ public class HudLogic : MonoBehaviour
             serverResponseText.text = $"ERROR:\n{ex.Message}";
         }
     }
-    
+
+    void ISessionController.StartSession() => RtcStart();
+    void ISessionController.StopSession() => RtcStop();
+
     private async void RtcStart()
     {
         try
