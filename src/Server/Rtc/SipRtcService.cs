@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Shared.Log;
 using Shared.Rtc;
 using Shared.Session;
 using Shared.Web;
@@ -40,13 +41,13 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("StartAsync");
+        _logger.Info(".");
         return Task.CompletedTask;
     }
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken)
     {
-        _logger.LogDebug("StopAsync");
+        _logger.Info(".");
         return Task.CompletedTask;
     }
 
@@ -73,7 +74,7 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         if (_links.ContainsKey(id))
             throw new ArgumentNullException(nameof(id), "ID is already in use");
 
-        _logger.LogDebug($"creating RTCPeerConnection and RTCDataChannel for id={id}");
+        _logger.Info($"creating RTCPeerConnection and RTCDataChannel for id={id}");
         var config = new RTCConfiguration
         {
             //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
@@ -88,32 +89,13 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         var link = new SipRtcLink(this, id, peerConnection, _loggerFactory);
         await link.Init();
 
-        peerConnection.onconnectionstatechange += state =>
-        {
-            _logger.LogDebug($"onconnectionstatechange: Peer {id} state changed to {state}");
-            if (state is
-                RTCPeerConnectionState.closed or
-                RTCPeerConnectionState.disconnected or
-                RTCPeerConnectionState.failed)
-            {
-                _logger.LogDebug($"onconnectionstatechange: Peer {id} closing");
-                if (_links.TryRemove(id, out link) && link != null)
-                {
-                    link.IceCollectCompleteTcs.TrySetCanceled();
-                    link.PeerConnection.close();
-                }
-            }
-            else if (state == RTCPeerConnectionState.connected)
-                _logger.LogDebug("onconnectionstatechange: Peer connection connected");
-        };
-
-        _logger.LogDebug($"creating offer for id={id}");
+        _logger.Info($"creating offer for id={id}");
         var offerSdp = peerConnection.createOffer();
         await peerConnection.setLocalDescription(offerSdp);
 
         _links.TryAdd(id, link);
 
-        _logger.LogDebug($"returning offer for id={id}: {offerSdp.toJSON()}");
+        _logger.Info($"returning offer for id={id}: {offerSdp.toJSON()}");
         return offerSdp;
     }
 
@@ -123,16 +105,16 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         if (!_links.TryGetValue(id, out var link))
             throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
 
-        _logger.LogDebug($"SetAnswer: setRemoteDescription: id={id}: {description.toJSON()}");
+        _logger.Info($"setRemoteDescription: id={id}: {description.toJSON()}");
         link.PeerConnection.setRemoteDescription(description);
 
-        _logger.LogDebug($"SetAnswer: wait ice candidates gathering complete: id={id}");
+        _logger.Info($"wait ice candidates gathering complete: id={id}");
         var candidates = await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
         var candidatesListJson = candidates
             .Select(candidate => candidate.toJSON())
             .ToArray()
             .ToJson();
-        _logger.LogDebug($"SetAnswer: return ice candidates ({candidates.Count} count): id={id}: {candidatesListJson}");
+        _logger.Info($"return ice candidates ({candidates.Count} count): id={id}: {candidatesListJson}");
         return candidatesListJson;
     }
 
@@ -141,10 +123,10 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         if (!_links.TryGetValue(id, out var link))
             throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
-        _logger.LogDebug($"AddIceCandidates: id={id}: adding {candidates.Length} candidates");
+        _logger.Info($"id={id}: adding {candidates.Length} candidates");
         foreach (var candidate in candidates)
         {
-            _logger.LogDebug($"AddIceCandidates: id={id}: {candidate.toJSON()}");
+            _logger.Info($"id={id}: {candidate.toJSON()}");
             link.PeerConnection.addIceCandidate(candidate);
             cancellationToken.ThrowIfCancellationRequested();
         }
@@ -161,21 +143,21 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         {
             if (channel.readyState != RTCDataChannelState.open)
             {
-                _logger.LogDebug($"DataChannel: timer: stop: readyState={channel.readyState}");
+                _logger.Info($"timer: stop: readyState={channel.readyState}");
                 timer.Stop();
                 return;
             }
 
             if (peerConnection.connectionState != RTCPeerConnectionState.connected)
             {
-                _logger.LogDebug($"DataChannel: timer: stop: connectionState={peerConnection.connectionState}");
+                _logger.Info($"timer: stop: connectionState={peerConnection.connectionState}");
                 timer.Stop();
                 return;
             }
 
             if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
             {
-                _logger.LogDebug($"DataChannel: timer: stop: sctp.state={peerConnection.sctp.state}");
+                _logger.Info($"timer: stop: sctp.state={peerConnection.sctp.state}");
                 timer.Stop();
                 return;
             }
@@ -194,11 +176,11 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
                 UtcMs = utcMs,
                 Peers = peerStates
             };
-            var msg = WebSerializer.SerializeObject(serverStateMsg);
-                
             frameId++;
-            _logger.LogDebug($"DataChannel: sending: {msg}");
-            channel.send(msg);
+
+            var msg = WebSerializer.SerializeObject(serverStateMsg);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
+            channel.send(bytes); //TODO: replace with link.Send()
         };
         timer.Start();
     }
