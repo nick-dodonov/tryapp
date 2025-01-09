@@ -19,16 +19,7 @@ public class SipRtcService : IRtcService, IHostedService
 {
     private readonly ILogger<SipRtcService> _logger;
 
-    private class Link(RTCPeerConnection peerConnection)
-    {
-        public readonly RTCPeerConnection PeerConnection = peerConnection;
-        public readonly List<RTCIceCandidate> IceCandidates = [];
-        public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
-        public RTCDataChannel? DataChannel;
-        public ClientState LastClientState;
-    }
-
-    private readonly ConcurrentDictionary<string, Link> _links = new();
+    private readonly ConcurrentDictionary<string, SipRtcLink> _links = new();
     /// <summary>
     /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation 
     /// </summary>
@@ -95,7 +86,7 @@ public class SipRtcService : IRtcService, IHostedService
         );
         //var peerConnection = new RTCPeerConnection();
 
-        var link = new Link(peerConnection)
+        var link = new SipRtcLink(peerConnection)
         {
             DataChannel = await peerConnection.createDataChannel("test", new()
             {
