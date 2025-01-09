@@ -142,7 +142,14 @@ public class SipRtcService : IRtcService, IHostedService
                 RTCPeerConnectionState.closed or
                 RTCPeerConnectionState.disconnected or
                 RTCPeerConnectionState.failed)
-                _links.TryRemove(id, out _);
+            {
+                _logger.LogDebug($"onconnectionstatechange: Peer {id} closing");
+                if (_links.TryRemove(id, out link))
+                {
+                    link.IceCollectCompleteTcs.TrySetCanceled();
+                    link.PeerConnection.close();
+                }
+            }
             else if (state == RTCPeerConnectionState.connected)
                 _logger.LogDebug("onconnectionstatechange: Peer connection connected");
         };
