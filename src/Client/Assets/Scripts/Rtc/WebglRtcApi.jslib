@@ -158,15 +158,19 @@ function RtcSetAnswerResult(peerId, candidatesJsonPtr) {
     var candidatesJson = UTF8ToString(candidatesJsonPtr);
     console.log("RtcSetAnswerResult:", peerId, candidatesJson);
     const pc = RtcApi.GetPeer(peerId);
-
-    let candidates = JSON.parse(candidatesJson);
-    for (let candidateJson of candidates) {
-        let candidateObj = JSON.parse(candidateJson);
-        let candidate = new RTCIceCandidate(candidateObj);
-        console.log("RtcSetAnswerResult:", peerId, candidate);
-        pc.addIceCandidate(candidate).catch((e) => {
-            console.log("RtcSetAnswerResult: addIceCandidate: failed:", peerId, candidate, e);
-        });
+    if (pc) {
+        let candidates = JSON.parse(candidatesJson);
+        for (let candidateJson of candidates) {
+            let candidateObj = JSON.parse(candidateJson);
+            let candidate = new RTCIceCandidate(candidateObj);
+            console.log("RtcSetAnswerResult:", peerId, candidate);
+            pc.addIceCandidate(candidate).catch((e) => {
+                console.log("RtcSetAnswerResult: addIceCandidate: failed:", peerId, candidate, e);
+            });
+        }
+    } else {
+        //TODO: to get rid of this warning if session is already closed make fetch('setanswer') cancellable via `AbortController`
+        console.warn("RtcSetAnswerResult: failed to find peer", peerId);
     }
 }
 
