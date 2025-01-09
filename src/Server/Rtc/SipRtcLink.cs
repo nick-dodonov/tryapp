@@ -71,7 +71,7 @@ internal class SipRtcLink(
         channel.onopen += () =>
         {
             _logger.Info($"DataChannel: onopen: label={channel.label}");
-            service.StartLinkLogic(channel, peerConnection);
+            service.StartLinkLogic(this, channel, peerConnection);
         };
         channel.onmessage += (_, _, data) =>
         {

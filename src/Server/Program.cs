@@ -1,4 +1,5 @@
 using Server.Info;
+using Server.Logic;
 using Server.Meta;
 using Server.Rtc;
 using Shared.Log;
@@ -14,7 +15,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<IRtcService, SipRtcService>()
+    .AddSingleton<IRtcApi, SipRtcService>()
     .AddHostedService<SipRtcService>()
+    .AddHostedService<LogicSession>()
     ;
 builder.Services
     .AddControllers()
