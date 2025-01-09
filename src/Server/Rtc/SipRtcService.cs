@@ -17,6 +17,7 @@ namespace Server.Rtc;
 /// </summary>
 public class SipRtcService : IRtcService, IHostedService
 {
+    private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<SipRtcService> _logger;
 
     private readonly ConcurrentDictionary<string, SipRtcLink> _links = new();
@@ -33,6 +34,7 @@ public class SipRtcService : IRtcService, IHostedService
     /// </summary>
     public SipRtcService(ILoggerFactory loggerFactory)
     {
+        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<SipRtcService>();
         SIPSorcery.LogFactory.Set(loggerFactory);
     }
@@ -86,14 +88,8 @@ public class SipRtcService : IRtcService, IHostedService
         );
         //var peerConnection = new RTCPeerConnection();
 
-        var link = new SipRtcLink(peerConnection)
-        {
-            DataChannel = await peerConnection.createDataChannel("test", new()
-            {
-                ordered = false,
-                maxRetransmits = 0
-            })
-        };
+        var link = new SipRtcLink(id, peerConnection, _loggerFactory);
+        await link.Init();
 
         peerConnection.onicecandidate += candidate =>
         {
@@ -135,7 +131,7 @@ public class SipRtcService : IRtcService, IHostedService
                 RTCPeerConnectionState.failed)
             {
                 _logger.LogDebug($"onconnectionstatechange: Peer {id} closing");
-                if (_links.TryRemove(id, out link))
+                if (_links.TryRemove(id, out link) && link != null)
                 {
                     link.IceCollectCompleteTcs.TrySetCanceled();
                     link.PeerConnection.close();
