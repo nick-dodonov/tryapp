@@ -20,13 +20,13 @@ internal class SipRtcLink(
 
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
-    public RTCDataChannel? DataChannel;
+    private RTCDataChannel? _dataChannel;
     public ClientState LastClientState;
 
     public async Task Init()
     {
         _logger.Info(".");
-        DataChannel = await peerConnection.createDataChannel("test", new()
+        _dataChannel = await peerConnection.createDataChannel("test", new()
         {
             ordered = false,
             maxRetransmits = 0
@@ -67,7 +67,7 @@ internal class SipRtcLink(
                 _logger.Info("onconnectionstatechange: connected");
         };
 
-        var channel = DataChannel;
+        var channel = _dataChannel;
         channel.onopen += () =>
         {
             _logger.Info($"DataChannel: onopen: label={channel.label}");
@@ -104,6 +104,6 @@ internal class SipRtcLink(
     {
         var content = Encoding.UTF8.GetString(bytes);
         _logger.Info($"[{bytes.Length}]: {content}");
-        DataChannel?.send(bytes);
+        _dataChannel?.send(bytes);
     }
 }
