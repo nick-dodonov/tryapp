@@ -21,7 +21,7 @@ public class LogicSession(ILogger<LogicSession> logger, IRtcApi rtcApi)
         return Received;
     }
 
-    private void Received(byte[]? bytes)
+    private void Received(IRtcLink link, byte[]? bytes)
     {
         if (bytes == null)
             logger.Info("disconnected");

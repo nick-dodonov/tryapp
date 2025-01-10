@@ -228,8 +228,9 @@ namespace Client
             _rtcLink.Send(bytes);
         }
 
-        private void RtcReceived(byte[] data)
+        private void RtcReceived(IRtcLink link, byte[] data)
         {
+            Debug.Assert(link == _rtcLink);
             if (data == null)
             {
                 RtcStop("disconnected");

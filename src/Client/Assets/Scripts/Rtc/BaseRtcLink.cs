@@ -49,11 +49,11 @@ namespace Client.Rtc
             _log.Info("complete");
         }
 
-        protected internal void CallReceived(byte[] bytes)
+        protected internal void CallReceived(IRtcLink link, byte[] bytes)
         {
             if (bytes == null)
                 _log.Info("disconnected");
-            _receivedCallback(bytes);
+            _receivedCallback(link, bytes);
         }
     }
 }
