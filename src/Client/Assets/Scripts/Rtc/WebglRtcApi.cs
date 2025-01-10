@@ -111,7 +111,7 @@ namespace Client.Rtc
             byte[] bytes, int length)
         {
             if (Links.TryGetValue(peerId, out var link))
-                link.CallReceived(link, bytes);
+                link.CallReceived(bytes);
             else
                 _log.Error($"failed to find peerId={peerId}");
         }

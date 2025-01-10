@@ -69,7 +69,7 @@ namespace Client.Rtc
                     case RTCPeerConnectionState.Disconnected:
                     case RTCPeerConnectionState.Failed:
                     case RTCPeerConnectionState.Closed:
-                        CallReceived(this, null);
+                        CallReceived(null);
                         _dataChannel = null;
                         break;
                 }
@@ -78,7 +78,7 @@ namespace Client.Rtc
             {
                 _log.Info($"OnDataChannel: {UnityRtcDebug.Describe(channel)}");
                 _dataChannel = channel;
-                channel.OnMessage = bytes => CallReceived(this, bytes);
+                channel.OnMessage = CallReceived;
                 channel.OnOpen = () => _log.Info($"OnDataChannel: OnOpen: {channel}");
                 channel.OnClose = () => _log.Info($"OnDataChannel: OnClose: {channel}");
                 channel.OnError = error => _log.Info($"OnDataChannel: OnError: {error}");
