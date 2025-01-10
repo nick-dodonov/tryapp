@@ -11,7 +11,7 @@ using Unity.WebRTC;
 
 namespace Client.Rtc
 {
-    public class UnityRtcLink : BaseRtcLink, IRtcLink
+    public class UnityRtcLink : BaseRtcLink
     {
         private static readonly Slog.Area _log = new();
         
@@ -113,14 +113,14 @@ namespace Client.Rtc
             //TODO: wait for DataChannel from server is opened
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _log.Info("Dispose");
             _peerConnection?.Dispose();
             _peerConnection = null;
         }
 
-        public void Send(byte[] bytes)
+        public override void Send(byte[] bytes)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)

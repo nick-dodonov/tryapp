@@ -6,7 +6,7 @@ using Shared.Rtc;
 
 namespace Client.Rtc
 {
-    public class WebglRtcLink : BaseRtcLink, IRtcLink
+    public class WebglRtcLink : BaseRtcLink
     {
         private static readonly Slog.Area _log = new();
         
@@ -28,7 +28,7 @@ namespace Client.Rtc
             _api = api;
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             _log.Info("Dispose");
             if (_peerId >= 0)
@@ -40,7 +40,7 @@ namespace Client.Rtc
             }
         }
 
-        public void Send(byte[] bytes)
+        public override void Send(byte[] bytes)
         {
             //_log.Info($"{bytes.Length} bytes");
             RtcSend(_peerId, bytes, bytes.Length);
