@@ -34,6 +34,9 @@ namespace Shared.Log
             var sb = ZString.CreateStringBuilder(true);
             try
             {
+#if UNITY_WEBGL && !UNITY_EDITOR
+                sb.Append("# ");
+#endif
                 sb.Append(category.NameSpan);
                 sb.Append(':');
                 sb.Append(' ');

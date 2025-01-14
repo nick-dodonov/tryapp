@@ -26,7 +26,7 @@ const RtcApi = {
         }
     },
     receivedCallback: null,
-    CallReceived: function(peerId, data) {
+    CallReceived: async function(peerId, data) {
         //console.log("RtcApi: CallReceived:", peerId, typeof data, data);
         if (data) {
             if (data.constructor === String) {
@@ -38,6 +38,9 @@ const RtcApi = {
                 data = new TextEncoder().encode(data); //Uint8Array
             } else if (data instanceof ArrayBuffer) {
                 data = new Uint8Array(data);
+            } else if (data instanceof Blob) {
+                const buffer = await data.arrayBuffer(); //ArrayBuffer
+                data = new Uint8Array(buffer);
             } else {
                 console.log("RtcApi: CallReceived: TODO: handle unsupported yet data type:", data);
                 return;
