@@ -208,6 +208,7 @@ namespace Client
         private void RtcStop(string reason)
         {
             _log.Info(reason);
+            sessionControl.NotifyStopped();
 
             foreach (var kv in _peerTaps) 
                 Destroy(kv.Value.gameObject);
