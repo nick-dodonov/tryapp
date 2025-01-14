@@ -81,16 +81,20 @@ internal class SipRtcLink(
             _logger.Info($"DataChannel: onmessage: {str}");
             ReceivedCallback?.Invoke(this, data);
 
-            try
-            {
-                LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"DataChannel: onmessage: failed to deserialize: {e}");
-            }
+            // try
+            // {
+            //     LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
+            // }
+            // catch (Exception e)
+            // {
+            //     _logger.Error($"DataChannel: onmessage: failed to deserialize: {e}");
+            // }
         };
-        channel.onclose += () => _logger.Info($"DataChannel: onclose: label={channel.label}");
+        channel.onclose += () =>
+        {
+            _logger.Info($"DataChannel: onclose: label={channel.label}");
+            ReceivedCallback?.Invoke(this, null);
+        };
         channel.onerror += error => _logger.Error($"DataChannel: error: {error}");
     }
 

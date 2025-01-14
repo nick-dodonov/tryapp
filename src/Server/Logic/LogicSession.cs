@@ -1,12 +1,17 @@
+using System.Collections.Concurrent;
 using System.Text;
 using Shared.Log;
 using Shared.Rtc;
+using Shared.Session;
+using Shared.Web;
 
 namespace Server.Logic;
 
 public class LogicSession(ILogger<LogicSession> logger, IRtcApi rtcApi) 
     : IHostedService
 {
+    private readonly ConcurrentDictionary<IRtcLink, LogicPeer> _peers = new();
+    
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
         rtcApi.Listen(Connected);
@@ -18,17 +23,41 @@ public class LogicSession(ILogger<LogicSession> logger, IRtcApi rtcApi)
     private IRtcLink.ReceivedCallback Connected(IRtcLink link)
     {
         logger.Info($"{link}");
+        var peer = new LogicPeer(this, link);
+        _peers.TryAdd(link, peer);
         return Received;
     }
 
     private void Received(IRtcLink link, byte[]? bytes)
     {
         if (bytes == null)
-            logger.Info("disconnected");
+        {
+            logger.Info($"disconnected: {link}");
+            if (!_peers.TryRemove(link, out var peer))
+                logger.Warn($"peer not connected: {link}");
+            else
+                peer.Dispose();
+        }
         else
         {
             var content = Encoding.UTF8.GetString(bytes);
             logger.Info($"[{bytes.Length}]: {content}");
+            if (!_peers.TryGetValue(link, out var peer))
+                logger.Warn($"peer not connected: {link}");
+            else
+            {
+                try
+                {
+                    peer.LastClientState = WebSerializer.DeserializeObject<ClientState>(content);
+                }
+                catch (Exception e)
+                {
+                    logger.Error($"failed to deserialize: {e}");
+                }
+            }
         }
     }
+
+    public ClientState[] CollectClientStates()
+        => _peers.Select(x => x.Value.LastClientState).ToArray();
 }

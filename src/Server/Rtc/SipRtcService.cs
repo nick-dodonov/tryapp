@@ -139,53 +139,53 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
     {
         var receivedCallback = _connectionCallback?.Invoke(link);
         link.ReceivedCallback = receivedCallback;
-        
-        var frameId = 0;
-        var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
-        timer.Elapsed += (_, _) =>
-        {
-            if (channel.readyState != RTCDataChannelState.open)
-            {
-                _logger.Info($"timer: stop: readyState={channel.readyState}");
-                timer.Stop();
-                return;
-            }
-
-            if (peerConnection.connectionState != RTCPeerConnectionState.connected)
-            {
-                _logger.Info($"timer: stop: connectionState={peerConnection.connectionState}");
-                timer.Stop();
-                return;
-            }
-
-            if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
-            {
-                _logger.Info($"timer: stop: sctp.state={peerConnection.sctp.state}");
-                timer.Stop();
-                return;
-            }
-
-            var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
-
-            var peerStates = _links.Select(kv => new PeerState
-            {
-                Id = kv.Key,
-                ClientState = kv.Value.LastClientState
-            }).ToArray();
-            var serverStateMsg = new ServerState
-            {
-                Frame = frameId,
-                UtcMs = utcMs,
-                Peers = peerStates
-            };
-            frameId++;
-
-            var msg = WebSerializer.SerializeObject(serverStateMsg);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            ((IRtcLink)link).Send(bytes);
-        };
-        timer.Start();
+        //
+        // var frameId = 0;
+        // var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
+        // timer.Elapsed += (_, _) =>
+        // {
+        //     if (channel.readyState != RTCDataChannelState.open)
+        //     {
+        //         _logger.Info($"timer: stop: readyState={channel.readyState}");
+        //         timer.Stop();
+        //         return;
+        //     }
+        //
+        //     if (peerConnection.connectionState != RTCPeerConnectionState.connected)
+        //     {
+        //         _logger.Info($"timer: stop: connectionState={peerConnection.connectionState}");
+        //         timer.Stop();
+        //         return;
+        //     }
+        //
+        //     if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
+        //     {
+        //         _logger.Info($"timer: stop: sctp.state={peerConnection.sctp.state}");
+        //         timer.Stop();
+        //         return;
+        //     }
+        //
+        //     var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        //     //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
+        //
+        //     var peerStates = _links.Select(kv => new PeerState
+        //     {
+        //         Id = kv.Key,
+        //         ClientState = kv.Value.LastClientState
+        //     }).ToArray();
+        //     var serverStateMsg = new ServerState
+        //     {
+        //         Frame = frameId,
+        //         UtcMs = utcMs,
+        //         Peers = peerStates
+        //     };
+        //     frameId++;
+        //
+        //     var msg = WebSerializer.SerializeObject(serverStateMsg);
+        //     var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
+        //     ((IRtcLink)link).Send(bytes);
+        // };
+        // timer.Start();
     }
     
     Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken) 
