@@ -1,8 +1,6 @@
 using System.Text;
 using Shared.Log;
 using Shared.Rtc;
-using Shared.Session;
-using Shared.Web;
 using SIPSorcery.Net;
 
 namespace Server.Rtc;
@@ -22,7 +20,6 @@ internal class SipRtcLink(
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
     private RTCDataChannel? _dataChannel;
-    public ClientState LastClientState;
 
     public async Task Init()
     {
@@ -36,11 +33,6 @@ internal class SipRtcLink(
         peerConnection.onicecandidate += candidate =>
         {
             _logger.Info($"onicecandidate: {candidate}");
-            // if (candidate.type == RTCIceCandidateType.host)
-            // {
-            //     _logger.Info("onicecandidate: skip host candidate");
-            //     return;
-            // }
             _iceCandidates.Add(candidate);
         };
         peerConnection.onicecandidateerror += (candidate, error) =>
@@ -72,30 +64,21 @@ internal class SipRtcLink(
         channel.onopen += () =>
         {
             _logger.Info($"DataChannel: onopen: label={channel.label}");
-            service.StartLinkLogic(this, channel, peerConnection);
+            service.StartLinkLogic(this);
         };
         channel.onmessage += (_, _, data) =>
         {
-            //_logger.Info($"DataChannel: onmessage: type={type} data=[{data.Length}]");
             var str = Encoding.UTF8.GetString(data);
             _logger.Info($"DataChannel: onmessage: {str}");
             ReceivedCallback?.Invoke(this, data);
-
-            // try
-            // {
-            //     LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
-            // }
-            // catch (Exception e)
-            // {
-            //     _logger.Error($"DataChannel: onmessage: failed to deserialize: {e}");
-            // }
         };
         channel.onclose += () =>
         {
             _logger.Info($"DataChannel: onclose: label={channel.label}");
             ReceivedCallback?.Invoke(this, null);
         };
-        channel.onerror += error => _logger.Error($"DataChannel: error: {error}");
+        channel.onerror += error => 
+            _logger.Error($"DataChannel: onerror: {error}");
     }
 
     void IDisposable.Dispose()
@@ -108,6 +91,22 @@ internal class SipRtcLink(
 
     void IRtcLink.Send(byte[] bytes)
     {
+        if (_dataChannel?.readyState != RTCDataChannelState.open)
+        {
+            _logger.Warn($"skip: readyState={_dataChannel?.readyState}");
+            return;
+        }
+        if (peerConnection.connectionState != RTCPeerConnectionState.connected)
+        {
+            _logger.Info($"skip: connectionState={peerConnection.connectionState}");
+            return;
+        }
+        if (peerConnection.sctp.state != RTCSctpTransportState.Connected)
+        {
+            _logger.Info($"skip: sctp.state={peerConnection.sctp.state}");
+            return;
+        }
+        
         var content = Encoding.UTF8.GetString(bytes);
         _logger.Info($"[{bytes.Length}]: {content}");
         _dataChannel?.send(bytes);
