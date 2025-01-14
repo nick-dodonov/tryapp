@@ -18,6 +18,8 @@ namespace Client.Rtc
         private RTCPeerConnection _peerConnection;
         private RTCDataChannel _dataChannel;
         private readonly List<RTCIceCandidateInit> _iceCandidates = new();
+        
+        private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();
 
         public UnityRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
             : base(service, receivedCallback)
@@ -78,6 +80,7 @@ namespace Client.Rtc
             {
                 _log.Info($"OnDataChannel: {UnityRtcDebug.Describe(channel)}");
                 _dataChannel = channel;
+                _dataChannelTcs.TrySetResult(channel);
                 channel.OnMessage = CallReceived;
                 channel.OnOpen = () => _log.Info($"OnDataChannel: OnOpen: {channel}");
                 channel.OnClose = () => _log.Info($"OnDataChannel: OnClose: {channel}");
@@ -110,12 +113,14 @@ namespace Client.Rtc
                     _log.Error("AddIceCandidate: FAILED");
             }
             
-            //TODO: wait for DataChannel from server is opened
+            _log.Info("Awaiting data channel");
+            await _dataChannelTcs.Task; //TODO: implement System.Threading.Tasks WaitAsync that is introduced in .NET 6
         }
 
         public override void Dispose()
         {
             _log.Info("Dispose");
+            _dataChannelTcs.TrySetCanceled();
             _peerConnection?.Dispose();
             _peerConnection = null;
         }
