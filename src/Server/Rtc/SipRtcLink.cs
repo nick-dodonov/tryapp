@@ -17,6 +17,7 @@ internal class SipRtcLink(
     private readonly ILogger _logger = new PeerIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), id);
 
     public RTCPeerConnection PeerConnection => peerConnection;
+    internal IRtcLink.ReceivedCallback? ReceivedCallback { get; set; }
 
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
@@ -78,6 +79,8 @@ internal class SipRtcLink(
             //_logger.Info($"DataChannel: onmessage: type={type} data=[{data.Length}]");
             var str = Encoding.UTF8.GetString(data);
             _logger.Info($"DataChannel: onmessage: {str}");
+            ReceivedCallback?.Invoke(this, data);
+
             try
             {
                 LastClientState = WebSerializer.DeserializeObject<ClientState>(str);
@@ -97,7 +100,6 @@ internal class SipRtcLink(
         service.RemoveLink(id);
         IceCollectCompleteTcs.TrySetCanceled();
         peerConnection.close();
-        throw new NotImplementedException();
     }
 
     void IRtcLink.Send(byte[] bytes)

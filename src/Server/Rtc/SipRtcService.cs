@@ -133,10 +133,13 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         return default;
     }
 
-    public void RemoveLink(string id) => _links.TryRemove(id, out _);
+    internal void RemoveLink(string id) => _links.TryRemove(id, out _);
 
-    public void StartLinkLogic(IRtcLink link, RTCDataChannel channel, RTCPeerConnection peerConnection)
+    internal void StartLinkLogic(SipRtcLink link, RTCDataChannel channel, RTCPeerConnection peerConnection)
     {
+        var receivedCallback = _connectionCallback?.Invoke(link);
+        link.ReceivedCallback = receivedCallback;
+        
         var frameId = 0;
         var timer = new System.Timers.Timer(1000); // Timer interval set to 1 second
         timer.Elapsed += (_, _) =>
@@ -180,7 +183,7 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
 
             var msg = WebSerializer.SerializeObject(serverStateMsg);
             var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            link.Send(bytes);
+            ((IRtcLink)link).Send(bytes);
         };
         timer.Start();
     }
