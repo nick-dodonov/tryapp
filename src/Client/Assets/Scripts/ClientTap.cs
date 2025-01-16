@@ -21,7 +21,12 @@ public class ClientTap : MonoBehaviour
     public void SetActive(bool active) => gameObject.SetActive(active);
     private void OnEnable()
     {
-        var color = Random.ColorHSV();
+        //make random color distinctive with outline (never pure white or too dark) 
+        var color = Random.ColorHSV(
+            0.0f, 1.0f, //hue (color)
+            0.3f, 1.0f, //saturation (white->color)
+            0.4f, 1.0f //value (black->color)
+            );
         image.color = color;
 
         var color32 = (Color32)color;
