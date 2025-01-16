@@ -7,20 +7,20 @@ namespace Client.Rtc
     {
         [DllImport("__Internal")]
         public static extern int RtcInit(
-            Action<int, string> connectAnswerCallback,
-            Action<int, string> connectCandidatesCallback,
-            Action<int, string> connectCompleteCallback,
-            Action<int, byte[], int> receivedCallback
+            Action<IntPtr, string> connectAnswerCallback,
+            Action<IntPtr, string> connectCandidatesCallback,
+            Action<IntPtr, string> connectCompleteCallback,
+            Action<IntPtr, byte[], int> receivedCallback
         );
+
+        [DllImport("__Internal")]
+        public static extern int RtcConnect(IntPtr managedPtr, string offer);
 
         [DllImport("__Internal")]
         public static extern int RtcSetAnswerResult(
             int peerId,
             string candidatesListJson
         );
-
-        [DllImport("__Internal")]
-        public static extern int RtcConnect(IntPtr managedPtr, string offer);
 
         [DllImport("__Internal")]
         public static extern void RtcClose(int peerId);

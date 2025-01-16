@@ -1,38 +1,38 @@
 const RtcApi = {
     connectAnswerCallback: null,
-    CallConnectAnswer: function(peerId, answerJson) {
-        console.log("RtcApi: CallConnectAnswer:", peerId, answerJson);
+    CallConnectAnswer: function(managedPtr, answerJson) {
+        console.log("RtcApi: CallConnectAnswer:", managedPtr, answerJson);
         const ptr = stringToNewUTF8(answerJson);
-        {{{ makeDynCall('vii', 'RtcApi.connectAnswerCallback') }}}(peerId, ptr);
+        {{{ makeDynCall('vii', 'RtcApi.connectAnswerCallback') }}}(managedPtr, ptr);
         _free(ptr);
     },
     connectCandidatesCallback: null,
-    CallConnectCandidates: function(peerId, candidates) {
-        console.log("RtcApi: CallCandidates:", peerId, candidates);
+    CallConnectCandidates: function(managedPtr, candidates) {
+        console.log("RtcApi: CallCandidates:", managedPtr, candidates);
         const candidateJson = JSON.stringify(candidates)
         const ptr = stringToNewUTF8(candidateJson)
-        {{{ makeDynCall('vii', 'RtcApi.connectCandidatesCallback') }}}(peerId, ptr)
+        {{{ makeDynCall('vii', 'RtcApi.connectCandidatesCallback') }}}(managedPtr, ptr)
         _free(ptr)
     },
     connectCompleteCallback: null,
-    CallConnectComplete: function(peerId, error) {
-        console.log("RtcApi: CallConnectComplete:", peerId, error);
+    CallConnectComplete: function(managedPtr, error) {
+        console.log("RtcApi: CallConnectComplete:", managedPtr, error);
         if (error) {
             const ptr = stringToNewUTF8(error);
-            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, ptr);
+            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(managedPtr, ptr);
             _free(ptr);
         } else {
-            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(peerId, null);
+            {{{ makeDynCall('vii', 'RtcApi.connectCompleteCallback') }}}(managedPtr, null);
         }
     },
     receivedCallback: null,
-    CallReceived: async function(peerId, data) {
-        //console.log("RtcApi: CallReceived:", peerId, typeof data, data);
+    CallReceived: async function(managedPtr, data) {
+        //console.log("RtcApi: CallReceived:", managedPtr, typeof data, data);
         if (data) {
             if (data.constructor === String) {
                 // const ptr = stringToNewUTF8(data);
                 // const size = new TextEncoder().encode(data).length;
-                // {{{ makeDynCall('vii', 'RtcApi.receivedCallback') }}}(peerId, ptr, size);
+                // {{{ makeDynCall('vii', 'RtcApi.receivedCallback') }}}(managedPtr, ptr, size);
                 // _free(ptr);
                 // return;
                 data = new TextEncoder().encode(data); //Uint8Array
@@ -48,10 +48,10 @@ const RtcApi = {
             
             const ptr = _malloc(data.byteLength);
             HEAPU8.set(data, ptr);
-            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(peerId, ptr, data.byteLength);
+            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(managedPtr, ptr, data.byteLength);
             _free(ptr);
         } else {
-            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(peerId, null, 0);
+            {{{ makeDynCall('viii', 'RtcApi.receivedCallback') }}}(managedPtr, null, 0);
         }
     },
 
@@ -119,7 +119,7 @@ function RtcConnect(managedPtr, offerPtr) {
         console.log("RtcConnect: onicegatheringstatechange:", iceGatheringState);
         if (iceGatheringState === "complete") {
             console.log("RtcConnect: onicegatheringstatechange: posting local candidates:", iceCandidates);
-            RtcApi.CallConnectCandidates(peerId, iceCandidates);
+            RtcApi.CallConnectCandidates(managedPtr, iceCandidates);
         }
     }
 
@@ -137,10 +137,10 @@ function RtcConnect(managedPtr, offerPtr) {
         const channel = event.channel
         console.log("RtcConnect: ondatachannel:", channel);
         RtcApi.SetChannel(peerId, channel);
-        RtcApi.CallConnectComplete(peerId, null);
+        RtcApi.CallConnectComplete(managedPtr, null);
         channel.onmessage = function (event) {
             //console.log("RtcConnect: onmessage:", event.data);
-            RtcApi.CallReceived(peerId, event.data);
+            RtcApi.CallReceived(managedPtr, event.data);
         }
     }
 
@@ -149,9 +149,9 @@ function RtcConnect(managedPtr, offerPtr) {
         let answer = await pc.createAnswer();
         console.log("RtcConnect: assign answer:", answer);
         await pc.setLocalDescription(answer);
-        RtcApi.CallConnectAnswer(peerId, JSON.stringify(answer));
+        RtcApi.CallConnectAnswer(managedPtr, JSON.stringify(answer));
     }).catch((e) => {
-        RtcApi.CallConnectComplete(peerId, e.message);
+        RtcApi.CallConnectComplete(managedPtr, e.message);
     });
 
     console.log("RtcConnect: peerId:", peerId);
