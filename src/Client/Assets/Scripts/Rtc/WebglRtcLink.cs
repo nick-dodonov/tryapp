@@ -1,5 +1,4 @@
 #nullable enable
-using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -16,13 +15,6 @@ namespace Client.Rtc
         private int _peerId = -1;
         public int PeerId => _peerId;
 
-        [DllImport("__Internal")]
-        private static extern int RtcConnect(string offer);
-        [DllImport("__Internal")]
-        private static extern void RtcClose(int peerId);
-        [DllImport("__Internal")]
-        private static extern void RtcSend(int peerId, byte[] bytes, int size);
-
         public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcReceiver receiver)
             : base(service, receiver)
         {
@@ -36,7 +28,7 @@ namespace Client.Rtc
             {
                 _api.Remove(this);
 
-                RtcClose(_peerId);
+                WebglRtcNative.RtcClose(_peerId);
                 _peerId = -1;
             }
         }
@@ -44,14 +36,14 @@ namespace Client.Rtc
         public override void Send(byte[] bytes)
         {
             //_log.Info($"{bytes.Length} bytes");
-            RtcSend(_peerId, bytes, bytes.Length);
+            WebglRtcNative.RtcSend(_peerId, bytes, bytes.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
             _log.Info("requesting");
-            _peerId = RtcConnect(offerStr);
+            _peerId = WebglRtcNative.RtcConnect(offerStr);
             _log.Info($"result peerId={_peerId}");
         }
     }

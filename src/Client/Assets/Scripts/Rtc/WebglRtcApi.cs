@@ -22,24 +22,11 @@ namespace Client.Rtc
         private readonly IRtcService _service;
         private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
 
-        [DllImport("__Internal")]
-        private static extern int RtcInit(
-            Action<int, string> connectAnswerCallback,
-            Action<int, string> connectCandidatesCallback,
-            Action<int, string> connectCompleteCallback,
-            Action<int, byte[], int> receivedCallback
-            );
-        [DllImport("__Internal")]
-        private static extern int RtcSetAnswerResult(
-            int peerId,
-            string candidatesListJson
-        );
-
         public WebglRtcApi(IRtcService service)
         {
             _log.Info(".");
             _service = service;
-            RtcInit(
+            WebglRtcNative.RtcInit(
                 ConnectAnswerCallback,
                 ConnectCandidatesCallback,
                 ConnectCompleteCallback,
@@ -73,7 +60,7 @@ namespace Client.Rtc
                 {
                     var candidatesListJson = t.Result;
                     _log.Info($"RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
-                    RtcSetAnswerResult(peerId, candidatesListJson);
+                    WebglRtcNative.RtcSetAnswerResult(peerId, candidatesListJson);
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             else
