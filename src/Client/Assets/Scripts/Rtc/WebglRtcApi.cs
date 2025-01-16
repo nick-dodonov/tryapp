@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
@@ -96,7 +97,7 @@ namespace Client.Rtc
         }
 
         [MonoPInvokeCallback(typeof(Action<int, string>))]
-        public static void ConnectCompleteCallback(int peerId, string error)
+        public static void ConnectCompleteCallback(int peerId, string? error)
         {
             if (error != null)
                 _log.Error($"failure: peerId={peerId}: {error}");
@@ -104,11 +105,11 @@ namespace Client.Rtc
                 _log.Info($"success: peerId={peerId}");
         }
         
-        [MonoPInvokeCallback(typeof(Action<int, byte[], int>))]
+        [MonoPInvokeCallback(typeof(Action<int, byte[]?, int>))]
         public static void ReceivedCallback(
             int peerId,
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)] 
-            byte[] bytes, int length)
+            byte[]? bytes, int length)
         {
             if (Links.TryGetValue(peerId, out var link))
                 link.CallReceived(bytes);

@@ -1,4 +1,5 @@
 #if UNITY_EDITOR || !UNITY_WEBGL
+#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;

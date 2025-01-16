@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +13,10 @@ namespace Client.Rtc
     public abstract class BaseRtcLink : IRtcLink
     {
         private readonly Slog.Area _log;
-        
+
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
-        private readonly IRtcService _service; 
+        private readonly IRtcService _service;
         private readonly IRtcReceiver _receiver;
-        private IRtcLink _rtcLinkImplementation;
 
         public abstract void Dispose();
         public abstract void Send(byte[] bytes);
@@ -53,7 +53,7 @@ namespace Client.Rtc
             _log.Info("complete");
         }
 
-        protected internal void CallReceived(byte[] bytes)
+        protected internal void CallReceived(byte[]? bytes)
         {
             if (bytes == null)
                 _log.Info("disconnected");
