@@ -19,7 +19,7 @@ using UnityEngine.UI;
 
 namespace Client
 {
-    public class HudLogic : MonoBehaviour, ISessionController
+    public class HudLogic : MonoBehaviour, ISessionController, IRtcReceiver
     {
         private static readonly Slog.Area _log = new();
     
@@ -189,7 +189,7 @@ namespace Client
                 serverResponseText.text = "Requesting...";
                 _meta = CreateMetaClient();
                 _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
-                _rtcLink = await _rtcApi.Connect(RtcReceived, destroyCancellationToken);
+                _rtcLink = await _rtcApi.Connect(this, destroyCancellationToken);
                 _updateSendFrame = 0;
 
                 clientTap.SetActive(true);
@@ -229,9 +229,13 @@ namespace Client
             _rtcLink.Send(bytes);
         }
 
-        private void RtcReceived(IRtcLink link, byte[] data)
+        void IRtcReceiver.Received(IRtcLink link, byte[] bytes)
         {
             Debug.Assert(link == _rtcLink);
+            RtcReceived(bytes);
+        }
+        private void RtcReceived(byte[] data)
+        {
             if (data == null)
             {
                 RtcStop("disconnected");

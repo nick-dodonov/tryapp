@@ -15,17 +15,17 @@ namespace Client.Rtc
         
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
         private readonly IRtcService _service; 
-        private readonly IRtcLink.ReceivedCallback _receivedCallback;
+        private readonly IRtcReceiver _receiver;
         private IRtcLink _rtcLinkImplementation;
 
         public abstract void Dispose();
         public abstract void Send(byte[] bytes);
 
-        protected BaseRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
+        protected BaseRtcLink(IRtcService service, IRtcReceiver receiver)
         {
             _clientId = Guid.NewGuid().ToString();
             _service = service;
-            _receivedCallback = receivedCallback;
+            _receiver = receiver;
 
             _log = new($"{nameof(BaseRtcLink)}[{_clientId}]");
         }
@@ -57,7 +57,7 @@ namespace Client.Rtc
         {
             if (bytes == null)
                 _log.Info("disconnected");
-            _receivedCallback(this, bytes);
+            _receiver.Received(this, bytes);
         }
     }
 }

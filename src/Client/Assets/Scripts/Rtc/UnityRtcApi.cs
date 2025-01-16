@@ -24,9 +24,9 @@ namespace Client.Rtc
             _service = service;
         }
 
-        async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback callback, CancellationToken cancellationToken)
+        async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = new UnityRtcLink(_service, callback);
+            var link = new UnityRtcLink(_service, receiver);
             await link.Connect(cancellationToken);
             return link;
         }
