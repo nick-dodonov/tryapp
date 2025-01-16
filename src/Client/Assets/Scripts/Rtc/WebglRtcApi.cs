@@ -46,16 +46,16 @@ namespace Client.Rtc
                 );
         }
 
-        async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken)
+        async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
         {
             _log.Info(".");
-            var link = new WebglRtcLink(this, _service, receivedCallback);
+            var link = new WebglRtcLink(this, _service, receiver);
             await link.Connect(cancellationToken);
             Links.Add(link.PeerId, link);
             return link;
         }
 
-        void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) => throw new NotSupportedException();
+        void IRtcApi.Listen(IRtcListener listener) => throw new NotSupportedException("server side not implemented");
 
         internal void Remove(WebglRtcLink link)
         {

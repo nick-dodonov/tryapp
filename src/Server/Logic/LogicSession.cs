@@ -8,27 +8,27 @@ using Shared.Web;
 namespace Server.Logic;
 
 public class LogicSession(ILogger<LogicSession> logger, IRtcApi rtcApi) 
-    : IHostedService
+    : IHostedService, IRtcListener, IRtcReceiver
 {
     private readonly ConcurrentDictionary<IRtcLink, LogicPeer> _peers = new();
     
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
-        rtcApi.Listen(Connected);
+        rtcApi.Listen(this);
         return Task.CompletedTask;
     }
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    private IRtcLink.ReceivedCallback Connected(IRtcLink link)
+    IRtcReceiver IRtcListener.Connected(IRtcLink link)
     {
         logger.Info($"{link}");
         var peer = new LogicPeer(this, link);
         _peers.TryAdd(link, peer);
-        return Received;
+        return this;
     }
 
-    private void Received(IRtcLink link, byte[]? bytes)
+    void IRtcReceiver.Received(IRtcLink link, byte[]? bytes)
     {
         if (bytes == null)
         {

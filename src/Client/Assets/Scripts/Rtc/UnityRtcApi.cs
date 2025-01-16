@@ -24,14 +24,14 @@ namespace Client.Rtc
             _service = service;
         }
 
-        async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback callback, CancellationToken cancellationToken)
+        async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = new UnityRtcLink(_service, callback);
+            var link = new UnityRtcLink(_service, receiver);
             await link.Connect(cancellationToken);
             return link;
         }
 
-        void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) => throw new NotSupportedException();
+        void IRtcApi.Listen(IRtcListener listener) => throw new NotSupportedException("server side not implemented");
     }
 
     public static class UnityRtcDebug

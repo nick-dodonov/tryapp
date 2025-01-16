@@ -22,15 +22,15 @@ namespace Client.Rtc
         [DllImport("__Internal")]
         private static extern void RtcSend(int peerId, byte[] bytes, int size);
 
-        public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
-            : base(service, receivedCallback)
+        public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcReceiver receiver)
+            : base(service, receiver)
         {
             _api = api;
         }
 
         public override void Dispose()
         {
-            _log.Info("Dispose");
+            _log.Info(".");
             if (_peerId >= 0)
             {
                 _api.Remove(this);
@@ -49,9 +49,9 @@ namespace Client.Rtc
         public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
-            _log.Info("request");
+            _log.Info("requesting");
             _peerId = RtcConnect(offerStr);
-            _log.Info($"peerId={_peerId}");
+            _log.Info($"result peerId={_peerId}");
         }
     }
 }

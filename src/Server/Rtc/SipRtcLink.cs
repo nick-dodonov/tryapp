@@ -15,7 +15,7 @@ internal class SipRtcLink(
     private readonly ILogger _logger = new PeerIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), id);
 
     public RTCPeerConnection PeerConnection => peerConnection;
-    internal IRtcLink.ReceivedCallback? ReceivedCallback { get; set; }
+    internal IRtcReceiver? Receiver { get; set; }
 
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
@@ -70,12 +70,12 @@ internal class SipRtcLink(
         {
             var str = Encoding.UTF8.GetString(data);
             _logger.Info($"DataChannel: onmessage: {str}");
-            ReceivedCallback?.Invoke(this, data);
+            Receiver?.Received(this, data);
         };
         channel.onclose += () =>
         {
             _logger.Info($"DataChannel: onclose: label={channel.label}");
-            ReceivedCallback?.Invoke(this, null);
+            Receiver?.Received(this, null);
         };
         channel.onerror += error => 
             _logger.Error($"DataChannel: onerror: {error}");
