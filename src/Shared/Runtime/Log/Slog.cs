@@ -35,7 +35,8 @@ namespace Shared.Log
             try
             {
 #if UNITY_WEBGL && !UNITY_EDITOR
-                sb.Append("# ");
+                //prefix with '⚪' to separate from native logs
+                sb.Append("\u26aa ");
 #endif
                 sb.Append(category.NameSpan);
                 sb.Append(':');
