@@ -16,6 +16,7 @@ namespace Client.Rtc
 
         //pin managed object as pointer in native implementation (speedup managed object association within callbacks)
         private GCHandle _managedHandle;
+        private readonly IntPtr _managedPtr;
         private int _nativeHandle = -1;
 
         private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
@@ -27,6 +28,8 @@ namespace Client.Rtc
             : base(service, receiver)
         {
             _managedHandle = GCHandle.Alloc(this);
+            _managedPtr = GCHandle.ToIntPtr(_managedHandle);
+            _log.Info($"[{_managedPtr}]");
         }
 
         public override void Dispose()
@@ -54,7 +57,7 @@ namespace Client.Rtc
         {
             var offerStr = await ObtainOffer(cancellationToken);
             _log.Info("requesting");
-            _nativeHandle = WebglRtcNative.RtcConnect(offerStr);
+            _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offerStr);
             _log.Info($"result peerId={_nativeHandle}");
             Links.Add(_nativeHandle, this);
         }
@@ -63,7 +66,7 @@ namespace Client.Rtc
         public static void ConnectAnswerCallback(int peerId, string answerJson)
         {
             _log.Info($"peerId={peerId}: {answerJson}");
-            if (WebglRtcLink.TryGetLink(peerId, out var link))
+            if (TryGetLink(peerId, out var link))
             {
                 link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
                 {
@@ -80,7 +83,7 @@ namespace Client.Rtc
         public static void ConnectCandidatesCallback(int peerId, string candidatesJson)
         {
             _log.Info($"peerId={peerId}: {candidatesJson}");
-            if (WebglRtcLink.TryGetLink(peerId, out var link))
+            if (TryGetLink(peerId, out var link))
             {
                 link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
                 {
@@ -107,7 +110,7 @@ namespace Client.Rtc
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)]
             byte[]? bytes, int length)
         {
-            if (WebglRtcLink.TryGetLink(peerId, out var link))
+            if (TryGetLink(peerId, out var link))
                 link.CallReceived(bytes);
             else
                 _log.Error($"failed to find peerId={peerId}");

@@ -38,7 +38,7 @@ namespace Client.Rtc
             return offerStr;
         }
 
-        protected internal async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
+        protected async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {answerJson}");
             var candidatesListJson = await _service.SetAnswer(_clientId, answerJson, cancellationToken);
@@ -46,14 +46,14 @@ namespace Client.Rtc
             return candidatesListJson;
         }
 
-        protected internal async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
+        protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {candidatesJson}");
             await _service.AddIceCandidates(_clientId, candidatesJson, cancellationToken);
             _log.Info("complete");
         }
 
-        protected internal void CallReceived(byte[]? bytes)
+        protected void CallReceived(byte[]? bytes)
         {
             if (bytes == null)
                 _log.Info("disconnected");

@@ -20,7 +20,7 @@ namespace Client.Rtc
         );
 
         [DllImport("__Internal")]
-        public static extern int RtcConnect(string offer);
+        public static extern int RtcConnect(IntPtr managedPtr, string offer);
 
         [DllImport("__Internal")]
         public static extern void RtcClose(int peerId);

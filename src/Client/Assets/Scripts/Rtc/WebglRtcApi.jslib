@@ -91,7 +91,7 @@ function RtcInit(connectAnswerCallback, connectCandidatesCallback, connectComple
     RtcApi.receivedCallback = receivedCallback;
 }
 
-function RtcConnect(offerPtr) {
+function RtcConnect(managedPtr, offerPtr) {
     var offerStr = UTF8ToString(offerPtr);
     let offer = JSON.parse(offerStr);
     console.log("RtcConnect: offer:", offer);
@@ -99,6 +99,7 @@ function RtcConnect(offerPtr) {
     //const STUN_URL = "stun:stun.sipsorcery.com";
     //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
     pc = new RTCPeerConnection();
+    pc.managedPtr = managedPtr;
     const peerId = RtcApi.AddNextPeer(pc);
     
     pc.onconnectionstatechange = (event) => {
