@@ -1,8 +1,10 @@
 #nullable enable
+using System;
 using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using AOT;
 using Shared.Log;
 using Shared.Rtc;
 
@@ -18,7 +20,7 @@ namespace Client.Rtc
 
         private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
 
-        public static bool TryGetLink(int nativeHandle, out WebglRtcLink link)
+        private static bool TryGetLink(int nativeHandle, out WebglRtcLink link)
             => Links.TryGetValue(nativeHandle, out link);
 
         public WebglRtcLink(IRtcService service, IRtcReceiver receiver)
@@ -55,6 +57,60 @@ namespace Client.Rtc
             _nativeHandle = WebglRtcNative.RtcConnect(offerStr);
             _log.Info($"result peerId={_nativeHandle}");
             Links.Add(_nativeHandle, this);
+        }
+
+        [MonoPInvokeCallback(typeof(Action<int, string>))]
+        public static void ConnectAnswerCallback(int peerId, string answerJson)
+        {
+            _log.Info($"peerId={peerId}: {answerJson}");
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
+            {
+                link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
+                {
+                    var candidatesListJson = t.Result;
+                    _log.Info($"RtcSetAnswerResult: peerId={peerId}: {candidatesListJson}");
+                    WebglRtcNative.RtcSetAnswerResult(peerId, candidatesListJson);
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            else
+                _log.Error($"failed to find peerId={peerId}");
+        }
+
+        [MonoPInvokeCallback(typeof(Action<int, string>))]
+        public static void ConnectCandidatesCallback(int peerId, string candidatesJson)
+        {
+            _log.Info($"peerId={peerId}: {candidatesJson}");
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
+            {
+                link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
+                {
+                    var status = t.Status;
+                    _log.Info($"ReportIceCandidates: peerId={peerId}: {status}");
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            else
+                _log.Error($"failed to find peerId={peerId}");
+        }
+
+        [MonoPInvokeCallback(typeof(Action<int, string>))]
+        public static void ConnectCompleteCallback(int peerId, string? error)
+        {
+            if (error != null)
+                _log.Error($"failure: peerId={peerId}: {error}");
+            else
+                _log.Info($"success: peerId={peerId}");
+        }
+
+        [MonoPInvokeCallback(typeof(Action<int, byte[]?, int>))]
+        public static void ReceivedCallback(
+            int peerId,
+            [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)]
+            byte[]? bytes, int length)
+        {
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
+                link.CallReceived(bytes);
+            else
+                _log.Error($"failed to find peerId={peerId}");
         }
     }
 }
