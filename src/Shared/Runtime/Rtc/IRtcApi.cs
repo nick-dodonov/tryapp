@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 namespace Shared.Rtc
 {
     /// <summary>
-    /// Interface for custom user logic handling on client/server side
+    /// Interface for custom user logic of handling received data on client/server side
     /// </summary>
     public interface IRtcReceiver
     {
@@ -14,6 +14,14 @@ namespace Shared.Rtc
         /// <param name="bytes">data block from link, null means disconnected</param> 
         /// </summary>
         void Received(IRtcLink link, byte[]? bytes);
+    }
+
+    /// <summary>
+    /// Interface for custom user logic of handling new connection on server side
+    /// </summary>
+    public interface IRtcListener
+    {
+        public IRtcReceiver Connected(IRtcLink link);
     }
 
     /// <summary>
@@ -30,12 +38,14 @@ namespace Shared.Rtc
     public interface IRtcApi
     {
         /// <summary>
-        /// Client side part of specific impl
+        /// Client side
         /// </summary>
         Task<IRtcLink> Connect(IRtcReceiver receiver, CancellationToken cancellationToken);
 
-        public delegate IRtcReceiver ConnectionCallback(IRtcLink link); //null - disconnected
-        void Listen(ConnectionCallback connectionCallback);
+        /// <summary>
+        /// Server side 
+        /// </summary>
+        void Listen(IRtcListener listener);
     }
     
     /// <summary>

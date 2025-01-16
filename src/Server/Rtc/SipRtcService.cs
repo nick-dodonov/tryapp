@@ -135,14 +135,13 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
 
     internal void StartLinkLogic(SipRtcLink link)
     {
-        var receiver = _connectionCallback?.Invoke(link);
+        var receiver = _listener?.Connected(link);
         link.Receiver = receiver;
     }
     
     Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken) 
         => throw new NotSupportedException();
 
-    private IRtcApi.ConnectionCallback? _connectionCallback;
-    void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) 
-        => _connectionCallback = connectionCallback;
+    private IRtcListener? _listener;
+    void IRtcApi.Listen(IRtcListener listener) => _listener = listener;
 }

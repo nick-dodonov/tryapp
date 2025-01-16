@@ -31,7 +31,7 @@ namespace Client.Rtc
             return link;
         }
 
-        void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) => throw new NotSupportedException();
+        void IRtcApi.Listen(IRtcListener listener) => throw new NotSupportedException("server side not implemented");
     }
 
     public static class UnityRtcDebug
