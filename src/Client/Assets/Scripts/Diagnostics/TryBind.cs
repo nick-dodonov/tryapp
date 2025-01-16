@@ -38,5 +38,31 @@ namespace Diagnostics
             for (var i = 0; i < bytes.Length; ++ i)
                 bytes[i] += 10;
         }
+
+        private class TestObj
+        {
+            public string Content;
+        }
+        
+        [DllImport("__Internal")]
+        private static extern void SetupTestCallbackObj(IntPtr obj, Action<IntPtr> action);
+        [MonoPInvokeCallback(typeof(Action<IntPtr>))]
+        public static void TestCallbackObj(IntPtr ptr)
+        {
+            Slog.Info($"ptr: {ptr}");
+            var handle = GCHandle.FromIntPtr(ptr);
+            var obj = (TestObj)handle.Target;
+            Slog.Info($"content: {obj.Content}");
+        }
+
+        [Preserve, DebugAction]
+        public static void TestManagedPin()
+        {
+            var obj = new TestObj { Content = "test text" };
+            
+            var handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
+            var ptr = handle.AddrOfPinnedObject();
+            SetupTestCallbackObj(ptr, TestCallbackObj);
+        }
     }
 }
