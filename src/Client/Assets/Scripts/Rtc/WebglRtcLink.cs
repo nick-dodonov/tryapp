@@ -1,5 +1,6 @@
 #nullable enable
 using System;
+using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -25,19 +26,6 @@ namespace Client.Rtc
             _managedPtr = GCHandle.ToIntPtr(_managedHandle);
 
             _log.Info($"managedPtr={_managedPtr}");
-        }
-
-        private static bool TryGetLink(IntPtr managerPtr, out WebglRtcLink link)
-        {
-            var handle = GCHandle.FromIntPtr(managerPtr);
-            if (handle.IsAllocated)
-            {
-                link = (WebglRtcLink)handle.Target;
-                return true;
-            }
-
-            link = null!;
-            return false;
         }
 
         public override void Dispose()
@@ -67,37 +55,43 @@ namespace Client.Rtc
             _log.Info($"result nativeHandle={_nativeHandle}");
         }
 
-        [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
-        public static void ConnectAnswerCallback(IntPtr managedPtr, string answerJson)
+        private static WebglRtcLink? GetLink(IntPtr managedPtr, [CallerMemberName] string member = "")
         {
-            _log.Info($"managedPtr={managedPtr}: {answerJson}");
-            if (TryGetLink(managedPtr, out var link))
+            var handle = GCHandle.FromIntPtr(managedPtr);
+            if (handle.IsAllocated)
+                return (WebglRtcLink)handle.Target;
+
+            _log.Error($"GetLink failed managedPtr={managedPtr}", member: member);
+            return null;
+        }
+        
+        [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
+        public static void ConnectAnswerCallback(IntPtr managedPtr, string answerJson) 
+            => GetLink(managedPtr)?.CallReportAnswer(answerJson);
+
+        private void CallReportAnswer(string answerJson)
+        {
+            ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
             {
-                link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
-                {
-                    var candidatesListJson = t.Result;
-                    _log.Info($"RtcSetAnswerResult: managedPtr={managedPtr}: {candidatesListJson}");
-                    WebglRtcNative.RtcSetAnswerResult(link._nativeHandle, candidatesListJson);
-                }, TaskScheduler.FromCurrentSynchronizationContext());
-            }
-            else
-                _log.Error($"failed to find managedPtr={managedPtr}");
+                var candidatesListJson = t.Result; 
+                //TODO: handle connection error
+                _log.Info($"ReportAnswer: {candidatesListJson}");
+                WebglRtcNative.RtcSetAnswerResult(_nativeHandle, candidatesListJson);
+            }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
-        public static void ConnectCandidatesCallback(IntPtr managedPtr, string candidatesJson)
+        public static void ConnectCandidatesCallback(IntPtr managedPtr, string candidatesJson) 
+            => GetLink(managedPtr)?.CallReportIceCandidates(candidatesJson);
+
+        private void CallReportIceCandidates(string candidatesJson)
         {
-            _log.Info($"managedPtr={managedPtr}: {candidatesJson}");
-            if (TryGetLink(managedPtr, out var link))
+            ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
             {
-                link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
-                {
-                    var status = t.Status;
-                    _log.Info($"ReportIceCandidates: managedPtr={managedPtr}: {status}");
-                }, TaskScheduler.FromCurrentSynchronizationContext());
-            }
-            else
-                _log.Error($"failed to find managedPtr={managedPtr}");
+                var status = t.Status;
+                //TODO: handle connection error
+                _log.Info($"ReportIceCandidates: managedPtr={_managedPtr}: {status}");
+            }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
@@ -107,6 +101,7 @@ namespace Client.Rtc
                 _log.Error($"failure: managedPtr={managedPtr}: {error}");
             else
                 _log.Info($"success: managedPtr={managedPtr}");
+            //TODO: add Task await on connect
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, byte[]?, int>))]
@@ -114,11 +109,6 @@ namespace Client.Rtc
             IntPtr managedPtr,
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)]
             byte[]? bytes, int length)
-        {
-            if (TryGetLink(managedPtr, out var link))
-                link.CallReceived(bytes);
-            else
-                _log.Error($"failed to find managedPtr={managedPtr}");
-        }
+            => GetLink(managedPtr)?.CallReceived(bytes);
     }
 }
