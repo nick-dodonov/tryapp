@@ -50,7 +50,10 @@ namespace Client.Diagnostics.Debug
                         var attribute = method.GetCustomAttribute<DebugActionAttribute>();
                         if (attribute == null)
                             continue;
-                        _options.Add((method.Name, () => method.Invoke(null, Array.Empty<object>())));
+                        _options.Add((
+                            $"{type.Name}.{method.Name}", 
+                            () => method.Invoke(null, Array.Empty<object>())
+                            ));
                     }
                 }
             }
