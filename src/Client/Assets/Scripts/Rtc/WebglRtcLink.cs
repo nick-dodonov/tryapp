@@ -1,4 +1,6 @@
 #nullable enable
+using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -9,42 +11,50 @@ namespace Client.Rtc
     public class WebglRtcLink : BaseRtcLink
     {
         private static readonly Slog.Area _log = new();
-        
-        private readonly WebglRtcApi _api;
 
-        private int _peerId = -1;
-        public int PeerId => _peerId;
+        //pin managed object as pointer in native implementation (speedup managed object association within callbacks)
+        private GCHandle _managedHandle;
+        private int _nativeHandle = -1;
 
-        public WebglRtcLink(WebglRtcApi api, IRtcService service, IRtcReceiver receiver)
+        private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
+
+        public static bool TryGetLink(int nativeHandle, out WebglRtcLink link)
+            => Links.TryGetValue(nativeHandle, out link);
+
+        public WebglRtcLink(IRtcService service, IRtcReceiver receiver)
             : base(service, receiver)
         {
-            _api = api;
+            _managedHandle = GCHandle.Alloc(this);
         }
 
         public override void Dispose()
         {
-            _log.Info(".");
-            if (_peerId >= 0)
+            var allocated = _managedHandle.IsAllocated;
+            _log.Info($"allocated: {allocated}");
+            if (allocated)
             {
-                _api.Remove(this);
+                Links.Remove(_nativeHandle);
 
-                WebglRtcNative.RtcClose(_peerId);
-                _peerId = -1;
+                WebglRtcNative.RtcClose(_nativeHandle);
+                _nativeHandle = -1;
+
+                _managedHandle.Free();
             }
         }
 
         public override void Send(byte[] bytes)
         {
             //_log.Info($"{bytes.Length} bytes");
-            WebglRtcNative.RtcSend(_peerId, bytes, bytes.Length);
+            WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)
         {
             var offerStr = await ObtainOffer(cancellationToken);
             _log.Info("requesting");
-            _peerId = WebglRtcNative.RtcConnect(offerStr);
-            _log.Info($"result peerId={_peerId}");
+            _nativeHandle = WebglRtcNative.RtcConnect(offerStr);
+            _log.Info($"result peerId={_nativeHandle}");
+            Links.Add(_nativeHandle, this);
         }
     }
 }

@@ -1,6 +1,5 @@
 #nullable enable
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,7 +19,6 @@ namespace Client.Rtc
         private static readonly Slog.Area _log = new();
         
         private readonly IRtcService _service;
-        private static readonly Dictionary<int, WebglRtcLink> Links = new(); //TODO: pass instance to callbacks
 
         public WebglRtcApi(IRtcService service)
         {
@@ -37,24 +35,18 @@ namespace Client.Rtc
         async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
         {
             _log.Info(".");
-            var link = new WebglRtcLink(this, _service, receiver);
+            var link = new WebglRtcLink(_service, receiver);
             await link.Connect(cancellationToken);
-            Links.Add(link.PeerId, link);
             return link;
         }
 
         void IRtcApi.Listen(IRtcListener listener) => throw new NotSupportedException("server side not implemented");
 
-        internal void Remove(WebglRtcLink link)
-        {
-            Links.Remove(link.PeerId);
-        }
-
         [MonoPInvokeCallback(typeof(Action<int, string>))]
         public static void ConnectAnswerCallback(int peerId, string answerJson)
         {
             _log.Info($"peerId={peerId}: {answerJson}");
-            if (Links.TryGetValue(peerId, out var link))
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
             {
                 link.ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
                 {
@@ -71,7 +63,7 @@ namespace Client.Rtc
         public static void ConnectCandidatesCallback(int peerId, string candidatesJson)
         {
             _log.Info($"peerId={peerId}: {candidatesJson}");
-            if (Links.TryGetValue(peerId, out var link))
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
             {
                 link.ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
                 {
@@ -98,7 +90,7 @@ namespace Client.Rtc
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 2)] 
             byte[]? bytes, int length)
         {
-            if (Links.TryGetValue(peerId, out var link))
+            if (WebglRtcLink.TryGetLink(peerId, out var link))
                 link.CallReceived(bytes);
             else
                 _log.Error($"failed to find peerId={peerId}");
