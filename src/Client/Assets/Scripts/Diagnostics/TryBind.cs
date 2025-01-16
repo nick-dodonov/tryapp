@@ -28,7 +28,7 @@ namespace Diagnostics
             byte[] bytes, int length) =>
             Slog.Info($"[{string.Join(',', bytes)}]");
         
-        [Preserve, DebugAction]
+        //[Preserve, DebugAction]
         public static void TestCallbacks()
         {
             SetupTestCallbackString("test-string", TestCallbackString);
@@ -43,26 +43,37 @@ namespace Diagnostics
         {
             public string Content;
         }
-        
+
         [DllImport("__Internal")]
-        private static extern void SetupTestCallbackObj(IntPtr obj, Action<IntPtr> action);
+        private static extern void SetupTestCallbackObj(IntPtr ptr, Action<IntPtr> action);
+        
         [MonoPInvokeCallback(typeof(Action<IntPtr>))]
         public static void TestCallbackObj(IntPtr ptr)
         {
             Slog.Info($"ptr: {ptr}");
             var handle = GCHandle.FromIntPtr(ptr);
+            Slog.Info($"handle: {handle}");
             var obj = (TestObj)handle.Target;
-            Slog.Info($"content: {obj.Content}");
+            Slog.Info($"obj: {obj.GetHashCode()}");
+            Slog.Info($"obj-content: {obj.Content}");
         }
 
         [Preserve, DebugAction]
         public static void TestManagedPin()
         {
+            Slog.Info("start");
             var obj = new TestObj { Content = "test text" };
-            
-            var handle = GCHandle.Alloc(obj, GCHandleType.Pinned);
-            var ptr = handle.AddrOfPinnedObject();
+            Slog.Info($"obj-content: {obj.Content}");
+            Slog.Info($"obj-hashcode: {obj.GetHashCode()}");
+            var handle = GCHandle.Alloc(obj);
+            Slog.Info($"handle: {handle}");
+            var ptr = GCHandle.ToIntPtr(handle);
+            Slog.Info($"ptr: {ptr}");
             SetupTestCallbackObj(ptr, TestCallbackObj);
+            Slog.Info("finish");
+            
+            //TODO: try more possibly more efficient unity specific variant Unity.Collections.LowLevel.Unsafe.UnsafeUtility.PinGCObjectAndGetAddress()
+            //  https://docs.unity3d.com/6000.0/Documentation/ScriptReference/Unity.Collections.LowLevel.Unsafe.UnsafeUtility.PinGCArrayAndGetDataAddress.html
         }
     }
 }

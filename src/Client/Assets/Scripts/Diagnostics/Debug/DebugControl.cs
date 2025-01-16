@@ -71,7 +71,7 @@ namespace Client.Diagnostics.Debug
             option.Action();
         }
 
-        [Preserve, DebugAction]
+        //[Preserve, DebugAction]
         public static void DebugTest() => _log.Info(".");
     }
 }

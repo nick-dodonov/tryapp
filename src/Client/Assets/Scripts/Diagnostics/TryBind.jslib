@@ -53,9 +53,9 @@ mergeInto(LibraryManager.library, {
     SetupTestCallbackObj: function(obj, callback) {
         console.log("SetupTestCallbackObj:", typeof(obj), obj);
         let timer = setTimeout(function () {
-            console.log(">>>> SetupTestCallbackObj");
+            console.log("SetupTestCallbackObj: >>>> callback");
             {{{ makeDynCall('vi', 'callback') }}}(obj);
-            console.log("<<<< SetupTestCallbackString");
+            console.log("SetupTestCallbackObj: <<<< callback");
         }, 1000);
     },
 });
