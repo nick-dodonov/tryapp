@@ -6,13 +6,19 @@ namespace Shared.Rtc
 {
     public interface IRtcLink : IDisposable
     {
-        public delegate void ReceivedCallback(byte[]? bytes); //null - disconnected
+        /// <summary>
+        /// `link` param allows to simplify some code allowing to use the same handler for several links (for example on server) 
+        /// </summary>
+        public delegate void ReceivedCallback(IRtcLink link, byte[]? bytes); //null - disconnected
         void Send(byte[] bytes);
     }
 
     public interface IRtcApi
     {
         Task<IRtcLink> Connect(IRtcLink.ReceivedCallback receivedCallback, CancellationToken cancellationToken);
+
+        public delegate IRtcLink.ReceivedCallback ConnectionCallback(IRtcLink link); //null - disconnected
+        void Listen(ConnectionCallback connectionCallback);
     }
     
     /// <summary>

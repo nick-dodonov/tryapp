@@ -208,6 +208,7 @@ namespace Client
         private void RtcStop(string reason)
         {
             _log.Info(reason);
+            sessionControl.NotifyStopped();
 
             foreach (var kv in _peerTaps) 
                 Destroy(kv.Value.gameObject);
@@ -228,8 +229,9 @@ namespace Client
             _rtcLink.Send(bytes);
         }
 
-        private void RtcReceived(byte[] data)
+        private void RtcReceived(IRtcLink link, byte[] data)
         {
+            Debug.Assert(link == _rtcLink);
             if (data == null)
             {
                 RtcStop("disconnected");

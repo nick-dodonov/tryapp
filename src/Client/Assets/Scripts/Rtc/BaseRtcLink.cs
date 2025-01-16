@@ -9,13 +9,17 @@ namespace Client.Rtc
     /// <summary>
     /// Common helper for different WebRTC implementations working with signalling service
     /// </summary>
-    public class BaseRtcLink
+    public abstract class BaseRtcLink : IRtcLink
     {
         private readonly Slog.Area _log;
         
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
         private readonly IRtcService _service; 
         private readonly IRtcLink.ReceivedCallback _receivedCallback;
+        private IRtcLink _rtcLinkImplementation;
+
+        public abstract void Dispose();
+        public abstract void Send(byte[] bytes);
 
         protected BaseRtcLink(IRtcService service, IRtcLink.ReceivedCallback receivedCallback)
         {
@@ -53,7 +57,7 @@ namespace Client.Rtc
         {
             if (bytes == null)
                 _log.Info("disconnected");
-            _receivedCallback(bytes);
+            _receivedCallback(this, bytes);
         }
     }
 }

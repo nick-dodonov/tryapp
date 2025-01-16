@@ -38,42 +38,48 @@ namespace Client.UI
             {
                 switch (_state)
                 {
-                    case State.Stopped: Start(); break;
-                    case State.Started: Stop(); break;
+                    case State.Stopped: StartSession(); break;
+                    case State.Started: StopSession(); break;
                     case State.Starting:
                     default: 
                         throw new InvalidOperationException("must not be interactable");
                 }
             });
-            UpdateState(State.Stopped);
+            ChangeState(State.Stopped);
         }
 
-        private async void Start() //TODO: add FireAndForget for async Task 
+        public void NotifyStopped()
         {
-            if (_state != State.Stopped) throw new InvalidOperationException($"invalid state: {_state}");
-            UpdateState(State.Starting);
+            ChangeState(State.Stopped);
+        }
+
+        private async void StartSession() //TODO: add FireAndForget for async Task 
+        {
             try
             {
+                if (_state != State.Stopped) throw new InvalidOperationException($"invalid state: {_state}");
+                ChangeState(State.Starting);
+
                 await Controller.StartSession();
 
                 _log.Info("succeed");
-                UpdateState(State.Started);
+                ChangeState(State.Started);
             }
             catch (Exception e)
             {
                 _log.Info($"failed: {e}");
-                UpdateState(State.Stopped);
+                ChangeState(State.Stopped);
             }
         }
 
-        private void Stop()
+        private void StopSession()
         {
             if (_state != State.Started) throw new InvalidOperationException($"invalid state: {_state}");
-            UpdateState(State.Stopped);
+            ChangeState(State.Stopped);
             Controller.StopSession();
         }
 
-        private void UpdateState(State state)
+        private void ChangeState(State state)
         {
             if (_state != state)
                 _log.Info($"{_state} -> {state}");

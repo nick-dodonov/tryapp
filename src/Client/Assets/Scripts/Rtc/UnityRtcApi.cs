@@ -1,4 +1,5 @@
 #if UNITY_EDITOR || !UNITY_WEBGL
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -23,12 +24,14 @@ namespace Client.Rtc
             _service = service;
         }
 
-        public async Task<IRtcLink> Connect(IRtcLink.ReceivedCallback callback, CancellationToken cancellationToken)
+        async Task<IRtcLink> IRtcApi.Connect(IRtcLink.ReceivedCallback callback, CancellationToken cancellationToken)
         {
             var link = new UnityRtcLink(_service, callback);
             await link.Connect(cancellationToken);
             return link;
         }
+
+        void IRtcApi.Listen(IRtcApi.ConnectionCallback connectionCallback) => throw new NotSupportedException();
     }
 
     public static class UnityRtcDebug

@@ -169,8 +169,18 @@
             pc.ondatachannel = (event) => {
                 const channel = event.channel
                 console.log("ondatachannel:", channel);
-                channel.onmessage = function (event) {
+                channel.onmessage = async function (event) {
                     console.log("DataChannel: onmessage:", typeof event.data, event.data); //`message type ${event.type}, label ${event.target.label}, data ${event.data}.`);
+
+                    if (event.data instanceof Blob) {
+                        try {
+                            const buffer = await event.data.arrayBuffer();
+                            const uint8Array = new Uint8Array(buffer);
+                            console.log("Uint8Array from Blob:", uint8Array);
+                        } catch (error) {
+                            console.error("Error reading Uint8Array from Blob:", error);
+                        }
+                    }
 
                     const ptr = stringToNewUTF8(event.data);
                     _free(ptr);
