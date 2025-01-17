@@ -19,19 +19,20 @@ namespace Shared.Tp.Rtc.Sip
         private readonly List<RTCIceCandidate> _iceCandidates = new();
         public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
         private RTCDataChannel? _dataChannel;
+        
         private readonly SipRtcService _service;
-        private readonly string _id;
+        private readonly string _remotePeerId;
         private readonly RTCPeerConnection _peerConnection;
 
         public SipRtcLink(SipRtcService service,
-            string id,
+            string remotePeerId,
             RTCPeerConnection peerConnection,
             ILoggerFactory loggerFactory)
         {
             _service = service;
-            _id = id;
+            _remotePeerId = remotePeerId;
             _peerConnection = peerConnection;
-            _logger = new SipIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), id);
+            _logger = new SipIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), remotePeerId);
         }
 
         public async Task Init()
@@ -97,12 +98,12 @@ namespace Shared.Tp.Rtc.Sip
         void IDisposable.Dispose()
         {
             _logger.Info(".");
-            _service.RemoveLink(_id);
+            _service.RemoveLink(_remotePeerId);
             IceCollectCompleteTcs.TrySetCanceled();
             _peerConnection.close();
         }
 
-        string ITpLink.GetRemotePeerId() => _id;
+        string ITpLink.GetRemotePeerId() => _remotePeerId;
 
         void ITpLink.Send(byte[] bytes)
         {
