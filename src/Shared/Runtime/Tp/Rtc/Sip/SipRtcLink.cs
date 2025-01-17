@@ -24,7 +24,8 @@ namespace Shared.Tp.Rtc.Sip
         private readonly string _remotePeerId;
         private readonly RTCPeerConnection _peerConnection;
 
-        public SipRtcLink(SipRtcService service,
+        public SipRtcLink(
+            SipRtcService service,
             string remotePeerId,
             RTCPeerConnection peerConnection,
             ILoggerFactory loggerFactory)

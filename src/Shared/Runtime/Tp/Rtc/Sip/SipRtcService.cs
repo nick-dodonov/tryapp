@@ -40,17 +40,18 @@ namespace Shared.Tp.Rtc.Sip
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SipRtcService>();
 
-            _logger.Info(".");
+            var sipVersion = typeof(RTCPeerConnection).Assembly.GetName().Version;
+            _logger.Info($"SIPSorcery version {sipVersion}");
             SIPSorcery.LogFactory.Set(loggerFactory);
         }
 
         async ValueTask<string> IRtcService.GetOffer(string id, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
+                throw new ArgumentNullException(nameof(id), "GetOffer: ID must be supplied to create new peer connection");
 
             if (_links.ContainsKey(id))
-                throw new ArgumentNullException(nameof(id), "ID is already in use");
+                throw new ArgumentNullException(nameof(id), "GetOffer: ID is already in use");
 
             _logger.Info($"creating RTCPeerConnection and RTCDataChannel for id={id}");
             var config = new RTCConfiguration
@@ -118,7 +119,7 @@ namespace Shared.Tp.Rtc.Sip
         }
     
         Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
-            => throw new NotSupportedException("Server side doesn't connect now");
+            => throw new NotSupportedException("Connect: server side doesn't connect now");
 
         private ITpListener? _listener;
         void ITpApi.Listen(ITpListener listener) => _listener = listener;
