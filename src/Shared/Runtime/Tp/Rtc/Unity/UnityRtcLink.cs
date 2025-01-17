@@ -1,3 +1,4 @@
+#if UNITY_5_6_OR_NEWER
 #if UNITY_EDITOR || !UNITY_WEBGL
 #nullable enable
 using System;
@@ -137,4 +138,5 @@ namespace Client.Rtc
         }
     }
 }
+#endif
 #endif

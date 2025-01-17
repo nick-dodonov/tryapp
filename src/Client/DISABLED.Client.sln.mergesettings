@@ -1,8 +1,0 @@
-<SlnMergeSettings>
-    <!-- 
-    https://github.com/Cysharp/SlnMerge 
-    TODO: support .slnx directly (current temporary complex.sln is generated manually from Rider)
-    -->
-    <Disabled/>
-    <MergeTargetSolution>..\..\complex.sln</MergeTargetSolution>
-</SlnMergeSettings>

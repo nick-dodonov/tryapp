@@ -1,3 +1,4 @@
+#if UNITY_5_6_OR_NEWER
 #nullable enable
 using System;
 using System.Runtime.CompilerServices;
@@ -113,3 +114,4 @@ namespace Client.Rtc
             => GetLink(managedPtr)?.CallReceived(bytes);
     }
 }
+#endif

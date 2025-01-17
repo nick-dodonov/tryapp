@@ -1,3 +1,4 @@
+#if UNITY_5_6_OR_NEWER
 #nullable enable
 using System;
 using System.Threading;
@@ -43,3 +44,4 @@ namespace Client.Rtc
             => throw new NotSupportedException("server side not implemented");
     }
 }
+#endif
