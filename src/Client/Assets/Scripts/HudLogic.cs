@@ -189,7 +189,8 @@ namespace Client
                 serverResponseText.text = "Requesting...";
                 _meta = CreateMetaClient();
                 _tpApi = RtcApiFactory.CreateApi(_meta);
-                _tpLink = await _tpApi.Connect(this, destroyCancellationToken);
+                var localPeerId = GetLocalPeerId();
+                _tpLink = await _tpApi.Connect(localPeerId, this, destroyCancellationToken);
                 _updateSendFrame = 0;
 
                 clientTap.SetActive(true);
@@ -202,6 +203,17 @@ namespace Client
                 RtcStop("connect error");
                 throw;
             }
+        }
+
+        private string GetLocalPeerId()
+        {
+            var peerId = SystemInfo.deviceUniqueIdentifier;
+            if (peerId == SystemInfo.unsupportedIdentifier)
+            {
+                //TODO: reimplement using IPeerIdProvider
+                peerId = Guid.NewGuid().ToString();
+            }
+            return peerId;
         }
 
         private void RtcStop() => RtcStop("user request");

@@ -21,8 +21,8 @@ namespace Shared.Tp.Rtc.Unity
         
         private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();
 
-        public UnityRtcLink(IRtcService service, ITpReceiver receiver)
-            : base(service, receiver)
+        public UnityRtcLink(string localPeerId, IRtcService service, ITpReceiver receiver)
+            : base(localPeerId, service, receiver)
         {}
 
         public async Task Connect(CancellationToken cancellationToken)

@@ -18,8 +18,8 @@ namespace Shared.Tp.Rtc.Webgl
         private readonly IntPtr _managedPtr;
         private int _nativeHandle = -1;
 
-        public WebglRtcLink(IRtcService service, ITpReceiver receiver)
-            : base(service, receiver)
+        public WebglRtcLink(string localPeerId, IRtcService service, ITpReceiver receiver)
+            : base(localPeerId, service, receiver)
         {
             _managedHandle = GCHandle.Alloc(this);
             _managedPtr = GCHandle.ToIntPtr(_managedHandle);

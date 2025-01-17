@@ -118,7 +118,7 @@ namespace Shared.Tp.Rtc.Sip
             link.Receiver = receiver;
         }
     
-        Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
+        Task<ITpLink> ITpApi.Connect(string localPeerId, ITpReceiver receiver, CancellationToken cancellationToken) 
             => throw new NotSupportedException("Connect: server side doesn't connect now");
 
         private ITpListener? _listener;
