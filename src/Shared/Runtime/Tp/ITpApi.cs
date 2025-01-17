@@ -2,6 +2,8 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
+//TODO: speedup modifying receiver/link signature to use GC-free variants of ReadOnlySequence<byte> and IBufferWriter<byte>
+
 namespace Shared.Tp
 {
     /// <summary>
