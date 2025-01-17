@@ -1,16 +1,13 @@
 #if UNITY_5_6_OR_NEWER
 #if UNITY_EDITOR || !UNITY_WEBGL
-#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Tp;
-using Shared.Tp.Rtc;
 using Shared.Web;
 using Unity.WebRTC;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Unity
 {
     public class UnityRtcApi : ITpApi
     {

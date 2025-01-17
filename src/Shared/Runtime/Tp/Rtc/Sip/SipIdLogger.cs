@@ -1,7 +1,7 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Server.Rtc
+namespace Shared.Tp.Rtc.Sip
 {
     internal class SipIdLogger : ILogger
     {

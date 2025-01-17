@@ -1,13 +1,10 @@
 #if UNITY_5_6_OR_NEWER
-#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Tp;
-using Shared.Tp.Rtc;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Webgl
 {
     /// <summary>
     /// Interaction with browser scripting:

@@ -1,5 +1,4 @@
 #if UNITY_5_6_OR_NEWER
-#nullable enable
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -7,10 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
-using Shared.Tp;
-using Shared.Tp.Rtc;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Webgl
 {
     public class WebglRtcLink : BaseRtcLink
     {

@@ -1,12 +1,9 @@
-#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Tp;
-using Shared.Tp.Rtc;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc
 {
     /// <summary>
     /// Common helper for different WebRTC implementations working with signalling service

@@ -5,10 +5,9 @@ using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
-using Shared.Tp;
 using SIPSorcery.Net;
 
-namespace Server.Rtc
+namespace Shared.Tp.Rtc.Sip
 {
     internal class SipRtcLink : ITpLink
     {

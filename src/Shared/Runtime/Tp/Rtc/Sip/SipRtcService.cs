@@ -7,13 +7,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
-using Shared.Tp;
-using Shared.Tp.Rtc;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 using TinyJson;
 
-namespace Server.Rtc
+namespace Shared.Tp.Rtc.Sip
 {
     /// <summary>
     /// Based on several samples

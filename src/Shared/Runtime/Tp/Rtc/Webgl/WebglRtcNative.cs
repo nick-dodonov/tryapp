@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Webgl
 {
     public static class WebglRtcNative
     {

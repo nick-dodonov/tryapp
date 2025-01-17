@@ -1,11 +1,12 @@
 using System;
 using Shared.Meta.Api;
-using Shared.Tp;
 #if UNITY_5_6_OR_NEWER
+using Shared.Tp.Rtc.Unity;
+using Shared.Tp.Rtc.Webgl;
 using UnityEngine;
 #endif
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc
 {
     public static class RtcApiFactory
     {
