@@ -18,7 +18,6 @@ builder.Services
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddHostedService<SipRtcService>()
     .AddSingleton<LogicSession>()
     .AddHostedService<LogicSession>()
     ;

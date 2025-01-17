@@ -4,7 +4,6 @@ using System.Collections.Concurrent;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using SIPSorcery.Net;
@@ -19,7 +18,7 @@ namespace Shared.Tp.Rtc.Sip
     ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
     ///     https://www.marksort.com/udp-like-networking-in-the-browser/
     /// </summary>
-    public class SipRtcService : IHostedService, IRtcService, ITpApi
+    public class SipRtcService : IRtcService, ITpApi
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<SipRtcService> _logger;
@@ -40,41 +39,16 @@ namespace Shared.Tp.Rtc.Sip
         {
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SipRtcService>();
+
+            _logger.Info(".");
             SIPSorcery.LogFactory.Set(loggerFactory);
         }
 
-        Task IHostedService.StartAsync(CancellationToken cancellationToken)
-        {
-            _logger.Info(".");
-            return Task.CompletedTask;
-        }
-
-        Task IHostedService.StopAsync(CancellationToken cancellationToken)
-        {
-            _logger.Info(".");
-            return Task.CompletedTask;
-        }
-
         async ValueTask<string> IRtcService.GetOffer(string id, CancellationToken cancellationToken)
-            => (await GetOffer(id)).toJSON();
-
-        ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
-        {
-            if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
-                throw new InvalidOperationException($"Body must contain SDP answer for id: {id}");
-            return SetAnswer(id, answer, cancellationToken);
-        }
-
-        ValueTask IRtcService.AddIceCandidates(string id, string candidatesJson, CancellationToken cancellationToken)
-        {
-            var candidates = candidatesJson.FromJson<RTCIceCandidateInit[]>();
-            return AddIceCandidates(id, cancellationToken, candidates);
-        }
-
-        private async Task<RTCSessionDescriptionInit> GetOffer(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException(nameof(id), "ID must be supplied to create new peer connection");
+
             if (_links.ContainsKey(id))
                 throw new ArgumentNullException(nameof(id), "ID is already in use");
 
@@ -94,26 +68,29 @@ namespace Shared.Tp.Rtc.Sip
             await link.Init();
 
             _logger.Info($"creating offer for id={id}");
-            var offerSdp = peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offerSdp);
+            var offer = peerConnection.createOffer();
+            await peerConnection.setLocalDescription(offer);
 
             _links.TryAdd(id, link);
 
-            _logger.Info($"returning offer for id={id}: {offerSdp.toJSON()}");
-            return offerSdp;
+            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
+            var offerJson = offer.toJSON();
+            _logger.Info($"returning offer for id={id}: {offerJson}");
+            return offerJson;
         }
 
-        private async ValueTask<string> SetAnswer(string id, 
-            RTCSessionDescriptionInit description,
-            CancellationToken cancellationToken)
+        async ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
         {
+            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
+            if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
+                throw new InvalidOperationException($"SetAnswer: body must contain SDP answer for id: {id}");
+
             if (!_links.TryGetValue(id, out var link))
                 throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
 
-            var candidates = await link.SetAnswer(description, cancellationToken);
+            var candidates = await link.SetAnswer(answer, cancellationToken);
 
-            //current http-signalling protocol part
-            //TODO: will be removed when shared RTC structs will appear
+            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
             var candidatesListJson = candidates
                 .Select(candidate => candidate.toJSON())
                 .ToArray()
@@ -122,8 +99,10 @@ namespace Shared.Tp.Rtc.Sip
             return candidatesListJson;
         }
 
-        private ValueTask AddIceCandidates(string id, CancellationToken cancellationToken, params RTCIceCandidateInit[] candidates)
+        ValueTask IRtcService.AddIceCandidates(string id, string candidatesJson, CancellationToken cancellationToken)
         {
+            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
+            var candidates = candidatesJson.FromJson<RTCIceCandidateInit[]>();
             if (!_links.TryGetValue(id, out var link))
                 throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
@@ -139,7 +118,7 @@ namespace Shared.Tp.Rtc.Sip
         }
     
         Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
-            => throw new NotSupportedException();
+            => throw new NotSupportedException("Server side doesn't connect now");
 
         private ITpListener? _listener;
         void ITpApi.Listen(ITpListener listener) => _listener = listener;
