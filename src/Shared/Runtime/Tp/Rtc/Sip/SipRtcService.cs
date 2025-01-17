@@ -50,25 +50,27 @@ namespace Shared.Tp.Rtc.Sip
             if (string.IsNullOrWhiteSpace(id))
                 throw new ArgumentNullException(nameof(id), "GetOffer: ID must be supplied to create new peer connection");
 
-            if (_links.ContainsKey(id))
-                throw new ArgumentNullException(nameof(id), "GetOffer: ID is already in use");
-
-            _logger.Info($"creating RTCPeerConnection and RTCDataChannel for id={id}");
-            var config = new RTCConfiguration
+            if (!_links.TryGetValue(id, out var link))
             {
-                //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
-                //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
-                //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
-                //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
-            };
-            var peerConnection = new RTCPeerConnection(config
-                //, bindPort: 40000
-                , portRange: _portRange
-            );
-            var link = new SipRtcLink(this, id, peerConnection, _loggerFactory);
-            await link.Init();
-
-            _links.TryAdd(id, link);
+                _logger.Info($"creating new RTCPeerConnection for id={id}");
+                var config = new RTCConfiguration
+                {
+                    //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
+                    //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
+                    //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
+                    //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
+                };
+                var peerConnection = new RTCPeerConnection(config
+                    //, bindPort: 40000
+                    , portRange: _portRange
+                );
+                link = new(this, id, peerConnection, _loggerFactory);
+                await link.Init();
+                
+                _links.TryAdd(id, link);
+            }
+            else
+                _logger.Info($"reuse existing RTCPeerConnection for id={id}");
 
             var offer = await link.GetOffer();
             
