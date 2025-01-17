@@ -29,12 +29,6 @@ namespace Shared.Tp.Rtc.Sip
         /// </summary>
         private readonly PortRange _portRange = new(40000, 60000);
 
-        /// <summary>
-        /// Based on several samples
-        ///     examples/WebRTCExamples/WebRTCAspNet
-        ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
-        ///     https://www.marksort.com/udp-like-networking-in-the-browser/
-        /// </summary>
         public SipRtcService(ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
@@ -55,7 +49,8 @@ namespace Shared.Tp.Rtc.Sip
                 _logger.Info($"creating new link for id={id}");
                 link = new(id, this, _loggerFactory);
                 _links.TryAdd(id, link);
-            }
+            } else 
+                throw new InvalidOperationException($"GetOffer: ID already connected: {id}");
 
             //TODO: mv RTCConfiguration to .ctr and appsettings.json
             var configuration = new RTCConfiguration

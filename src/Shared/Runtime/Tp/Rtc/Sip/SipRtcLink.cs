@@ -23,9 +23,7 @@ namespace Shared.Tp.Rtc.Sip
         private RTCPeerConnection? _peerConnection;
         private RTCDataChannel? _dataChannel;
 
-        private TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
-
-        private int _initCount;
+        private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
 
         public SipRtcLink(
             string remotePeerId,
@@ -40,15 +38,7 @@ namespace Shared.Tp.Rtc.Sip
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
-            _logger.Info($"initCount={_initCount}");
-            if (_initCount++ > 0)
-            {
-                //TODO: add support for "soft" re-init:
-                //  * `createOffer()` with `{iceRestart: true}`
-                //  * re-use of already collected ice-candidates
-                Close("reinit");
-                _iceCollectCompleteTcs = new();
-            }
+            _logger.Info(".");
             
             _peerConnection = new(configuration
                 //, bindPort: 40000
@@ -86,11 +76,8 @@ namespace Shared.Tp.Rtc.Sip
                     RTCPeerConnectionState.disconnected or
                     RTCPeerConnectionState.failed)
                 {
-                    if (--_initCount <= 0)
-                    {
-                        //TODO: replace with just notification to dispose outside
-                        ((IDisposable)this).Dispose();
-                    }
+                    //TODO: replace with just notification to dispose outside
+                    ((IDisposable)this).Dispose();
                 }
             };
 
