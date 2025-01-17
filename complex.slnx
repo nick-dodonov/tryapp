@@ -1,4 +1,35 @@
 <Solution>
+  <!--
+  Helper folder to make massive client/server refactoring
+  TODO: generate (merge projects from Unity generated .sln)
+  -->
+  <Folder Name="/Unity/">
+    <Project Path="src\Client\Assembly-CSharp-Editor.csproj" />
+    <Project Path="src\Client\Assembly-CSharp.csproj" />
+    <Project Path="src\Client\Client.Debug.csproj" />
+    <Project Path="src\Client\Client.Diagnostics.csproj" />
+    <Project Path="src\Client\Client.Try.csproj" />
+    <Project Path="src\Client\Shared.Tests.csproj" />
+    <Project Path="src\Client\Shared.csproj" />
+    <Project Path="src\Client\UniTask.Addressables.csproj" />
+    <Project Path="src\Client\UniTask.DOTween.csproj" />
+    <Project Path="src\Client\UniTask.Editor.csproj" />
+    <Project Path="src\Client\UniTask.Linq.csproj" />
+    <Project Path="src\Client\UniTask.TextMeshPro.csproj" />
+    <Project Path="src\Client\UniTask.csproj" />
+    <Project Path="src\Client\Unity.EditorCoroutines.Editor.csproj" />
+    <Project Path="src\Client\Unity.InputSystem.ForUI.csproj" />
+    <Project Path="src\Client\Unity.InputSystem.IntegrationTests.csproj" />
+    <Project Path="src\Client\Unity.InputSystem.TestFramework.csproj" />
+    <Project Path="src\Client\Unity.InputSystem.csproj" />
+    <Project Path="src\Client\Unity.Rider.Editor.csproj" />
+    <Project Path="src\Client\Unity.WebRTC.Editor.csproj" />
+    <Project Path="src\Client\Unity.WebRTC.EditorTests.csproj" />
+    <Project Path="src\Client\Unity.WebRTC.RuntimeTests.csproj" />
+    <Project Path="src\Client\Unity.WebRTC.csproj" />
+    <Project Path="src\Client\UnityEditor.TestRunner.csproj" />
+  </Folder>
+  
   <Project Path="src\Server\Server.csproj" Type="Classic C#" />
   <Project Path="src\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
   <Project Path="src\Shared\Runtime\Shared.csproj" Type="Classic C#" />
