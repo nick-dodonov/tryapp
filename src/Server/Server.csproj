@@ -25,7 +25,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <PackageReference Include="SIPSorcery" Version="8.0.6" />
+      <Folder Include="Rtc\" />
     </ItemGroup>
     
 </Project>

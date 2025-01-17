@@ -7,15 +7,20 @@
         <RootNamespace>Shared</RootNamespace>
     </PropertyGroup>
 
+    <!-- TODO: split parts with different assembles -->
     <ItemGroup>
-        <!-- shared deps -->
+        <!-- Log shared deps -->
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.0" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
         <PackageReference Include="ZString" Version="2.6.0" />
 
-        <!-- asp impls deps -->
+        <!-- Log asp impls deps -->
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.0" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.0" />
+
+        <!-- Tp.Rtc impls deps -->
+        <PackageReference Include="SIPSorcery" Version="8.0.6" />
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.0" />
     </ItemGroup>
 
 </Project>
