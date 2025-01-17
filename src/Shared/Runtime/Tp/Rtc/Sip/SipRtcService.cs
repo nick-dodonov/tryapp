@@ -112,6 +112,8 @@ namespace Shared.Tp.Rtc.Sip
 
             var candidates = await link.SetAnswer(description, cancellationToken);
 
+            //current http-signalling protocol part
+            //TODO: will be removed when shared RTC structs will appear
             var candidatesListJson = candidates
                 .Select(candidate => candidate.toJSON())
                 .ToArray()
@@ -125,14 +127,7 @@ namespace Shared.Tp.Rtc.Sip
             if (!_links.TryGetValue(id, out var link))
                 throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
 
-            _logger.Info($"id={id}: adding {candidates.Length} candidates");
-            foreach (var candidate in candidates)
-            {
-                _logger.Info($"id={id}: {candidate.toJSON()}");
-                link.PeerConnection.addIceCandidate(candidate);
-                cancellationToken.ThrowIfCancellationRequested();
-            }
-            return default;
+            return link.AddIceCandidates(candidates, cancellationToken);
         }
 
         internal void RemoveLink(string id) => _links.TryRemove(id, out _);

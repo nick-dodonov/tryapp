@@ -14,7 +14,6 @@ namespace Shared.Tp.Rtc.Sip
     {
         private readonly ILogger _logger;
 
-        public RTCPeerConnection PeerConnection => _peerConnection;
         internal ITpReceiver? Receiver { get; set; }
 
         private readonly List<RTCIceCandidate> _iceCandidates = new();
@@ -118,8 +117,21 @@ namespace Shared.Tp.Rtc.Sip
                 ? task.Result
                 : throw new OperationCanceledException(cancellationToken);
 
-            _logger.Info($"result: [{candidates.Count}] candidates");
+            _logger.Info($"result [{candidates.Count}] candidates");
             return candidates;
+        }
+
+        public ValueTask AddIceCandidates(RTCIceCandidateInit[] candidates, CancellationToken cancellationToken)
+        {
+            _logger.Info($"adding [{candidates.Length}] candidates");
+            foreach (var candidate in candidates)
+            {
+                _logger.Info(candidate.toJSON());
+                _peerConnection.addIceCandidate(candidate);
+                cancellationToken.ThrowIfCancellationRequested();
+            }
+
+            return default;
         }
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;
