@@ -48,37 +48,25 @@ namespace Shared.Tp.Rtc.Sip
         async ValueTask<string> IRtcService.GetOffer(string id, CancellationToken cancellationToken)
         {
             if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException(nameof(id), "GetOffer: ID must be supplied to create new peer connection");
+                throw new ArgumentNullException(nameof(id), "GetOffer: ID must be supplied to create new link");
 
             if (!_links.TryGetValue(id, out var link))
             {
-                _logger.Info($"creating new RTCPeerConnection for id={id}");
-                var config = new RTCConfiguration
-                {
-                    //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
-                    //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
-                    //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
-                    //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
-                };
-                var peerConnection = new RTCPeerConnection(config
-                    //, bindPort: 40000
-                    , portRange: _portRange
-                );
-                link = new(this, id, peerConnection, _loggerFactory);
-                await link.Init();
-                
+                _logger.Info($"creating new link for id={id}");
+                link = new(id, this, _loggerFactory);
                 _links.TryAdd(id, link);
             }
-            else
-            {
-                _logger.Info($"reuse existing RTCPeerConnection for id={id}");
-                throw new NotImplementedException();
-                //TODO: re-create all RTCPeerConnection negotiation (as `createOffer()` with `{iceRestart: true}` is not supported in SIP)
-                
-            }
 
-            var offer = await link.GetOffer();
-            
+            //TODO: mv RTCConfiguration to .ctr and appsettings.json
+            var configuration = new RTCConfiguration
+            {
+                //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
+                //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
+                //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
+                //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
+            };
+            var offer = await link.Init(configuration, _portRange);
+
             //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
             return offer.toJSON();
         }
@@ -120,7 +108,7 @@ namespace Shared.Tp.Rtc.Sip
             var receiver = _listener?.Connected(link);
             link.Receiver = receiver;
         }
-    
+
         Task<ITpLink> ITpApi.Connect(string localPeerId, ITpReceiver receiver, CancellationToken cancellationToken) 
             => throw new NotSupportedException("Connect: server side doesn't connect now");
 
