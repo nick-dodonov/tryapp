@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.Rtc
+namespace Shared.Tp
 {
     /// <summary>
     /// Interface for custom user logic of handling received data on client/server side

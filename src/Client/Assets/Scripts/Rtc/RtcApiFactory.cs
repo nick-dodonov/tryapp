@@ -1,7 +1,7 @@
 #nullable enable
 using System;
 using Shared.Meta.Api;
-using Shared.Rtc;
+using Shared.Tp;
 using UnityEngine;
 
 namespace Client.Rtc

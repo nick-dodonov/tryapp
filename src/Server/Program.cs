@@ -5,6 +5,7 @@ using Server.Rtc;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Rtc;
+using Shared.Tp;
 
 Slog.Info($"==== starting server build {BuildInfo.Timestamp} ====");
 var builder = WebApplication.CreateBuilder(args);
