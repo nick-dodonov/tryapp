@@ -58,6 +58,10 @@ public class LogicSession(ILogger<LogicSession> logger, ITpApi tpApi)
         }
     }
 
-    public ClientState[] CollectClientStates()
-        => _peers.Select(x => x.Value.LastClientState).ToArray();
+    public PeerState[] GetPeerStates() =>
+        _peers.Select(x => new PeerState
+        {
+            Id = x.Key.GetRemotePeerId(),
+            ClientState = x.Value.LastClientState
+        }).ToArray();
 }

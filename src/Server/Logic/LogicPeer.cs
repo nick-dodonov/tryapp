@@ -21,12 +21,7 @@ public class LogicPeer : IDisposable
             var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             //var msg = $"{frameId};TODO-FROM-SERVER;{utcMs}";
 
-            var clientStates = session.CollectClientStates();
-            var peerStates = clientStates.Select(clientState => new PeerState
-            {
-                Id = "<unknown>",
-                ClientState = clientState
-            }).ToArray();
+            var peerStates = session.GetPeerStates();
             var serverStateMsg = new ServerState
             {
                 Frame = _frameId,

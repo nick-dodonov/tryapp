@@ -102,6 +102,8 @@ namespace Shared.Tp.Rtc.Sip
             _peerConnection.close();
         }
 
+        string ITpLink.GetRemotePeerId() => _id;
+
         void ITpLink.Send(byte[] bytes)
         {
             if (_dataChannel?.readyState != RTCDataChannelState.open)

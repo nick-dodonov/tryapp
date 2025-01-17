@@ -40,6 +40,9 @@ namespace Shared.Tp.Rtc.Webgl
             _managedHandle.Free();
         }
 
+        //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
+        public override string GetRemotePeerId() => throw new NotImplementedException();
+
         public override void Send(byte[] bytes)
         {
             //_log.Info($"{bytes.Length} bytes");

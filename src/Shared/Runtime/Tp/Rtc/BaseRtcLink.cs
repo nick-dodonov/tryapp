@@ -17,6 +17,7 @@ namespace Shared.Tp.Rtc
         private readonly ITpReceiver _receiver;
 
         public abstract void Dispose();
+        public abstract string GetRemotePeerId();
         public abstract void Send(byte[] bytes);
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)

@@ -31,6 +31,7 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpLink : IDisposable
     {
+        string GetRemotePeerId();
         void Send(byte[] bytes);
     }
 

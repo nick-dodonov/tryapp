@@ -125,6 +125,9 @@ namespace Shared.Tp.Rtc.Unity
             _peerConnection = null;
         }
 
+        //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
+        public override string GetRemotePeerId() => throw new NotImplementedException();
+
         public override void Send(byte[] bytes)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
