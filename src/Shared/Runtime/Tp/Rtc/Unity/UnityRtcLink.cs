@@ -1,16 +1,15 @@
+#if UNITY_5_6_OR_NEWER
 #if UNITY_EDITOR || !UNITY_WEBGL
-#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Shared.Log;
-using Shared.Rtc;
 using Shared.Web;
 using Unity.WebRTC;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Unity
 {
     public class UnityRtcLink : BaseRtcLink
     {
@@ -22,7 +21,7 @@ namespace Client.Rtc
         
         private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();
 
-        public UnityRtcLink(IRtcService service, IRtcReceiver receiver)
+        public UnityRtcLink(IRtcService service, ITpReceiver receiver)
             : base(service, receiver)
         {}
 
@@ -136,4 +135,5 @@ namespace Client.Rtc
         }
     }
 }
+#endif
 #endif

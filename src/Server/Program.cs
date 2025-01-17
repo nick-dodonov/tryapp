@@ -1,10 +1,11 @@
 using Server.Info;
 using Server.Logic;
 using Server.Meta;
-using Server.Rtc;
 using Shared.Log;
 using Shared.Meta.Api;
-using Shared.Rtc;
+using Shared.Tp;
+using Shared.Tp.Rtc;
+using Shared.Tp.Rtc.Sip;
 
 Slog.Info($"==== starting server build {BuildInfo.Timestamp} ====");
 var builder = WebApplication.CreateBuilder(args);
@@ -16,7 +17,7 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<IRtcApi>(sp => sp.GetRequiredService<SipRtcService>())
+    .AddSingleton<ITpApi>(sp => sp.GetRequiredService<SipRtcService>())
     .AddHostedService<SipRtcService>()
     .AddSingleton<LogicSession>()
     .AddHostedService<LogicSession>()

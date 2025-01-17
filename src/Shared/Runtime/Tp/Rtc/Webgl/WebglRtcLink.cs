@@ -1,4 +1,4 @@
-#nullable enable
+#if UNITY_5_6_OR_NEWER
 using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -6,9 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
-using Shared.Rtc;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Webgl
 {
     public class WebglRtcLink : BaseRtcLink
     {
@@ -19,7 +18,7 @@ namespace Client.Rtc
         private readonly IntPtr _managedPtr;
         private int _nativeHandle = -1;
 
-        public WebglRtcLink(IRtcService service, IRtcReceiver receiver)
+        public WebglRtcLink(IRtcService service, ITpReceiver receiver)
             : base(service, receiver)
         {
             _managedHandle = GCHandle.Alloc(this);
@@ -112,3 +111,4 @@ namespace Client.Rtc
             => GetLink(managedPtr)?.CallReceived(bytes);
     }
 }
+#endif

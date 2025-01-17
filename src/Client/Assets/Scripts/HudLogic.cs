@@ -3,15 +3,15 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Client.Rtc;
 using Client.UI;
 using Diagnostics;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
-using Shared.Rtc;
 using Shared.Session;
+using Shared.Tp;
+using Shared.Tp.Rtc;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
@@ -19,7 +19,7 @@ using UnityEngine.UI;
 
 namespace Client
 {
-    public class HudLogic : MonoBehaviour, ISessionController, IRtcReceiver
+    public class HudLogic : MonoBehaviour, ISessionController, ITpReceiver
     {
         private static readonly Slog.Area _log = new();
     
@@ -38,8 +38,8 @@ namespace Client
         private readonly List<ServerOption> _serverOptions = new();
 
         private IMeta _meta;
-        private IRtcApi _rtcApi;
-        private IRtcLink _rtcLink;
+        private ITpApi _tpApi;
+        private ITpLink _tpLink;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
     
@@ -92,7 +92,7 @@ namespace Client
         private void Update()
         {
             //stub update/send logic
-            if (_rtcLink != null)
+            if (_tpLink != null)
             {
                 _updateElapsedTime += Time.deltaTime;
                 if (_updateElapsedTime > UpdateSendSeconds)
@@ -183,13 +183,13 @@ namespace Client
             try
             {
                 _log.Info(".");
-                if (_rtcLink != null)
+                if (_tpLink != null)
                     throw new InvalidOperationException("RtcStart: link is already established");
             
                 serverResponseText.text = "Requesting...";
                 _meta = CreateMetaClient();
-                _rtcApi = RtcApiFactory.CreateRtcClient(_meta);
-                _rtcLink = await _rtcApi.Connect(this, destroyCancellationToken);
+                _tpApi = RtcApiFactory.CreateApi(_meta);
+                _tpLink = await _tpApi.Connect(this, destroyCancellationToken);
                 _updateSendFrame = 0;
 
                 clientTap.SetActive(true);
@@ -215,9 +215,9 @@ namespace Client
             _peerTaps.Clear();
             clientTap.SetActive(false);
         
-            _rtcLink?.Dispose();
-            _rtcLink = null;
-            _rtcApi = null;
+            _tpLink?.Dispose();
+            _tpLink = null;
+            _tpApi = null;
             _meta?.Dispose();
             _meta = null;
         }
@@ -226,12 +226,12 @@ namespace Client
         {
             _log.Info(message);
             var bytes = System.Text.Encoding.UTF8.GetBytes(message);
-            _rtcLink.Send(bytes);
+            _tpLink.Send(bytes);
         }
 
-        void IRtcReceiver.Received(IRtcLink link, byte[] bytes)
+        void ITpReceiver.Received(ITpLink link, byte[] bytes)
         {
-            Debug.Assert(link == _rtcLink);
+            Debug.Assert(link == _tpLink);
             RtcReceived(bytes);
         }
         private void RtcReceived(byte[] data)

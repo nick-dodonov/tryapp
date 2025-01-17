@@ -1,6 +1,6 @@
 using Shared.Log;
 using Shared.Meta.Api;
-using Shared.Rtc;
+using Shared.Tp.Rtc;
 
 namespace Server.Meta;
 

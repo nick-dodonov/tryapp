@@ -1,16 +1,15 @@
+#if UNITY_5_6_OR_NEWER
 #if UNITY_EDITOR || !UNITY_WEBGL
-#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Rtc;
 using Shared.Web;
 using Unity.WebRTC;
 
-namespace Client.Rtc
+namespace Shared.Tp.Rtc.Unity
 {
-    public class UnityRtcApi : IRtcApi
+    public class UnityRtcApi : ITpApi
     {
         private static readonly Slog.Area _log = new();
         
@@ -25,14 +24,14 @@ namespace Client.Rtc
             _service = service;
         }
 
-        async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
+        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = new UnityRtcLink(_service, receiver);
             await link.Connect(cancellationToken);
             return link;
         }
 
-        void IRtcApi.Listen(IRtcListener listener) => throw new NotSupportedException("server side not implemented");
+        void ITpApi.Listen(ITpListener listener) => throw new NotSupportedException("server side not implemented");
     }
 
     public static class UnityRtcDebug
@@ -47,4 +46,5 @@ namespace Client.Rtc
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate=\"{candidate.Candidate}\"";
     }
 }
+#endif
 #endif
