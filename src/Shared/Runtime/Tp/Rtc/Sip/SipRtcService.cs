@@ -70,7 +70,12 @@ namespace Shared.Tp.Rtc.Sip
                 _links.TryAdd(id, link);
             }
             else
+            {
                 _logger.Info($"reuse existing RTCPeerConnection for id={id}");
+                throw new NotImplementedException();
+                //TODO: re-create all RTCPeerConnection negotiation (as `createOffer()` with `{iceRestart: true}` is not supported in SIP)
+                
+            }
 
             var offer = await link.GetOffer();
             
