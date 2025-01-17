@@ -6,8 +6,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
-using Shared.Rtc;
 using Shared.Tp;
+using Shared.Tp.Rtc;
 
 namespace Client.Rtc
 {

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.Rtc
+namespace Shared.Tp.Rtc
 {
     /// <summary>
     /// TODO: make different implementations (not only current REST variant but WebSocket too)
