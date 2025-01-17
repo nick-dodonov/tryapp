@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
@@ -17,7 +18,7 @@ namespace Shared.Tp.Rtc.Sip
         internal ITpReceiver? Receiver { get; set; }
 
         private readonly List<RTCIceCandidate> _iceCandidates = new();
-        public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
+        private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
         private RTCDataChannel? _dataChannel;
         
         private readonly SipRtcService _service;
@@ -57,7 +58,7 @@ namespace Shared.Tp.Rtc.Sip
             {
                 _logger.Info($"onicegatheringstatechange: {state}");
                 if (state == RTCIceGatheringState.complete)
-                    IceCollectCompleteTcs.SetResult(_iceCandidates);
+                    _iceCollectCompleteTcs.SetResult(_iceCandidates);
             };
 
             _peerConnection.onconnectionstatechange += state =>
@@ -99,8 +100,26 @@ namespace Shared.Tp.Rtc.Sip
         {
             _logger.Info(".");
             _service.RemoveLink(_remotePeerId);
-            IceCollectCompleteTcs.TrySetCanceled();
+            _iceCollectCompleteTcs.TrySetCanceled();
             _peerConnection.close();
+        }
+
+        public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description, CancellationToken cancellationToken)
+        {
+            _logger.Info($"setRemoteDescription: {description.toJSON()}");
+            _peerConnection.setRemoteDescription(description);
+            
+            _logger.Info("waiting ice candidates");
+            //TODO: shared WaitAsync to use code like
+            //  var candidates = await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
+            var task = _iceCollectCompleteTcs.Task;
+            var candidates = await Task.WhenAny(
+                task, Task.Delay(Timeout.Infinite, cancellationToken)) == task
+                ? task.Result
+                : throw new OperationCanceledException(cancellationToken);
+
+            _logger.Info($"result: [{candidates.Count}] candidates");
+            return candidates;
         }
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;

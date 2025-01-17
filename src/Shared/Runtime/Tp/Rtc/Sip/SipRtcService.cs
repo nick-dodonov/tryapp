@@ -103,28 +103,20 @@ namespace Shared.Tp.Rtc.Sip
             return offerSdp;
         }
 
-        private async ValueTask<string> SetAnswer(string id, RTCSessionDescriptionInit description,
+        private async ValueTask<string> SetAnswer(string id, 
+            RTCSessionDescriptionInit description,
             CancellationToken cancellationToken)
         {
             if (!_links.TryGetValue(id, out var link))
                 throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
 
-            _logger.Info($"setRemoteDescription: id={id}: {description.toJSON()}");
-            link.PeerConnection.setRemoteDescription(description);
+            var candidates = await link.SetAnswer(description, cancellationToken);
 
-            _logger.Info($"wait ice candidates gathering complete: id={id}");
-            //TODO: shared WaitAsync to use code like
-            //  var candidates = await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
-            var task = link.IceCollectCompleteTcs.Task;
-            var candidates = await Task.WhenAny(
-                task, Task.Delay(Timeout.Infinite, cancellationToken)) == task
-                ? task.Result
-                : throw new OperationCanceledException(cancellationToken);
             var candidatesListJson = candidates
                 .Select(candidate => candidate.toJSON())
                 .ToArray()
                 .ToJson();
-            _logger.Info($"return ice candidates ({candidates.Count} count): id={id}: {candidatesListJson}");
+            _logger.Info($"result for id={id}: {candidatesListJson}");
             return candidatesListJson;
         }
 
