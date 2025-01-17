@@ -1,9 +1,4 @@
 using System;
-#if UNITY_5_6_OR_NEWER
-using Shared.Tp.Rtc.Unity;
-using Shared.Tp.Rtc.Webgl;
-using UnityEngine;
-#endif
 
 namespace Shared.Tp.Rtc
 {
@@ -13,13 +8,14 @@ namespace Shared.Tp.Rtc
         {
 #if UNITY_5_6_OR_NEWER
 #if UNITY_EDITOR || !UNITY_WEBGL
-            if (Application.isEditor)
-                return new UnityRtcApi(service);
+            if (UnityEngine.Application.isEditor)
+                return new Unity.UnityRtcApi(service);
 #endif
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
-                return new WebglRtcApi(service);
+            var platform = UnityEngine.Application.platform;
+            if (platform == UnityEngine.RuntimePlatform.WebGLPlayer)
+                return new Webgl.WebglRtcApi(service);
 
-            throw new NotSupportedException($"Unsupported platform: {Application.platform}");
+            throw new NotSupportedException($"Unsupported platform: {platform}");
 #else
             throw new NotSupportedException("TODO: use this factory add SipRtcService to ASP hosting");
 #endif
