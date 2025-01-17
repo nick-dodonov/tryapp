@@ -68,16 +68,12 @@ namespace Shared.Tp.Rtc.Sip
             var link = new SipRtcLink(this, id, peerConnection, _loggerFactory);
             await link.Init();
 
-            _logger.Info($"creating offer for id={id}");
-            var offer = peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-
             _links.TryAdd(id, link);
 
+            var offer = await link.GetOffer();
+            
             //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
-            var offerJson = offer.toJSON();
-            _logger.Info($"returning offer for id={id}: {offerJson}");
-            return offerJson;
+            return offer.toJSON();
         }
 
         async ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)

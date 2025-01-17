@@ -24,6 +24,8 @@ namespace Shared.Tp.Rtc.Sip
         private readonly string _remotePeerId;
         private readonly RTCPeerConnection _peerConnection;
 
+        private RTCSessionDescriptionInit? _offer;
+        
         public SipRtcLink(
             SipRtcService service,
             string remotePeerId,
@@ -94,6 +96,21 @@ namespace Shared.Tp.Rtc.Sip
             };
             channel.onerror += error => 
                 _logger.Error($"DataChannel: onerror: {error}");
+        }
+
+        public async ValueTask<RTCSessionDescriptionInit> GetOffer()
+        {
+            if (_offer == null)
+            {
+                _logger.Info("creating offer");
+                _offer = _peerConnection.createOffer();
+
+                _logger.Info("setup local description");
+                await _peerConnection.setLocalDescription(_offer);
+            }
+
+            _logger.Info($"result: {_offer.toJSON()}");
+            return _offer;
         }
 
         void IDisposable.Dispose()
