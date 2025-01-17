@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using Shared.Meta.Api;
 using Shared.Rtc;

@@ -1,4 +1,5 @@
 #if UNITY_EDITOR || !UNITY_WEBGL
+#nullable enable
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -15,8 +16,8 @@ namespace Client.Rtc
     {
         private static readonly Slog.Area _log = new();
         
-        private RTCPeerConnection _peerConnection;
-        private RTCDataChannel _dataChannel;
+        private RTCPeerConnection? _peerConnection;
+        private RTCDataChannel? _dataChannel;
         private readonly List<RTCIceCandidateInit> _iceCandidates = new();
         
         private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();

@@ -49,4 +49,13 @@ mergeInto(LibraryManager.library, {
             }
         }, 1000);
     },
+
+    SetupTestCallbackObj: function(obj, callback) {
+        console.log("SetupTestCallbackObj:", typeof(obj), obj);
+        let timer = setTimeout(function () {
+            console.log("SetupTestCallbackObj: >>>> callback");
+            {{{ makeDynCall('vi', 'callback') }}}(obj);
+            console.log("SetupTestCallbackObj: <<<< callback");
+        }, 1000);
+    },
 });

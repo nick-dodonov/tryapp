@@ -14,7 +14,7 @@ public class ClientTap : MonoBehaviour
 
     private void Start()
     {
-        _clickAction = InputSystem.actions.FindAction("UI/Click");
+        _clickAction = InputSystem.actions.FindAction("Player/TipPanel"); //("UI/Click");
         _pointAction = InputSystem.actions.FindAction("UI/Point");
     }
 

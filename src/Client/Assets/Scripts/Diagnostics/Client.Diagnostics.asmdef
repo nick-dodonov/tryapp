@@ -1,0 +1,17 @@
+{
+    "name": "Client.Diagnostics",
+    "rootNamespace": "",
+    "references": [
+        "Shared",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

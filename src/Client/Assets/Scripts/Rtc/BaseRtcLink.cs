@@ -1,3 +1,4 @@
+#nullable enable
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,11 +13,10 @@ namespace Client.Rtc
     public abstract class BaseRtcLink : IRtcLink
     {
         private readonly Slog.Area _log;
-        
+
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
-        private readonly IRtcService _service; 
+        private readonly IRtcService _service;
         private readonly IRtcReceiver _receiver;
-        private IRtcLink _rtcLinkImplementation;
 
         public abstract void Dispose();
         public abstract void Send(byte[] bytes);
@@ -38,7 +38,7 @@ namespace Client.Rtc
             return offerStr;
         }
 
-        protected internal async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
+        protected async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {answerJson}");
             var candidatesListJson = await _service.SetAnswer(_clientId, answerJson, cancellationToken);
@@ -46,14 +46,14 @@ namespace Client.Rtc
             return candidatesListJson;
         }
 
-        protected internal async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
+        protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {candidatesJson}");
             await _service.AddIceCandidates(_clientId, candidatesJson, cancellationToken);
             _log.Info("complete");
         }
 
-        protected internal void CallReceived(byte[] bytes)
+        protected void CallReceived(byte[]? bytes)
         {
             if (bytes == null)
                 _log.Info("disconnected");
