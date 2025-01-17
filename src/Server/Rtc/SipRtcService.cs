@@ -13,7 +13,7 @@ namespace Server.Rtc;
 ///     examples/WebRTCExamples/WebRTCGetStartedDataChannel
 ///     https://www.marksort.com/udp-like-networking-in-the-browser/
 /// </summary>
-public class SipRtcService : IHostedService, IRtcService, IRtcApi
+public class SipRtcService : IHostedService, IRtcService, ITpApi
 {
     private readonly ILoggerFactory _loggerFactory;
     private readonly ILogger<SipRtcService> _logger;
@@ -139,9 +139,9 @@ public class SipRtcService : IHostedService, IRtcService, IRtcApi
         link.Receiver = receiver;
     }
     
-    Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken) 
+    Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
         => throw new NotSupportedException();
 
-    private IRtcListener? _listener;
-    void IRtcApi.Listen(IRtcListener listener) => _listener = listener;
+    private ITpListener? _listener;
+    void ITpApi.Listen(ITpListener listener) => _listener = listener;
 }

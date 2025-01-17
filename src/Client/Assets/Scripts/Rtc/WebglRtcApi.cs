@@ -12,7 +12,7 @@ namespace Client.Rtc
     ///     https://docs.unity3d.com/Manual/webgl-interactingwithbrowserscripting.html
     ///     https://discussions.unity.com/t/send-byte-array-from-js-to-unity/874743/18
     /// </summary>
-    public class WebglRtcApi : IRtcApi
+    public class WebglRtcApi : ITpApi
     {
         private static readonly Slog.Area _log = new();
 
@@ -30,7 +30,7 @@ namespace Client.Rtc
             );
         }
 
-        async Task<IRtcLink> IRtcApi.Connect(IRtcReceiver receiver, CancellationToken cancellationToken)
+        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             _log.Info(".");
             var link = new WebglRtcLink(_service, receiver);
@@ -38,7 +38,7 @@ namespace Client.Rtc
             return link;
         }
 
-        void IRtcApi.Listen(IRtcListener listener)
+        void ITpApi.Listen(ITpListener listener)
             => throw new NotSupportedException("server side not implemented");
     }
 }

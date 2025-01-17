@@ -10,12 +10,12 @@ internal class SipRtcLink(
     string id,
     RTCPeerConnection peerConnection,
     ILoggerFactory loggerFactory)
-    : IRtcLink
+    : ITpLink
 {
     private readonly ILogger _logger = new PeerIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), id);
 
     public RTCPeerConnection PeerConnection => peerConnection;
-    internal IRtcReceiver? Receiver { get; set; }
+    internal ITpReceiver? Receiver { get; set; }
 
     private readonly List<RTCIceCandidate> _iceCandidates = [];
     public readonly TaskCompletionSource<List<RTCIceCandidate>> IceCollectCompleteTcs = new();
@@ -89,7 +89,7 @@ internal class SipRtcLink(
         peerConnection.close();
     }
 
-    void IRtcLink.Send(byte[] bytes)
+    void ITpLink.Send(byte[] bytes)
     {
         if (_dataChannel?.readyState != RTCDataChannelState.open)
         {

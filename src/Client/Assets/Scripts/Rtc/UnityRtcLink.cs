@@ -22,7 +22,7 @@ namespace Client.Rtc
         
         private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();
 
-        public UnityRtcLink(IRtcService service, IRtcReceiver receiver)
+        public UnityRtcLink(IRtcService service, ITpReceiver receiver)
             : base(service, receiver)
         {}
 

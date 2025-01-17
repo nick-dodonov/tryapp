@@ -6,13 +6,13 @@ namespace Server.Logic;
 
 public class LogicPeer : IDisposable
 {
-    private readonly IRtcLink _link;
+    private readonly ITpLink _link;
     private readonly System.Timers.Timer _timer;
     private int _frameId;
 
     public ClientState LastClientState { get; set; }
 
-    public LogicPeer(LogicSession session, IRtcLink link)
+    public LogicPeer(LogicSession session, ITpLink link)
     {
         _link = link;
         _timer = new(1000);

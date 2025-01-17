@@ -7,27 +7,27 @@ namespace Shared.Rtc
     /// <summary>
     /// Interface for custom user logic of handling received data on client/server side
     /// </summary>
-    public interface IRtcReceiver
+    public interface ITpReceiver
     {
         /// <summary>
         /// <param name="link">channel data from, allows to simplify server code allowing to use the same handler for several links</param>
         /// <param name="bytes">data block from link, null means disconnected</param> 
         /// </summary>
-        void Received(IRtcLink link, byte[]? bytes);
+        void Received(ITpLink link, byte[]? bytes);
     }
 
     /// <summary>
     /// Interface for custom user logic of handling new connection on server side
     /// </summary>
-    public interface IRtcListener
+    public interface ITpListener
     {
-        public IRtcReceiver Connected(IRtcLink link);
+        public ITpReceiver Connected(ITpLink link);
     }
 
     /// <summary>
     /// Interface for specific link implementations allowing to send data on client/server side
     /// </summary>
-    public interface IRtcLink : IDisposable
+    public interface ITpLink : IDisposable
     {
         void Send(byte[] bytes);
     }
@@ -35,16 +35,16 @@ namespace Shared.Rtc
     /// <summary>
     /// Entry point interface of specific implementation of links (client/server side)
     /// </summary>
-    public interface IRtcApi
+    public interface ITpApi
     {
         /// <summary>
         /// Client side
         /// </summary>
-        Task<IRtcLink> Connect(IRtcReceiver receiver, CancellationToken cancellationToken);
+        Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken);
 
         /// <summary>
         /// Server side 
         /// </summary>
-        void Listen(IRtcListener listener);
+        void Listen(ITpListener listener);
     }
 }

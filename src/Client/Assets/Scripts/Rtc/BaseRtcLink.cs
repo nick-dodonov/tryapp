@@ -10,18 +10,18 @@ namespace Client.Rtc
     /// <summary>
     /// Common helper for different WebRTC implementations working with signalling service
     /// </summary>
-    public abstract class BaseRtcLink : IRtcLink
+    public abstract class BaseRtcLink : ITpLink
     {
         private readonly Slog.Area _log;
 
         private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
         private readonly IRtcService _service;
-        private readonly IRtcReceiver _receiver;
+        private readonly ITpReceiver _receiver;
 
         public abstract void Dispose();
         public abstract void Send(byte[] bytes);
 
-        protected BaseRtcLink(IRtcService service, IRtcReceiver receiver)
+        protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
             _clientId = Guid.NewGuid().ToString();
             _service = service;

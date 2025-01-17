@@ -19,7 +19,7 @@ namespace Client.Rtc
         private readonly IntPtr _managedPtr;
         private int _nativeHandle = -1;
 
-        public WebglRtcLink(IRtcService service, IRtcReceiver receiver)
+        public WebglRtcLink(IRtcService service, ITpReceiver receiver)
             : base(service, receiver)
         {
             _managedHandle = GCHandle.Alloc(this);

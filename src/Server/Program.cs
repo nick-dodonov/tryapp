@@ -16,7 +16,7 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<IRtcApi>(sp => sp.GetRequiredService<SipRtcService>())
+    .AddSingleton<ITpApi>(sp => sp.GetRequiredService<SipRtcService>())
     .AddHostedService<SipRtcService>()
     .AddSingleton<LogicSession>()
     .AddHostedService<LogicSession>()

@@ -8,7 +8,7 @@ namespace Client.Rtc
 {
     public static class RtcApiFactory
     {
-        public static IRtcApi CreateRtcClient(IMeta meta)
+        public static ITpApi CreateRtcClient(IMeta meta)
         {
 #if UNITY_EDITOR
             if (Application.isEditor)
