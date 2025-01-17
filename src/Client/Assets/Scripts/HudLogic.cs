@@ -188,7 +188,7 @@ namespace Client
             
                 serverResponseText.text = "Requesting...";
                 _meta = CreateMetaClient();
-                _tpApi = RtcApiFactory.CreateRtcClient(_meta);
+                _tpApi = RtcApiFactory.CreateApi(_meta);
                 _tpLink = await _tpApi.Connect(this, destroyCancellationToken);
                 _updateSendFrame = 0;
 
