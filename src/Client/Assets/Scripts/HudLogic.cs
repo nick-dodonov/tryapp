@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
 using Diagnostics;
-using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
 using Shared.Meta.Client;
@@ -38,6 +37,7 @@ namespace Client
         private record ServerOption(string Text, string Url);
         private readonly List<ServerOption> _serverOptions = new();
 
+        private IWebClient _webClient;
         private IMeta _meta;
         private ITpApi _tpApi;
         private ITpLink _tpLink;
@@ -101,17 +101,14 @@ namespace Client
                     _updateElapsedTime = 0;
                 
                     var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    //msg = $"{_updateSendFrame};TODO-FROM-CLIENT;{utcMs}";
-                
                     var clientState = new ClientState
                     {
-                        Frame = _updateSendFrame,
+                        Frame = _updateSendFrame++,
                         UtcMs = utcMs
                     };
                     clientTap.Fill(ref clientState);
                     var msg = WebSerializer.SerializeObject(clientState);
                 
-                    _updateSendFrame++;
                     RtcSend(msg);
                 }
             }
@@ -160,9 +157,9 @@ namespace Client
         {
             try
             {
-                //TryBind.TestCallbacks(); //TODO: mv to debug console for testing
                 serverResponseText.text = "Requesting...";
-                using var meta = CreateMetaClient();
+                using var webClient = CreateWebClient();
+                using var meta = CreateMetaClient(webClient);
                 var result = await meta.GetInfo(destroyCancellationToken);
                 serverResponseText.text = @$"Response:
 \tRandomName: {result.RandomName}
@@ -188,9 +185,10 @@ namespace Client
                     throw new InvalidOperationException("RtcStart: link is already established");
             
                 serverResponseText.text = "Requesting...";
-                _meta = CreateMetaClient();
-                _tpApi = RtcApiFactory.CreateApi(_meta);
-                var localPeerId = GetLocalPeerId();
+                _webClient = CreateWebClient();
+                _meta = CreateMetaClient(_webClient);
+                _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
+                //var localPeerId = GetLocalPeerId();
                 _tpLink = await _tpApi.Connect(this, cancellationToken);
                 _updateSendFrame = 0;
 
@@ -204,17 +202,6 @@ namespace Client
                 RtcStop("connect error");
                 throw;
             }
-        }
-
-        private string GetLocalPeerId()
-        {
-            var peerId = SystemInfo.deviceUniqueIdentifier;
-            if (peerId == SystemInfo.unsupportedIdentifier)
-            {
-                //TODO: reimplement using IPeerIdProvider
-                peerId = Guid.NewGuid().ToString();
-            }
-            return peerId;
         }
 
         private void RtcStop() => RtcStop("user request");
@@ -231,8 +218,11 @@ namespace Client
             _tpLink?.Dispose();
             _tpLink = null;
             _tpApi = null;
+            
             _meta?.Dispose();
             _meta = null;
+            _webClient?.Dispose();
+            _webClient = null;
         }
 
         private void RtcSend(string message)
@@ -300,11 +290,24 @@ namespace Client
             }
         }
 
-        private IMeta CreateMetaClient()
+        private IWebClient CreateWebClient()
         {
             var url = _serverOptions[serverDropdown.value].Url;
-            var meta = new MetaClient(new UnityWebClient(url), Slog.Factory.CreateLogger<MetaClient>());
-            return meta;
+            return new UnityWebClient(url);
+        }
+
+        private static IMeta CreateMetaClient(IWebClient webClient) 
+            => new MetaClient(webClient, Slog.Factory);
+        
+        private static string GetLocalPeerId()
+        {
+            var peerId = SystemInfo.deviceUniqueIdentifier;
+            if (peerId == SystemInfo.unsupportedIdentifier)
+            {
+                //TODO: reimplement using IPeerIdProvider
+                peerId = Guid.NewGuid().ToString();
+            }
+            return peerId;
         }
     }
 }
