@@ -75,15 +75,12 @@ namespace Shared.Tp.Rtc.Webgl
         {
             ReportAnswer(new(answerJson), CancellationToken.None).ContinueWith(t =>
             {
-                var candidates = t.Result;
-
-                //TODO: replace with RtcAddIceCandidate
-                var candidatesListJson = WebSerializer.SerializeObject(candidates.Select(x => x.Json).ToArray());
-                
                 //TODO: handle connection error
-                _log.Info($"ReportAnswer: {candidatesListJson}");
+                var candidates = t.Result;
                 
-                WebglRtcNative.RtcSetAnswerResult(_nativeHandle, candidatesListJson);
+                _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
+                foreach (var candidate in candidates)
+                    WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.Json);
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -93,14 +90,22 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportIceCandidates(string candidatesJson)
         {
-            var candidateJsons = WebSerializer.DeserializeObject<string[]>(candidatesJson);
-            var candidates = candidateJsons.Select(x => new RtcIceCandidate(x)).ToArray();
-            ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
+            try
             {
-                var status = t.Status;
-                //TODO: handle connection error
-                _log.Info($"ReportIceCandidates: managedPtr={_managedPtr}: {status}");
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                _log.Info(candidatesJson);
+                var candidateJsons = WebSerializer.DeserializeObject<string[]>(candidatesJson);
+                var candidates = candidateJsons.Select(x => new RtcIceCandidate(x)).ToArray();
+                ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
+                {
+                    var status = t.Status;
+                    //TODO: handle connection error
+                    _log.Info($"ReportIceCandidates: managedPtr={_managedPtr}: {status}");
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            catch (Exception e)
+            {
+                _log.Error($"{e}");
+            }
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
