@@ -1,4 +1,4 @@
-using Shared.Session;
+using Common.Logic;
 using UnityEngine;
 using UnityEngine.UI;
 

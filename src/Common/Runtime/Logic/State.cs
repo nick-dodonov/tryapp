@@ -1,4 +1,7 @@
-namespace Shared.Session
+// ReSharper disable UnusedMember.Global
+// ReSharper disable UnassignedField.Global
+// ReSharper disable NotAccessedField.Global
+namespace Common.Logic
 {
     /// <summary>
     /// Client/server state stub
