@@ -58,7 +58,7 @@ namespace Shared.Meta.Client
             return result;
         }
 
-        public async ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
+        public async ValueTask<RtcIcInit[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
             var uri = $"api/setanswer?token={token}";
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
@@ -69,11 +69,11 @@ namespace Shared.Meta.Client
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"RET: {content}");
 
-            var result = WebSerializer.DeserializeObject<RtcIceCandidate[]>(content);
+            var result = WebSerializer.DeserializeObject<RtcIcInit[]>(content);
             return result;
         }
 
-        public async ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
+        public async ValueTask AddIceCandidates(string token, RtcIcInit[] candidates, CancellationToken cancellationToken)
         {
             var uri = $"api/addicecandidates?token={token}";
             _logger.Info($"POST: {_client.BaseAddress}{uri}");

@@ -69,7 +69,7 @@ namespace Shared.Tp.Rtc.Sip
             };
         }
 
-        async ValueTask<RtcIceCandidate[]> IRtcService.SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
+        async ValueTask<RtcIcInit[]> IRtcService.SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"SetAnswer: link not found for token: {token}");
@@ -84,7 +84,7 @@ namespace Shared.Tp.Rtc.Sip
             return candidates;
         }
 
-        ValueTask IRtcService.AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
+        ValueTask IRtcService.AddIceCandidates(string token, RtcIcInit[] candidates, CancellationToken cancellationToken)
         {
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"AddIceCandidates: link not found for token: {token}");

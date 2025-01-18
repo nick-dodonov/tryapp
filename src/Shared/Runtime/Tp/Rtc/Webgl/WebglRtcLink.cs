@@ -101,7 +101,7 @@ namespace Shared.Tp.Rtc.Webgl
             try
             {
                 _log.Info(candidatesJson);
-                var candidates = WebSerializer.DeserializeObject<RtcIceCandidate[]>(candidatesJson);
+                var candidates = WebSerializer.DeserializeObject<RtcIcInit[]>(candidatesJson);
                 _log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
                 ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
                 {

@@ -6,7 +6,7 @@ namespace Shared.Tp.Rtc.Unity
 {
     public static class UnityRtcExtensions
     {
-        public static RtcIceCandidate ToShared(this RTCIceCandidateInit candidate)
+        public static RtcIcInit ToShared(this RTCIceCandidateInit candidate)
         {
             var unityLineIndex = candidate.sdpMLineIndex;
             if (unityLineIndex > ushort.MaxValue)
@@ -21,7 +21,7 @@ namespace Shared.Tp.Rtc.Unity
             };
         }
 
-        public static RTCIceCandidateInit FromShared(this in RtcIceCandidate candidate)
+        public static RTCIceCandidateInit FromShared(this in RtcIcInit candidate)
         {
             return new()
             {

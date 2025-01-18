@@ -15,8 +15,8 @@ namespace Shared.Tp.Rtc
     public interface IRtcService
     {
         public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken);
-        public ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken);
-        public ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken);
+        public ValueTask<RtcIcInit[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken);
+        public ValueTask AddIceCandidates(string token, RtcIcInit[] candidates, CancellationToken cancellationToken);
     }
 
     /// <summary>
@@ -68,7 +68,7 @@ namespace Shared.Tp.Rtc
     /// RTCIceCandidateInit in implementations (JavaScript, SIPSorcery, Unity)  
     /// </summary>
     [Serializable]
-    public struct RtcIceCandidate
+    public struct RtcIcInit
     {
         // ReSharper disable InconsistentNaming UnassignedField.Global UnusedMember.Global
         public string candidate;
@@ -77,14 +77,14 @@ namespace Shared.Tp.Rtc
         public string? usernameFragment;
         // ReSharper restore InconsistentNaming UnassignedField.Global UnusedMember.Global
 
-        public override string ToString() => $"{nameof(RtcIceCandidate)}({ToJson()})";
+        public override string ToString() => $"{nameof(RtcIcInit)}({ToJson()})";
 
         private string? _json;
         public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
 
-        public static RtcIceCandidate FromJson(string json)
+        public static RtcIcInit FromJson(string json)
         {
-            var result = WebSerializer.DeserializeObject<RtcIceCandidate>(json);
+            var result = WebSerializer.DeserializeObject<RtcIcInit>(json);
             result._json = json;
             return result;
         }
