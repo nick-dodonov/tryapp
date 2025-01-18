@@ -31,8 +31,8 @@ public sealed class MetaServer(IRtcService rtcService, ILogger<MetaServer> logge
         return new(result);
     }
 
-    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
-        => rtcService.GetOffer(id, cancellationToken);
+    public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken) 
+        => rtcService.GetOffer(cancellationToken);
 
     public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
         => rtcService.SetAnswer(id, answerJson, cancellationToken);

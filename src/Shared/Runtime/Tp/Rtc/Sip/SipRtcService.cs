@@ -23,11 +23,16 @@ namespace Shared.Tp.Rtc.Sip
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<SipRtcService> _logger;
 
+        //TODO: replace ID with number because now it's not specific client ID but just token 
         private readonly ConcurrentDictionary<string, SipRtcLink> _links = new();
+
         /// <summary>
         /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation 
         /// </summary>
         private readonly PortRange _portRange = new(40000, 60000);
+
+        private int _globalLinkCounter;
+        private ITpListener? _listener;
 
         public SipRtcService(ILoggerFactory loggerFactory)
         {
@@ -39,18 +44,13 @@ namespace Shared.Tp.Rtc.Sip
             SIPSorcery.LogFactory.Set(loggerFactory);
         }
 
-        async ValueTask<string> IRtcService.GetOffer(string id, CancellationToken cancellationToken)
+        async ValueTask<RtcOffer> IRtcService.GetOffer(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(id))
-                throw new ArgumentNullException(nameof(id), "GetOffer: ID must be supplied to create new link");
+            var id = Interlocked.Increment(ref _globalLinkCounter).ToString();
 
-            if (!_links.TryGetValue(id, out var link))
-            {
-                _logger.Info($"creating new link for id={id}");
-                link = new(id, this, _loggerFactory);
-                _links.TryAdd(id, link);
-            } else 
-                throw new InvalidOperationException($"GetOffer: ID already connected: {id}");
+            _logger.Info($"creating new link for id={id}");
+            var link = new SipRtcLink(id, this, _loggerFactory);
+            _links.TryAdd(id, link);
 
             //TODO: mv RTCConfiguration to .ctr and appsettings.json
             var configuration = new RTCConfiguration
@@ -60,10 +60,14 @@ namespace Shared.Tp.Rtc.Sip
                 //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
                 //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
             };
-            var offer = await link.Init(configuration, _portRange);
+            var sdpInit = await link.Init(configuration, _portRange);
 
             //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
-            return offer.toJSON();
+            return new()
+            {
+                LinkId = id,
+                SdpInitJson = sdpInit.toJSON()
+            };
         }
 
         async ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
@@ -107,7 +111,6 @@ namespace Shared.Tp.Rtc.Sip
         Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
             => throw new NotSupportedException("Connect: server side doesn't connect now");
 
-        private ITpListener? _listener;
         void ITpApi.Listen(ITpListener listener) => _listener = listener;
     }
 }

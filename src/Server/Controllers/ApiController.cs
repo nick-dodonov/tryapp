@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Shared.Meta.Api;
+using Shared.Tp.Rtc;
 
 namespace server.Controllers;
 
@@ -13,10 +14,10 @@ public sealed class ApiController(IMeta meta)
     [Route("info")]
     public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
         => meta.GetInfo(cancellationToken);
-    
+
     [Route("getoffer")]
-    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
-        => meta.GetOffer(id, cancellationToken);
+    public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken)
+        => meta.GetOffer(cancellationToken);
 
     [HttpPost]
     [Route("setanswer")]
