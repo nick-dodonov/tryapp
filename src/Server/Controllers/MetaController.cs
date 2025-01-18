@@ -2,7 +2,7 @@ using Common.Meta;
 using Microsoft.AspNetCore.Mvc;
 using Shared.Tp.Rtc;
 
-namespace server.Controllers;
+namespace Server.Controllers;
 
 [ApiController]
 [Route("api")] //"[controller]"
