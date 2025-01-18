@@ -1,3 +1,4 @@
+using System.Text;
 using Common.Logic;
 using Shared.Log;
 using Shared.Tp;
@@ -13,7 +14,7 @@ public sealed class LogicPeer : IDisposable
 
     private readonly System.Timers.Timer _timer;
 
-    public ClientState LastClientState { get; set; }
+    private ClientState _lastClientState;
 
     public LogicPeer(ILogger logger, LogicSession session, ITpLink link)
     {
@@ -23,10 +24,7 @@ public sealed class LogicPeer : IDisposable
         _timer = new(1000);
 
         var frame = 0;
-        _timer.Elapsed += (_, _) =>
-        {
-            Send(frame++);
-        };
+        _timer.Elapsed += (_, _) => { Send(frame++); };
         _timer.Start();
     }
 
@@ -38,19 +36,33 @@ public sealed class LogicPeer : IDisposable
 
     private void Send(int frame)
     {
-        var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-        var peerStates = _session.GetPeerStates();
-        var serverStateMsg = new ServerState
-        {
-            Frame = frame,
-            UtcMs = utcMs,
-            Peers = peerStates
-        };
+        var serverState = _session.GetServerState(frame);
 
-        var msg = WebSerializer.SerializeObject(serverStateMsg);
-        _logger.Info(msg);
+        var msg = WebSerializer.SerializeObject(serverState);
+        var bytes = Encoding.UTF8.GetBytes(msg);
 
-        var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
+        _logger.Info($"[{bytes.Length}] bytes: {msg}");
         _link.Send(bytes);
     }
+
+    public void Received(byte[] bytes)
+    {
+        try
+        {
+            var msg = Encoding.UTF8.GetString(bytes);
+            _logger.Info($"[{bytes.Length}] bytes: {msg}");
+            _lastClientState = WebSerializer.DeserializeObject<ClientState>(msg);
+        }
+        catch (Exception e)
+        {
+            _logger.Error($"{e}");
+        }
+    }
+
+    public PeerState GetPeerState() =>
+        new()
+        {
+            Id = _link.GetRemotePeerId(),
+            ClientState = _lastClientState
+        };
 }

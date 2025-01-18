@@ -1,20 +1,20 @@
 using System.Collections.Concurrent;
-using System.Text;
 using Common.Logic;
 using Shared.Log;
 using Shared.Tp;
-using Shared.Web;
 
 namespace Server.Logic;
 
-public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi) 
+public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     : IHostedService, ITpListener, ITpReceiver
 {
-    private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
     private readonly ILogger _logger = loggerFactory.CreateLogger<LogicSession>();
-    
+
+    private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
+
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
+        _logger.Info("start listening");
         tpApi.Listen(this);
         return Task.CompletedTask;
     }
@@ -31,38 +31,36 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 
     void ITpReceiver.Received(ITpLink link, byte[]? bytes)
     {
+        var linkId = link.GetRemotePeerId();
+        if (!_peers.TryGetValue(link, out var peer))
+        {
+            var msg = $"{(bytes == null ? "disconnected" : $"[{bytes.Length}] bytes")}";
+            _logger.Warn($"peer not found: {linkId} ({msg})");
+            return;
+        }
+
         if (bytes == null)
         {
-            _logger.Info($"disconnected: {link}");
-            if (!_peers.TryRemove(link, out var peer))
-                _logger.Warn($"peer not connected: {link}");
-            else
+            _logger.Info($"peer disconnected: {linkId}");
+            if (_peers.TryRemove(link, out peer))
                 peer.Dispose();
+            return;
         }
-        else
-        {
-            var content = Encoding.UTF8.GetString(bytes);
-            _logger.Info($"[{bytes.Length}]: {content}");
-            if (!_peers.TryGetValue(link, out var peer))
-                _logger.Warn($"peer not connected: {link}");
-            else
-            {
-                try
-                {
-                    peer.LastClientState = WebSerializer.DeserializeObject<ClientState>(content);
-                }
-                catch (Exception e)
-                {
-                    _logger.Error($"failed to deserialize: {e}");
-                }
-            }
-        }
+
+        peer.Received(bytes);
     }
 
-    public PeerState[] GetPeerStates() =>
-        _peers.Select(x => new PeerState
+    public ServerState GetServerState(int frame)
+    {
+        var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var peerStates = _peers
+            .Select(x => x.Value.GetPeerState())
+            .ToArray();
+        return new()
         {
-            Id = x.Key.GetRemotePeerId(),
-            ClientState = x.Value.LastClientState
-        }).ToArray();
+            Frame = frame,
+            UtcMs = utcMs,
+            Peers = peerStates
+        };
+    }
 }
