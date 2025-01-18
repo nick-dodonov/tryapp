@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Web;
 
 namespace Shared.Tp.Rtc
 {
@@ -47,15 +48,25 @@ namespace Shared.Tp.Rtc
     }
 
     [Serializable]
-    public struct RtcIceCandidate
+    public struct RtcIceCandidate //TODO: rename to RtcIceCandidateInit
     {
-        //TODO: can be replaced with fields of RTCIceCandidateInit: candidate / sdpMid / sdpMLineIndex / usernameFragment
-        public string Json;
-        public RtcIceCandidate(string json)
+        // ReSharper disable UnusedMember.Global
+        public string candidate;
+        public string sdpMid;
+        public ushort sdpMLineIndex;
+        public string usernameFragment;
+        // ReSharper restore UnusedMember.Global
+
+        public override string ToString() => $"{nameof(RtcIceCandidate)}({ToJson()})";
+
+        private string? _json;
+        public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
+
+        public static RtcIceCandidate FromJson(string json)
         {
-            Json = json;
+            var result = WebSerializer.DeserializeObject<RtcIceCandidate>(json);
+            result._json = json;
+            return result;
         }
-        
-        public override string ToString() => $"{nameof(RtcIceCandidate)}({Json})";
     }
 }

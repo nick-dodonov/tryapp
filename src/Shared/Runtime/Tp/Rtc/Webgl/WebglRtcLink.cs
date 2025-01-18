@@ -1,6 +1,5 @@
 #if UNITY_5_6_OR_NEWER
 using System;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -80,7 +79,7 @@ namespace Shared.Tp.Rtc.Webgl
                 
                 _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
                 foreach (var candidate in candidates)
-                    WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.Json);
+                    WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -93,13 +92,13 @@ namespace Shared.Tp.Rtc.Webgl
             try
             {
                 _log.Info(candidatesJson);
-                var candidateJsons = WebSerializer.DeserializeObject<string[]>(candidatesJson);
-                var candidates = candidateJsons.Select(x => new RtcIceCandidate(x)).ToArray();
+                var candidates = WebSerializer.DeserializeObject<RtcIceCandidate[]>(candidatesJson);
+                _log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
                 ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
                 {
-                    var status = t.Status;
                     //TODO: handle connection error
-                    _log.Info($"ReportIceCandidates: managedPtr={_managedPtr}: {status}");
+                    var status = t.Status;
+                    _log.Info($"ReportIceCandidates: status: {status}");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             catch (Exception e)

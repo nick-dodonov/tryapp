@@ -58,7 +58,7 @@ namespace Shared.Tp.Rtc.Sip
             List<RTCIceCandidate> iceCandidates = new();
             _peerConnection.onicecandidate += candidate =>
             {
-                _logger.Info($"onicecandidate: {candidate}");
+                _logger.Info($"onicecandidate: {candidate.toJSON()}");
                 iceCandidates.Add(candidate);
             };
             _peerConnection.onicecandidateerror += (candidate, error) =>

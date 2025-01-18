@@ -1,5 +1,4 @@
-#if UNITY_5_6_OR_NEWER
-#if UNITY_EDITOR || !UNITY_WEBGL
+#if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -49,7 +48,7 @@ namespace Shared.Tp.Rtc.Unity
                     if (state == RTCIceGatheringState.Complete)
                     {
                         var candidates = _iceCandidates
-                            .Select(x => new RtcIceCandidate(WebSerializer.SerializeObject(x)))
+                            .Select(x => x.ToShared())
                             .ToArray();
                         await ReportIceCandidates(candidates, cancellationToken);
                     }
@@ -103,9 +102,9 @@ namespace Shared.Tp.Rtc.Unity
             foreach (var candidate in candidates)
             {
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
-                var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidate.Json);
+                var unityCandidateInit = candidate.FromShared();
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
-                var unityCandidate = new RTCIceCandidate(candidateInit);
+                var unityCandidate = new RTCIceCandidate(unityCandidateInit);
                 _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(unityCandidate)}");
                 var rc = _peerConnection.AddIceCandidate(unityCandidate);
                 if (!rc) 
@@ -137,5 +136,4 @@ namespace Shared.Tp.Rtc.Unity
         }
     }
 }
-#endif
 #endif

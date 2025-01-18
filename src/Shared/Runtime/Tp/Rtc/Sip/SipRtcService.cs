@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using Shared.Log;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
-using TinyJson;
 
 namespace Shared.Tp.Rtc.Sip
 {
@@ -81,7 +80,7 @@ namespace Shared.Tp.Rtc.Sip
             var sipCandidates = await link.SetAnswer(sipAnswer, cancellationToken);
 
             var candidates = sipCandidates
-                .Select(candidate => new RtcIceCandidate(candidate.toJSON()))
+                .Select(x => x.ToShared())
                 .ToArray();
             _logger.Info($"result for id={link.LinkId}: [{candidates.Length}] candidates");
             return candidates;
@@ -93,7 +92,7 @@ namespace Shared.Tp.Rtc.Sip
                 throw new InvalidOperationException($"AddIceCandidates: link not found for token: {token}");
 
             var sipCandidates = candidates
-                .Select(x => x.Json.FromJson<RTCIceCandidateInit>())
+                .Select(x => x.FromShared())
                 .ToArray();
             
             return link.AddIceCandidates(sipCandidates, cancellationToken);
