@@ -3881,6 +3881,7 @@ GameObject:
   - component: {fileID: 1987657740}
   - component: {fileID: 1987657739}
   - component: {fileID: 1987657738}
+  - component: {fileID: 1987657743}
   m_Layer: 5
   m_Name: Canvas
   m_TagString: Untagged
@@ -3900,13 +3901,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 98a457786b8144fbb85803c6ab300576, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  clientTap: {fileID: 1914052456}
-  peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
   versionText: {fileID: 581918655}
   serverDropdown: {fileID: 1488578567}
   serverRequestButton: {fileID: 2123365215}
   serverResponseText: {fileID: 1726573591}
   sessionControl: {fileID: 1737897845}
+  clientLogic: {fileID: 1987657743}
 --- !u!114 &1987657739
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3995,6 +3995,20 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0, y: 0}
+--- !u!114 &1987657743
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1987657737}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c8062624bdcb463887fada8a0a93ec06, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  clientTap: {fileID: 1914052456}
+  peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
 --- !u!1 &2071985560
 GameObject:
   m_ObjectHideFlags: 0
