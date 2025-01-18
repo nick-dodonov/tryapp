@@ -97,7 +97,11 @@ function RtcConnect(managedPtr, offerPtr) {
     const nativeHandle = RtcApi.AddNextPeer(pc);
     
     pc.onconnectionstatechange = (event) => {
-        console.log("RtcConnect: onconnectionstatechange:", pc.connectionState, event);
+        const connectionState = pc.connectionState;
+        console.log("RtcConnect: onconnectionstatechange:", connectionState);
+        if (["closed", "disconnected", "failed"].includes(connectionState)) {
+            RtcApi.CallReceived(managedPtr, null);
+        }
     }
 
     const iceCandidates = []
