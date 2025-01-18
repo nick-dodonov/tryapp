@@ -1,6 +1,6 @@
 {
     "name": "Shared.Unity.Editor",
-    "rootNamespace": "",
+    "rootNamespace": "Shared.Editor",
     "references": [
         "Shared",
         "Shared.Unity"

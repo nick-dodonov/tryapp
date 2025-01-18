@@ -4,7 +4,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 
-namespace Client.Utility.Editor
+namespace Shared.Editor.Build
 {
     public class BuildProcess : IPreprocessBuildWithReport
     {
