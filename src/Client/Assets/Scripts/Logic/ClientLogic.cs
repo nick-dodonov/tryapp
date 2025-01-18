@@ -13,26 +13,30 @@ using UnityEngine;
 
 namespace Client.Logic
 {
+    /// <summary>
+    /// Custom logic stub that begin/finish session and send/recieve data
+    /// </summary>
     public class ClientLogic : MonoBehaviour, ITpReceiver
     {
         private static readonly Slog.Area _log = new();
-        
+
         public ClientTap clientTap;
         public GameObject peerPrefab;
-        
+
         private IWebClient _webClient;
         private IMeta _meta;
         private ITpApi _tpApi;
         private ITpLink _tpLink;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
-        
+
         private void OnEnable()
         {
             clientTap.SetActive(false);
         }
 
         private Action<string> _notifyFinishingCallback;
+
         public async Task Begin(
             Func<IWebClient> webClientFactory,
             Action<string> notifyFinishingCallback,
@@ -41,7 +45,7 @@ namespace Client.Logic
             _log.Info(".");
             if (_tpLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
-            
+
             _notifyFinishingCallback = notifyFinishingCallback;
 
             _webClient = webClientFactory();
@@ -52,20 +56,31 @@ namespace Client.Logic
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
+
+            // static string GetLocalPeerId()
+            // {
+            //     var peerId = SystemInfo.deviceUniqueIdentifier;
+            //     if (peerId == SystemInfo.unsupportedIdentifier)
+            //     {
+            //         //TODO: reimplement using IPeerIdProvider
+            //         peerId = Guid.NewGuid().ToString();
+            //     }
+            //     return peerId;
+            // }
         }
 
         public void Finish()
         {
             _log.Info(".");
-            foreach (var kv in _peerTaps) 
+            foreach (var kv in _peerTaps)
                 Destroy(kv.Value.gameObject);
             _peerTaps.Clear();
             clientTap.SetActive(false);
-        
+
             _tpLink?.Dispose();
             _tpLink = null;
             _tpApi = null;
-            
+
             _meta?.Dispose();
             _meta = null;
             _webClient?.Dispose();
@@ -75,52 +90,55 @@ namespace Client.Logic
         private const float UpdateSendSeconds = 1.0f;
         private float _updateElapsedTime;
         private int _updateSendFrame;
+
         private void Update()
         {
-            //stub update/send logic
-            if (_tpLink != null)
+            if (_tpLink == null)
+                return;
+
+            _updateElapsedTime += Time.deltaTime;
+            if (_updateElapsedTime > UpdateSendSeconds)
             {
-                _updateElapsedTime += Time.deltaTime;
-                if (_updateElapsedTime > UpdateSendSeconds)
-                {
-                    _updateElapsedTime = 0;
-                
-                    var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-                    var clientState = new ClientState
-                    {
-                        Frame = _updateSendFrame++,
-                        UtcMs = utcMs
-                    };
-                    clientTap.Fill(ref clientState);
-                    var msg = WebSerializer.SerializeObject(clientState);
-                
-                    RtcSend(msg);
-                }
+                _updateElapsedTime = 0;
+                var clientState = GetClientState(_updateSendFrame++);
+                Send(clientState);
             }
         }
-        
-        private void RtcSend(string message)
+
+        private ClientState GetClientState(int frame)
         {
-            _log.Info(message);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(message);
+            var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var clientState = new ClientState
+            {
+                Frame = frame,
+                UtcMs = utcMs
+            };
+            clientTap.Fill(ref clientState);
+            return clientState;
+        }
+
+        private void Send(in ClientState clientState)
+        {
+            var msg = WebSerializer.SerializeObject(clientState);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
+            _log.Info($"[{bytes.Length}] bytes: {msg}");
             _tpLink.Send(bytes);
         }
-        
-        void ITpReceiver.Received(ITpLink link, byte[] bytes) => RtcReceived(bytes);
-        private void RtcReceived(byte[] data)
+
+        void ITpReceiver.Received(ITpLink link, byte[] bytes)
         {
-            if (data == null)
+            if (bytes == null)
             {
                 _notifyFinishingCallback("disconnected");
                 return;
             }
 
-            var str = System.Text.Encoding.UTF8.GetString(data);
-            _log.Info(str);
-        
+            var msg = System.Text.Encoding.UTF8.GetString(bytes);
+            _log.Info($"[{bytes.Length}] bytes: {msg}");
+
             try
             {
-                var serverState = WebSerializer.DeserializeObject<ServerState>(str);
+                var serverState = WebSerializer.DeserializeObject<ServerState>(msg);
 
                 var count = 0;
                 var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
@@ -132,7 +150,7 @@ namespace Client.Logic
                         peerKvs[count++] = kv;
                         kv.Value.SetChanged(false);
                     }
-                
+
                     foreach (var peerState in serverState.Peers)
                     {
                         var peerId = peerState.Id;
@@ -142,13 +160,14 @@ namespace Client.Logic
                             peerTap = peerGameObject.GetComponent<PeerTap>();
                             _peerTaps.Add(peerId, peerTap);
                         }
+
                         peerTap.Apply(peerState.ClientState);
                     }
-                
-                    //remove peer taps that don't exist
+
+                    //remove peer taps that don't exist anymore
                     foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
                     {
-                        if (peerTap.Changed) 
+                        if (peerTap.Changed)
                             continue;
                         _peerTaps.Remove(id);
                         Destroy(peerTap.gameObject);

@@ -20,7 +20,6 @@ namespace Client
             _pointAction = InputSystem.actions.FindAction("UI/Point");
         }
 
-        public void SetActive(bool active) => gameObject.SetActive(active);
         private void OnEnable()
         {
             //make random color distinctive with outline (never pure white or too dark) 
@@ -50,6 +49,7 @@ namespace Client
             }
         }
 
+        public void SetActive(bool active) => gameObject.SetActive(active);
         public void Fill(ref ClientState state)
         {
             var position = transform.position;

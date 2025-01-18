@@ -19,7 +19,7 @@ namespace Client
     public class HudLogic : MonoBehaviour, ISessionController
     {
         private static readonly Slog.Area _log = new();
-    
+
         public TMP_Text versionText;
 
         public TMP_Dropdown serverDropdown;
@@ -31,6 +31,7 @@ namespace Client
         public ClientLogic clientLogic;
 
         private record ServerOption(string Text, string Url);
+
         private readonly List<ServerOption> _serverOptions = new();
 
         // ReSharper disable once AsyncVoidMethod
@@ -40,7 +41,7 @@ namespace Client
             _log.Info("==== starting client (static) ====");
             // var logger = Slog.Factory.CreateLogger<HudLogic>();
             // logger.Info("==== starting client (logger) ====");
-        
+
             StartupInfo.Print();
             versionText.text = $"Version: {Application.version}";
 
@@ -51,18 +52,20 @@ namespace Client
                 _serverOptions.Add(new("localhost-http", $"http://{localhost}"));
                 _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
             }
+
             var hostingOption = await NeedServerHostingOption();
             if (hostingOption != null)
             {
                 _log.Info($"add server ({hostingOption.OriginDescription}): {hostingOption.Url}");
                 _serverOptions.Add(new(hostingOption.OriginDescription, hostingOption.Url));
             }
+
             serverDropdown.options.Clear();
             serverDropdown.options.AddRange(
                 _serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
             serverDropdown.RefreshShownValue();
             serverResponseText.text = "";
-        
+
             serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
 
             sessionControl.Controller = this;
@@ -70,7 +73,7 @@ namespace Client
 
         private void OnDisable()
         {
-            RtcStop("closing");
+            StopSession("closing");
             serverRequestButton.onClick.RemoveListener(OnServerRequestButtonClick);
         }
 
@@ -89,6 +92,7 @@ namespace Client
         }
 
         private record ServerOptions(string Url, string OriginDescription);
+
         private static async ValueTask<ServerOptions> NeedServerHostingOption()
         {
             if (NeedServerLocalhostOptions(out _))
@@ -133,10 +137,7 @@ namespace Client
             }
         }
 
-        Task ISessionController.StartSession(CancellationToken cancellationToken) => RtcStart(cancellationToken);
-        void ISessionController.StopSession() => RtcStop();
-
-        private async Task RtcStart(CancellationToken cancellationToken)
+        async Task ISessionController.StartSession(CancellationToken cancellationToken)
         {
             try
             {
@@ -144,20 +145,25 @@ namespace Client
                 serverResponseText.text = "Starting...";
                 await clientLogic.Begin(
                     CreateWebClient,
-                    RtcStop,
+                    StopSession,
                     cancellationToken);
                 serverResponseText.text = "RESULT:\nOK";
             }
             catch (Exception ex)
             {
                 serverResponseText.text = $"ERROR:\n{ex.Message}";
-                RtcStop("connect error");
+                StopSession("connect error");
                 throw;
             }
         }
 
-        private void RtcStop() => RtcStop("user request");
-        private void RtcStop(string reason)
+        void ISessionController.StopSession()
+        {
+            _log.Info(".");
+            StopSession("user request");
+        }
+
+        private void StopSession(string reason)
         {
             _log.Info(reason);
             try
@@ -168,8 +174,8 @@ namespace Client
             {
                 _log.Error(ex.ToString());
             }
-            sessionControl.NotifyStopped();
 
+            sessionControl.NotifyStopped();
         }
 
         private IWebClient CreateWebClient()
@@ -178,18 +184,7 @@ namespace Client
             return new UnityWebClient(url);
         }
 
-        private static IMeta CreateMetaClient(IWebClient webClient) 
+        private static IMeta CreateMetaClient(IWebClient webClient)
             => new MetaClient(webClient, Slog.Factory);
-        
-        private static string GetLocalPeerId()
-        {
-            var peerId = SystemInfo.deviceUniqueIdentifier;
-            if (peerId == SystemInfo.unsupportedIdentifier)
-            {
-                //TODO: reimplement using IPeerIdProvider
-                peerId = Guid.NewGuid().ToString();
-            }
-            return peerId;
-        }
     }
 }
