@@ -7,6 +7,7 @@
     "com.unity.webrtc": "3.0.0-pre.8",
     "common": "file:../../Common",
     "shared": "file:../../Shared",
+    "shared.unity": "file:../../Shared.Unity",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.physics": "1.0.0"
   },

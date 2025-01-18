@@ -243,6 +243,14 @@
         "com.unity.test-framework": "1.4.5"
       }
     },
+    "shared.unity": {
+      "version": "file:../../Shared.Unity",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "shared": "0.2.0"
+      }
+    },
     "com.unity.modules.audio": {
       "version": "1.0.0",
       "depth": 0,
