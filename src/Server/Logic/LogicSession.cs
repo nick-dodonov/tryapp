@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Common.Logic;
 using Shared.Log;
+using Shared.Log.Asp;
 using Shared.Tp;
 
 namespace Server.Logic;
@@ -24,7 +25,9 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
-        var peer = new LogicPeer(loggerFactory.CreateLogger<LogicPeer>(), this, link);
+        var peer = new LogicPeer(
+            new IdLogger(loggerFactory.CreateLogger<LogicPeer>(), link.GetRemotePeerId()),
+            this, link);
         _peers.TryAdd(link, peer);
         return this;
     }

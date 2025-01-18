@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Log.Asp;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 
@@ -41,7 +42,7 @@ namespace Shared.Tp.Rtc.Sip
             _remotePeerId = linkId.ToString();
 
             _service = service;
-            _logger = new SipLinkLogger(loggerFactory.CreateLogger<SipRtcLink>(), _remotePeerId);
+            _logger = new IdLogger(loggerFactory.CreateLogger<SipRtcLink>(), _remotePeerId);
             _logger.Info(".");
         }
 
