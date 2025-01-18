@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -17,9 +18,14 @@ namespace Shared.Tp.Rtc
             _logger = logger;
         }
         
+        private static string GetUri(string? query = null, [CallerMemberName] string action = "") =>
+            query != null 
+                ? $"api/{action}?{query}" 
+                : $"api/{action}";
+
         public async ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken)
         {
-            var uri = "api/getoffer";
+            var uri = GetUri();
             _logger.Info($"GET: {_client.BaseAddress}{uri}");
 
             using var response = await _client.GetAsync(uri, cancellationToken);
@@ -33,7 +39,7 @@ namespace Shared.Tp.Rtc
 
         public async ValueTask<RtcIcInit[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
-            var uri = $"api/setanswer?token={token}";
+            var uri = GetUri($"token={token}");
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
             var json = WebSerializer.SerializeObject(answer);
@@ -48,7 +54,7 @@ namespace Shared.Tp.Rtc
 
         public async ValueTask AddIceCandidates(string token, RtcIcInit[] candidates, CancellationToken cancellationToken)
         {
-            var uri = $"api/addicecandidates?token={token}";
+            var uri = GetUri($"token={token}");
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
             var json = WebSerializer.SerializeObject(candidates);

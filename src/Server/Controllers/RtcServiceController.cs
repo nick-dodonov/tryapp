@@ -4,19 +4,19 @@ using Shared.Tp.Rtc;
 namespace server.Controllers;
 
 [ApiController]
-[Route("api")]
+[Route("api/[action]")]
 public sealed class RtcServiceController(IRtcService rtcService) : ControllerBase, IRtcService
 {
-    [HttpGet("getoffer")]
+    [HttpGet]
     public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken) =>
         rtcService.GetOffer(cancellationToken);
 
-    [HttpPost("setanswer")]
+    [HttpPost]
     public ValueTask<RtcIcInit[]> SetAnswer(
         string token, [FromBody] RtcSdpInit answer, CancellationToken cancellationToken) =>
         rtcService.SetAnswer(token, answer, cancellationToken);
 
-    [HttpPost("addicecandidates")]
+    [HttpPost]
     public ValueTask AddIceCandidates(
         string token, [FromBody] RtcIcInit[] candidates, CancellationToken cancellationToken) =>
         rtcService.AddIceCandidates(token, candidates, cancellationToken);
