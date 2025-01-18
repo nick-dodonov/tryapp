@@ -1,0 +1,16 @@
+{
+    "name": "Common",
+    "rootNamespace": "Common",
+    "references": [
+        "Shared"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

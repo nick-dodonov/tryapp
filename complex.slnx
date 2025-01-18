@@ -3,7 +3,8 @@
     <Project Path="src\Server\Server.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Shared/">
-    <Project Path="src\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
+    <Project Path="src\Common\Runtime\Common.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Runtime\Shared.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
   </Folder>
 </Solution>

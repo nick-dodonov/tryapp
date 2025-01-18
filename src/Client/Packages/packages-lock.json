@@ -77,6 +77,14 @@
       },
       "url": "https://packages.unity.com"
     },
+    "common": {
+      "version": "file:../../Common",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "shared": "0.2.0"
+      }
+    },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
       "version": "9.0.1",
       "depth": 2,
