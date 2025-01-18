@@ -1,7 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using AOT;
-using Client.Diagnostics.Debug;
+using Diagnostics.Debug;
 using Shared.Log;
 using UnityEngine.Scripting;
 

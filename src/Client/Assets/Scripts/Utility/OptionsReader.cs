@@ -7,80 +7,83 @@ using Shared.Web;
 using UnityEngine;
 using UnityEngine.Networking;
 
-public static class OptionsReader
+namespace Client.Utility
 {
-    public static Dictionary<string, string> ParseEnvFileToDictionary()
+    public static class OptionsReader
     {
-        var directory = Directory.GetCurrentDirectory();
-        Dictionary<string, string> envVariables = new();
-
-        while (!string.IsNullOrEmpty(directory))
+        public static Dictionary<string, string> ParseEnvFileToDictionary()
         {
-            var envFilePath = Path.Combine(directory, ".env");
-            if (File.Exists(envFilePath))
+            var directory = Directory.GetCurrentDirectory();
+            Dictionary<string, string> envVariables = new();
+
+            while (!string.IsNullOrEmpty(directory))
             {
-                var lines = File.ReadAllLines(envFilePath);
-                foreach (var line in lines)
+                var envFilePath = Path.Combine(directory, ".env");
+                if (File.Exists(envFilePath))
                 {
-                    var trimmedLine = line.Trim();
-                    if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith("#"))
-                        continue;
+                    var lines = File.ReadAllLines(envFilePath);
+                    foreach (var line in lines)
+                    {
+                        var trimmedLine = line.Trim();
+                        if (string.IsNullOrEmpty(trimmedLine) || trimmedLine.StartsWith("#"))
+                            continue;
 
-                    var splitIndex = trimmedLine.IndexOf('=');
-                    if (splitIndex <= 0)
-                        continue;
+                        var splitIndex = trimmedLine.IndexOf('=');
+                        if (splitIndex <= 0)
+                            continue;
 
-                    var key = trimmedLine[..splitIndex].Trim();
-                    var value = trimmedLine[(splitIndex + 1)..].Trim();
-                    envVariables[key] = value;
+                        var key = trimmedLine[..splitIndex].Trim();
+                        var value = trimmedLine[(splitIndex + 1)..].Trim();
+                        envVariables[key] = value;
+                    }
+
+                    break; // Stop searching once the .env file is found and processed
                 }
 
-                break; // Stop searching once the .env file is found and processed
+                directory = Path.GetDirectoryName(directory); // Move up one directory
             }
 
-            directory = Path.GetDirectoryName(directory); // Move up one directory
+            return envVariables;
         }
 
-        return envVariables;
-    }
-
-    public static async ValueTask<string> TryParseOptionsJsonServerFirst()
-    {
-        try
+        public static async ValueTask<string> TryParseOptionsJsonServerFirst()
         {
-            var content = await ReadOptionsJson();
-            if (content == null)
-                return null;
-            var options = WebSerializer.DeserializeObject<Options>(content);
-            return options.Servers[0];
+            try
+            {
+                var content = await ReadOptionsJson();
+                if (content == null)
+                    return null;
+                var options = WebSerializer.DeserializeObject<Options>(content);
+                return options.Servers[0];
+            }
+            catch (Exception e)
+            {
+                Slog.Error($"failed: {e}");
+            }
+            return null;
         }
-        catch (Exception e)
-        {
-            Slog.Error($"failed: {e}");
-        }
-        return null;
-    }
 
-    private static async ValueTask<string> ReadOptionsJson()
-    {
-        if (Application.isEditor)
+        private static async ValueTask<string> ReadOptionsJson()
         {
-            const string optionsJsonPath = "../../pages/options.json";
-            if (!File.Exists(optionsJsonPath))
-                return null;
-            return await File.ReadAllTextAsync(optionsJsonPath);
+            if (Application.isEditor)
+            {
+                const string optionsJsonPath = "../../pages/options.json";
+                if (!File.Exists(optionsJsonPath))
+                    return null;
+                return await File.ReadAllTextAsync(optionsJsonPath);
+            }
+            var absoluteUrl = Application.absoluteURL;
+            var optionsUri = new Uri(new(absoluteUrl), "options.json");
+            var request = UnityWebRequest.Get(optionsUri);
+            await request.SendWebRequest();
+            var content = request.downloadHandler.text;
+            return content;
         }
-        var absoluteUrl = Application.absoluteURL;
-        var optionsUri = new Uri(new(absoluteUrl), "options.json");
-        var request = UnityWebRequest.Get(optionsUri);
-        await request.SendWebRequest();
-        var content = request.downloadHandler.text;
-        return content;
-    }
 
-    [Serializable]
-    public class Options
-    {
-        public string[] Servers;
+        [Serializable]
+        public class Options
+        {
+            public string[] Servers;
+        }
     }
 }

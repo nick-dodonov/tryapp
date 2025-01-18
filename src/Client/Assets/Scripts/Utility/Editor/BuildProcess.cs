@@ -1,11 +1,10 @@
-using System;
 using System.Diagnostics;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using Debug = UnityEngine.Debug;
 
-namespace Utility.Editor
+namespace Client.Utility.Editor
 {
     public class BuildProcess : IPreprocessBuildWithReport
     {
