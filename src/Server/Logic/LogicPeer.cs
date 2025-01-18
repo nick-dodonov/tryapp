@@ -1,3 +1,4 @@
+using Shared.Log;
 using Shared.Session;
 using Shared.Tp;
 using Shared.Web;
@@ -12,7 +13,7 @@ public class LogicPeer : IDisposable
 
     public ClientState LastClientState { get; set; }
 
-    public LogicPeer(LogicSession session, ITpLink link)
+    public LogicPeer(ILogger logger, LogicSession session, ITpLink link)
     {
         _link = link;
         _timer = new(1000);
@@ -31,6 +32,8 @@ public class LogicPeer : IDisposable
             _frameId++;
 
             var msg = WebSerializer.SerializeObject(serverStateMsg);
+            logger.Info($"Send: {msg}");
+            
             var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
             link.Send(bytes);
         };

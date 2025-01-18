@@ -36,7 +36,7 @@ namespace Shared.Tp.Rtc
             _log.Info($"result: {offer}");
 
             _linkId = offer.LinkId;
-            _log.AddCategorySuffix($"-{_linkId}");
+            _log.AddCategorySuffix($" <{_linkId}>");
             _linkToken = offer.LinkToken;
 
             return offer.SdpInit.Json;

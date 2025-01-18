@@ -1,7 +1,6 @@
 #if !UNITY_5_6_OR_NEWER
 using System;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -37,7 +36,7 @@ namespace Shared.Tp.Rtc.Sip
             _linkToken = linkToken;
             
             _service = service;
-            _logger = new SipIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), linkId.ToString());
+            _logger = new SipLinkLogger(loggerFactory.CreateLogger<SipRtcLink>(), linkId.ToString());
             _logger.Info(".");
         }
 
@@ -94,8 +93,10 @@ namespace Shared.Tp.Rtc.Sip
             };
             channel.onmessage += (_, _, data) =>
             {
-                var str = Encoding.UTF8.GetString(data);
-                _logger.Info($"DataChannel: onmessage: {str}");
+                // //TODO: with diagnostics flags
+                // var str = Encoding.UTF8.GetString(data);
+                // _logger.Info($"DataChannel: onmessage: {str}");
+
                 Receiver?.Received(this, data);
             };
             channel.onclose += () =>
@@ -189,9 +190,9 @@ namespace Shared.Tp.Rtc.Sip
                 return;
             }
 
-            //TODO: add diagnostics flags
-            var content = Encoding.UTF8.GetString(bytes);
-            _logger.Info($"[{bytes.Length}]: {content}");
+            // //TODO: with diagnostics flags
+            // var content = Encoding.UTF8.GetString(bytes);
+            // _logger.Info($"[{bytes.Length}]: {content}");
 
             _dataChannel?.send(bytes);
         }
