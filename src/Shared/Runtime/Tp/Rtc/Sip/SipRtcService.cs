@@ -23,8 +23,7 @@ namespace Shared.Tp.Rtc.Sip
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<SipRtcService> _logger;
 
-        //TODO: replace ID with number because now it's not specific client ID but just token 
-        private readonly ConcurrentDictionary<string, SipRtcLink> _links = new();
+        private readonly ConcurrentDictionary<string, SipRtcLink> _links = new(); // token->link
 
         /// <summary>
         /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation 
@@ -46,11 +45,12 @@ namespace Shared.Tp.Rtc.Sip
 
         async ValueTask<RtcOffer> IRtcService.GetOffer(CancellationToken cancellationToken)
         {
-            var id = Interlocked.Increment(ref _globalLinkCounter).ToString();
+            var id = Interlocked.Increment(ref _globalLinkCounter);
+            var token = $"{id}:{Guid.NewGuid().ToString()}";
 
             _logger.Info($"creating new link for id={id}");
-            var link = new SipRtcLink(id, this, _loggerFactory);
-            _links.TryAdd(id, link);
+            var link = new SipRtcLink(id, token, this, _loggerFactory);
+            _links.TryAdd(token, link);
 
             //TODO: mv RTCConfiguration to .ctr and appsettings.json
             var configuration = new RTCConfiguration
@@ -66,18 +66,19 @@ namespace Shared.Tp.Rtc.Sip
             return new()
             {
                 LinkId = id,
-                SdpInitJson = sdpInit.toJSON()
+                LinkToken = token,
+                SdpInit = new(sdpInit.toJSON())
             };
         }
 
-        async ValueTask<string> IRtcService.SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
+        async ValueTask<string> IRtcService.SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
         {
+            if (!_links.TryGetValue(token, out var link))
+                throw new InvalidOperationException($"SetAnswer: link not found for token: {token}");
+
             //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
             if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
-                throw new InvalidOperationException($"SetAnswer: body must contain SDP answer for id: {id}");
-
-            if (!_links.TryGetValue(id, out var link))
-                throw new InvalidOperationException($"SetAnswer: peer id not found: {id}");
+                throw new InvalidOperationException($"SetAnswer: answer must contain SDP for link id: {link.LinkId}");
 
             var candidates = await link.SetAnswer(answer, cancellationToken);
 
@@ -86,21 +87,21 @@ namespace Shared.Tp.Rtc.Sip
                 .Select(candidate => candidate.toJSON())
                 .ToArray()
                 .ToJson();
-            _logger.Info($"result for id={id}: {candidatesListJson}");
+            _logger.Info($"result for id={link.LinkId}: {candidatesListJson}");
             return candidatesListJson;
         }
 
-        ValueTask IRtcService.AddIceCandidates(string id, string candidatesJson, CancellationToken cancellationToken)
+        ValueTask IRtcService.AddIceCandidates(string token, string candidatesJson, CancellationToken cancellationToken)
         {
             //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
             var candidates = candidatesJson.FromJson<RTCIceCandidateInit[]>();
-            if (!_links.TryGetValue(id, out var link))
-                throw new InvalidOperationException($"AddIceCandidates: peer id not found: {id}");
+            if (!_links.TryGetValue(token, out var link))
+                throw new InvalidOperationException($"AddIceCandidates: link not found for token: {token}");
 
             return link.AddIceCandidates(candidates, cancellationToken);
         }
 
-        internal void RemoveLink(string id) => _links.TryRemove(id, out _);
+        internal void RemoveLink(string token) => _links.TryRemove(token, out _);
 
         internal void StartLinkLogic(SipRtcLink link)
         {

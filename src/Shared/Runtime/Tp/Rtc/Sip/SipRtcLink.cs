@@ -17,7 +17,9 @@ namespace Shared.Tp.Rtc.Sip
 
         internal ITpReceiver? Receiver { get; set; }
 
-        private readonly string _remotePeerId;
+        public int LinkId { get; }
+        private readonly string _linkToken;
+
         private readonly SipRtcService _service;
         
         private RTCPeerConnection? _peerConnection;
@@ -26,13 +28,16 @@ namespace Shared.Tp.Rtc.Sip
         private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
 
         public SipRtcLink(
-            string remotePeerId,
+            int linkId,
+            string linkToken,
             SipRtcService service,
             ILoggerFactory loggerFactory)
         {
-            _remotePeerId = remotePeerId;
+            LinkId = linkId;
+            _linkToken = linkToken;
+            
             _service = service;
-            _logger = new SipIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), remotePeerId);
+            _logger = new SipIdLogger(loggerFactory.CreateLogger<SipRtcLink>(), linkId.ToString());
             _logger.Info(".");
         }
 
@@ -126,7 +131,7 @@ namespace Shared.Tp.Rtc.Sip
         void IDisposable.Dispose()
         {
             Close("dispose");
-            _service.RemoveLink(_remotePeerId);
+            _service.RemoveLink(_linkToken);
         }
 
         public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description, CancellationToken cancellationToken)
@@ -160,7 +165,7 @@ namespace Shared.Tp.Rtc.Sip
             return default;
         }
 
-        string ITpLink.GetRemotePeerId() => _remotePeerId;
+        string ITpLink.GetRemotePeerId() => _linkToken; //TODO: think maybe _linkId is better for it
 
         void ITpLink.Send(byte[] bytes)
         {

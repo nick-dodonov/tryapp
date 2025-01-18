@@ -56,18 +56,18 @@ namespace Shared.Meta.Client
             return result;
         }
 
-        public async ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken)
+        public async ValueTask<string> SetAnswer(string token, string answer, CancellationToken cancellationToken)
         {
-            var uri = $"api/setanswer?id={id}";
+            var uri = $"api/setanswer?token={token}";
             _logger.Info($"{_client.BaseAddress}{uri}");
             using var response = await _client.PostAsync(uri, answer, cancellationToken);
             response.EnsureSuccessStatusCode();
             return await response.Content.ReadAsStringAsync();
         }
 
-        public async ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
+        public async ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken)
         {
-            var uri = $"api/addicecandidates?id={id}";
+            var uri = $"api/addicecandidates?token={token}";
             _logger.Info($"{_client.BaseAddress}{uri}");
             using var response = await _client.PostAsync(uri, candidates, cancellationToken);
             response.EnsureSuccessStatusCode();

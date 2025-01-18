@@ -9,12 +9,13 @@ namespace Shared.Tp.Rtc
     /// </summary>
     public abstract class BaseRtcLink : ITpLink
     {
-        private readonly Slog.Area _log = new();
+        private readonly Slog.Area _log;
 
         private readonly IRtcService _service;
         private readonly ITpReceiver _receiver;
 
-        private string? _linkId; // null until offer is not obtained
+        private int _linkId = -1; // -1 until offer is not obtained
+        private string? _linkToken; // null until offer is not obtained
         
         public abstract void Dispose();
         public abstract string GetRemotePeerId();
@@ -22,6 +23,8 @@ namespace Shared.Tp.Rtc
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
+            _log = new(GetType().Name);
+            
             _service = service;
             _receiver = receiver;
         }
@@ -34,14 +37,15 @@ namespace Shared.Tp.Rtc
 
             _linkId = offer.LinkId;
             _log.AddCategorySuffix($"-{_linkId}");
+            _linkToken = offer.LinkToken;
 
-            return offer.SdpInitJson;
+            return offer.SdpInit.Json;
         }
 
         protected async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {answerJson}");
-            var candidatesListJson = await _service.SetAnswer(_linkId!, answerJson, cancellationToken);
+            var candidatesListJson = await _service.SetAnswer(_linkToken!, answerJson, cancellationToken);
             _log.Info($"result: {candidatesListJson}");
             return candidatesListJson;
         }
@@ -49,7 +53,7 @@ namespace Shared.Tp.Rtc
         protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {candidatesJson}");
-            await _service.AddIceCandidates(_linkId!, candidatesJson, cancellationToken);
+            await _service.AddIceCandidates(_linkToken!, candidatesJson, cancellationToken);
             _log.Info("complete");
         }
 

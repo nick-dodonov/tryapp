@@ -21,23 +21,20 @@ public sealed class ApiController(IMeta meta)
 
     [HttpPost]
     [Route("setanswer")]
-    public async ValueTask<string> SetAnswer(string id, CancellationToken cancellationToken)
+    // public ValueTask<string> SetAnswer(string token, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken)
+    public async ValueTask<string> SetAnswer(string token, CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(HttpContext.Request.Body);
         var answerJson = await reader.ReadToEndAsync(cancellationToken);
-        return await meta.SetAnswer(id, answerJson, cancellationToken);
+        return await meta.SetAnswer(token, answerJson, cancellationToken);
     }
-    // [HttpPost]
-    // [Route("setanswer-TODO")]
-    // public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
-    //     => rtcService.SetAnswer(id, answer, cancellationToken);
     
     [HttpPost]
     [Route("addicecandidates")]
-    public async ValueTask AddIceCandidates(string id, CancellationToken cancellationToken)
+    public async ValueTask AddIceCandidates(string token, CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(HttpContext.Request.Body);
         var candidatesJson = await reader.ReadToEndAsync(cancellationToken);
-        await meta.AddIceCandidates(id, candidatesJson, cancellationToken);
+        await meta.AddIceCandidates(token, candidatesJson, cancellationToken);
     }
 }

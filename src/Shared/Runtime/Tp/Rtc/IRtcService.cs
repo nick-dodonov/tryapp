@@ -11,20 +11,35 @@ namespace Shared.Tp.Rtc
     {
         //TODO: shared RTC types for SDP (offer, answer) and ICE candidates
         public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken);
-        public ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken);
-        public ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken);
+        public ValueTask<string> SetAnswer(string token, string answer, CancellationToken cancellationToken);
+        public ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken);
     }
-    
+
+    [Serializable]
+    public struct RtcSdpInit
+    {
+        //TODO: can be replaced with type / sdp
+        public string Json;
+
+        public RtcSdpInit(string json)
+        {
+            Json = json;
+        }
+    }
+
     [Serializable]
     public struct RtcOffer
     {
-        public string LinkId; //TODO: possibly we can use ice-ufrag from RTCSessionDescriptionInit in sdp
-        public string SdpInitJson;
+        public int LinkId;
+        public string LinkToken;
 
-        public RtcOffer(string linkId, string sdpInitJson)
+        public RtcSdpInit SdpInit;
+
+        public RtcOffer(int linkId, string linkToken, in RtcSdpInit sdpInit)
         {
             LinkId = linkId;
-            SdpInitJson = sdpInitJson;
+            LinkToken = linkToken;
+            SdpInit = sdpInit;
         }
     }
 }
