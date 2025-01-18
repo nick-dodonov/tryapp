@@ -75,7 +75,7 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportAnswer(string answerJson)
         {
-            ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
+            ReportAnswer(new(answerJson), CancellationToken.None).ContinueWith(t =>
             {
                 var candidates = t.Result;
 

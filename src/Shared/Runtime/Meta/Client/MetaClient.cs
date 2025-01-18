@@ -47,23 +47,28 @@ namespace Shared.Meta.Client
         public async ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken)
         {
             var uri = "api/getoffer";
-            _logger.Info($"{_client.BaseAddress}{uri}");
+            _logger.Info($"GET: {_client.BaseAddress}{uri}");
+
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"response: {content}");
+
             var result = WebSerializer.DeserializeObject<RtcOffer>(content);
             return result;
         }
 
-        public async ValueTask<RtcIceCandidate[]> SetAnswer(string token, string answer, CancellationToken cancellationToken)
+        public async ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
             var uri = $"api/setanswer?token={token}";
-            _logger.Info($"{_client.BaseAddress}{uri}");
-            using var response = await _client.PostAsync(uri, answer, cancellationToken);
+            _logger.Info($"POST: {_client.BaseAddress}{uri}");
+
+            var answerJson = WebSerializer.SerializeObject(answer);
+            using var response = await _client.PostAsync(uri, answerJson, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"response: {content}");
+
             var result = WebSerializer.DeserializeObject<RtcIceCandidate[]>(content);
             return result;
         }
@@ -71,7 +76,8 @@ namespace Shared.Meta.Client
         public async ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken)
         {
             var uri = $"api/addicecandidates?token={token}";
-            _logger.Info($"{_client.BaseAddress}{uri}");
+            _logger.Info($"POST: {_client.BaseAddress}{uri}");
+
             using var response = await _client.PostAsync(uri, candidates, cancellationToken);
             response.EnsureSuccessStatusCode();
         }

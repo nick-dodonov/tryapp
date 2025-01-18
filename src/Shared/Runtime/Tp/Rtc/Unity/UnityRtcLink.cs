@@ -97,7 +97,7 @@ namespace Shared.Tp.Rtc.Unity
             
             // send answer to remote side and obtain remote ice candidates
             var answerJson = WebSerializer.SerializeObject(answer);
-            var candidates = await ReportAnswer(answerJson, cancellationToken);
+            var candidates = await ReportAnswer(new(answerJson), cancellationToken);
             
             // add remote ICE candidates
             foreach (var candidate in candidates)

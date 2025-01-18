@@ -70,16 +70,15 @@ namespace Shared.Tp.Rtc.Sip
             };
         }
 
-        async ValueTask<RtcIceCandidate[]> IRtcService.SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
+        async ValueTask<RtcIceCandidate[]> IRtcService.SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"SetAnswer: link not found for token: {token}");
 
-            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
-            if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
+            if (!RTCSessionDescriptionInit.TryParse(answer.Json, out var sipAnswer))
                 throw new InvalidOperationException($"SetAnswer: answer must contain SDP for link id: {link.LinkId}");
 
-            var sipCandidates = await link.SetAnswer(answer, cancellationToken);
+            var sipCandidates = await link.SetAnswer(sipAnswer, cancellationToken);
 
             var candidates = sipCandidates
                 .Select(candidate => new RtcIceCandidate(candidate.toJSON()))

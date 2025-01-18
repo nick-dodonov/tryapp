@@ -11,7 +11,7 @@ namespace Shared.Tp.Rtc
     {
         //TODO: shared RTC types for SDP (offer, answer) and ICE candidates
         public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken);
-        public ValueTask<RtcIceCandidate[]> SetAnswer(string token, string answer, CancellationToken cancellationToken);
+        public ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken);
         public ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken);
     }
 
