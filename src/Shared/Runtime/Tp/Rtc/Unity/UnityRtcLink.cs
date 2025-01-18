@@ -114,7 +114,7 @@ namespace Shared.Tp.Rtc.Unity
             }
             
             _log.Info("Awaiting data channel");
-            await _dataChannelTcs.Task; //TODO: implement System.Threading.Tasks WaitAsync that is introduced in .NET 6
+            await _dataChannelTcs.Task.WaitAsync(cancellationToken);
         }
 
         public override void Dispose()

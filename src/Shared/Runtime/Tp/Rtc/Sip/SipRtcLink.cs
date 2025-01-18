@@ -138,13 +138,7 @@ namespace Shared.Tp.Rtc.Sip
             _peerConnection.setRemoteDescription(description);
             
             _logger.Info("waiting ice candidates");
-            //TODO: shared WaitAsync to use code like
-            //  var candidates = await link.IceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
-            var task = _iceCollectCompleteTcs.Task;
-            var candidates = await Task.WhenAny(
-                task, Task.Delay(Timeout.Infinite, cancellationToken)) == task
-                ? task.Result
-                : throw new OperationCanceledException(cancellationToken);
+            var candidates = await _iceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
 
             _logger.Info($"result [{candidates.Count}] candidates");
             return candidates;
