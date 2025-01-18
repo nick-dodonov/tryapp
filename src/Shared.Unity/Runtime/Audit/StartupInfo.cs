@@ -2,7 +2,7 @@ using System.Text;
 using Shared.Log;
 using UnityEngine;
 
-namespace Diagnostics
+namespace Shared.Audit
 {
     public static class StartupInfo
     {
