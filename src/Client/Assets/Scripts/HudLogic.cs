@@ -2,6 +2,7 @@ using System;
 using System.Buffers;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
 using Diagnostics;
@@ -175,10 +176,10 @@ namespace Client
             }
         }
 
-        Task ISessionController.StartSession() => RtcStart();
+        Task ISessionController.StartSession(CancellationToken cancellationToken) => RtcStart(cancellationToken);
         void ISessionController.StopSession() => RtcStop();
 
-        private async Task RtcStart()
+        private async Task RtcStart(CancellationToken cancellationToken)
         {
             try
             {
@@ -190,7 +191,7 @@ namespace Client
                 _meta = CreateMetaClient();
                 _tpApi = RtcApiFactory.CreateApi(_meta);
                 var localPeerId = GetLocalPeerId();
-                _tpLink = await _tpApi.Connect(this, destroyCancellationToken);
+                _tpLink = await _tpApi.Connect(this, cancellationToken);
                 _updateSendFrame = 0;
 
                 clientTap.SetActive(true);
@@ -241,11 +242,7 @@ namespace Client
             _tpLink.Send(bytes);
         }
 
-        void ITpReceiver.Received(ITpLink link, byte[] bytes)
-        {
-            Debug.Assert(link == _tpLink);
-            RtcReceived(bytes);
-        }
+        void ITpReceiver.Received(ITpLink link, byte[] bytes) => RtcReceived(bytes);
         private void RtcReceived(byte[] data)
         {
             if (data == null)

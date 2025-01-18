@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
 using TMPro;
@@ -9,7 +10,7 @@ namespace Client.UI
 {
     public interface ISessionController
     {
-        Task StartSession();
+        Task StartSession(CancellationToken cancellationToken);
         void StopSession();
     }
     
@@ -27,9 +28,11 @@ namespace Client.UI
         {
             Stopped,
             Starting,
-            Started
+            Started,
+            CancellingStart
         }
         private State _state = State.Stopped;
+        
         public ISessionController Controller { get; set; }
 
         private void OnEnable()
@@ -39,8 +42,9 @@ namespace Client.UI
                 switch (_state)
                 {
                     case State.Stopped: StartSession(); break;
+                    case State.Starting: CancelStartingSession(); break;
                     case State.Started: StopSession(); break;
-                    case State.Starting:
+                    case State.CancellingStart:
                     default: 
                         throw new InvalidOperationException("must not be interactable");
                 }
@@ -53,6 +57,7 @@ namespace Client.UI
             ChangeState(State.Stopped);
         }
 
+        private CancellationTokenSource _startingTcs;
         private async void StartSession() //TODO: add FireAndForget for async Task 
         {
             try
@@ -60,7 +65,9 @@ namespace Client.UI
                 if (_state != State.Stopped) throw new InvalidOperationException($"invalid state: {_state}");
                 ChangeState(State.Starting);
 
-                await Controller.StartSession();
+                _startingTcs = new(); //TODO: Linked CTS with destroyCancellationToken
+                await Controller.StartSession(_startingTcs.Token);
+                _startingTcs.Token.ThrowIfCancellationRequested();
 
                 _log.Info("succeed");
                 ChangeState(State.Started);
@@ -70,6 +77,16 @@ namespace Client.UI
                 _log.Info($"failed: {e}");
                 ChangeState(State.Stopped);
             }
+            finally
+            {
+                _startingTcs?.Dispose();
+            }
+        }
+
+        private void CancelStartingSession()
+        {
+            if (_state != State.Starting) throw new InvalidOperationException($"invalid state: {_state}");
+            ChangeState(State.CancellingStart);
         }
 
         private void StopSession()
@@ -92,14 +109,19 @@ namespace Client.UI
                     actionButton.interactable = true;
                     break;
                 case State.Starting:
-                    actionText.text = "Starting...";
+                    actionText.text = "Cancel\nStarting...";
                     actionText.color = new Color32(180, 180, 0, 0xFF);
-                    actionButton.interactable = false;
+                    actionButton.interactable = true;
                     break;
                 case State.Started:
                     actionText.text = "Stop";
                     actionText.color = new Color32(180, 0, 0, 0xFF);
                     actionButton.interactable = true;
+                    break;
+                case State.CancellingStart:
+                    actionText.text = "Cancelling\nStart...";
+                    actionText.color = new Color32(180, 180, 0, 0xFF);
+                    actionButton.interactable = false;
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
