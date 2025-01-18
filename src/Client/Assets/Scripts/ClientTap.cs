@@ -22,6 +22,11 @@ namespace Client
 
         private void OnEnable()
         {
+            var rect = Screen.safeArea;
+            transform.position = new(
+                Random.Range(rect.xMin, rect.xMax),
+                Random.Range(rect.yMin, rect.yMax));
+
             //make random color distinctive with outline (never pure white or too dark) 
             var color = Random.ColorHSV(
                 0.0f, 1.0f, //hue (color)
@@ -50,6 +55,7 @@ namespace Client
         }
 
         public void SetActive(bool active) => gameObject.SetActive(active);
+
         public void Fill(ref ClientState state)
         {
             var position = transform.position;
