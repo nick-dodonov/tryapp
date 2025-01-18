@@ -7,4 +7,10 @@
         <RootNamespace>Shared</RootNamespace>
     </PropertyGroup>
 
+    <ItemGroup>
+        <AssemblyAttribute Include="BuildInfoAttribute">
+            <_Parameter1>$([System.DateTime]::Now.ToString(O))</_Parameter1>
+        </AssemblyAttribute>
+    </ItemGroup>
+
 </Project>
