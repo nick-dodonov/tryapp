@@ -42,12 +42,12 @@ namespace Shared.Tp.Rtc
             return offer.SdpInit.Json;
         }
 
-        protected async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
+        protected async Task<RtcIceCandidate[]> ReportAnswer(string answerJson, CancellationToken cancellationToken)
         {
             _log.Info($"request: {answerJson}");
-            var candidatesListJson = await _service.SetAnswer(_linkToken!, answerJson, cancellationToken);
-            _log.Info($"result: {candidatesListJson}");
-            return candidatesListJson;
+            var candidates = await _service.SetAnswer(_linkToken!, answerJson, cancellationToken);
+            _log.Info($"result: {candidates}");
+            return candidates;
         }
 
         protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)

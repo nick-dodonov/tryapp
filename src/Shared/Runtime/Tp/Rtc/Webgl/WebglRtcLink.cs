@@ -1,11 +1,13 @@
 #if UNITY_5_6_OR_NEWER
 using System;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
+using Shared.Web;
 
 namespace Shared.Tp.Rtc.Webgl
 {
@@ -75,9 +77,14 @@ namespace Shared.Tp.Rtc.Webgl
         {
             ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
             {
-                var candidatesListJson = t.Result; 
+                var candidates = t.Result;
+
+                //TODO: replace with RtcAddIceCandidate
+                var candidatesListJson = WebSerializer.SerializeObject(candidates.Select(x => x.Json).ToArray());
+                
                 //TODO: handle connection error
                 _log.Info($"ReportAnswer: {candidatesListJson}");
+                
                 WebglRtcNative.RtcSetAnswerResult(_nativeHandle, candidatesListJson);
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }

@@ -62,7 +62,6 @@ namespace Shared.Tp.Rtc.Sip
             };
             var sdpInit = await link.Init(configuration, _portRange);
 
-            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
             return new()
             {
                 LinkId = id,
@@ -71,7 +70,7 @@ namespace Shared.Tp.Rtc.Sip
             };
         }
 
-        async ValueTask<string> IRtcService.SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
+        async ValueTask<RtcIceCandidate[]> IRtcService.SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
         {
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"SetAnswer: link not found for token: {token}");
@@ -80,15 +79,13 @@ namespace Shared.Tp.Rtc.Sip
             if (!RTCSessionDescriptionInit.TryParse(answerJson, out var answer))
                 throw new InvalidOperationException($"SetAnswer: answer must contain SDP for link id: {link.LinkId}");
 
-            var candidates = await link.SetAnswer(answer, cancellationToken);
+            var sipCandidates = await link.SetAnswer(answer, cancellationToken);
 
-            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
-            var candidatesListJson = candidates
-                .Select(candidate => candidate.toJSON())
-                .ToArray()
-                .ToJson();
-            _logger.Info($"result for id={link.LinkId}: {candidatesListJson}");
-            return candidatesListJson;
+            var candidates = sipCandidates
+                .Select(candidate => new RtcIceCandidate(candidate.toJSON()))
+                .ToArray();
+            _logger.Info($"result for id={link.LinkId}: [{candidates.Length}] candidates");
+            return candidates;
         }
 
         ValueTask IRtcService.AddIceCandidates(string token, string candidatesJson, CancellationToken cancellationToken)

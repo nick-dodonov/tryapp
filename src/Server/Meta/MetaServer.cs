@@ -34,7 +34,7 @@ public sealed class MetaServer(IRtcService rtcService, ILogger<MetaServer> logge
     public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken) 
         => rtcService.GetOffer(cancellationToken);
 
-    public ValueTask<string> SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
+    public ValueTask<RtcIceCandidate[]> SetAnswer(string token, string answerJson, CancellationToken cancellationToken)
         => rtcService.SetAnswer(token, answerJson, cancellationToken);
 
     public ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken)

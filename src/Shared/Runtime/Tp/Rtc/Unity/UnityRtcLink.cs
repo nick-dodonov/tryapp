@@ -97,18 +97,17 @@ namespace Shared.Tp.Rtc.Unity
             
             // send answer to remote side and obtain remote ice candidates
             var answerJson = WebSerializer.SerializeObject(answer);
-            var candidatesListJson = await ReportAnswer(answerJson, cancellationToken);
+            var candidates = await ReportAnswer(answerJson, cancellationToken);
             
             // add remote ICE candidates
-            var candidatesList = WebSerializer.DeserializeObject<string[]>(candidatesListJson);
-            foreach (var candidateJson in candidatesList)
+            foreach (var candidate in candidates)
             {
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
-                var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidateJson);
+                var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidate.Json);
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
-                var candidate = new RTCIceCandidate(candidateInit);
-                _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
-                var rc = _peerConnection.AddIceCandidate(candidate);
+                var unityCandidate = new RTCIceCandidate(candidateInit);
+                _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(unityCandidate)}");
+                var rc = _peerConnection.AddIceCandidate(unityCandidate);
                 if (!rc) 
                     _log.Error("AddIceCandidate: FAILED");
             }

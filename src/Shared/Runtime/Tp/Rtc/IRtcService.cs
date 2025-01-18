@@ -11,20 +11,8 @@ namespace Shared.Tp.Rtc
     {
         //TODO: shared RTC types for SDP (offer, answer) and ICE candidates
         public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken);
-        public ValueTask<string> SetAnswer(string token, string answer, CancellationToken cancellationToken);
+        public ValueTask<RtcIceCandidate[]> SetAnswer(string token, string answer, CancellationToken cancellationToken);
         public ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken);
-    }
-
-    [Serializable]
-    public struct RtcSdpInit
-    {
-        //TODO: can be replaced with type / sdp
-        public string Json;
-
-        public RtcSdpInit(string json)
-        {
-            Json = json;
-        }
     }
 
     [Serializable]
@@ -40,6 +28,28 @@ namespace Shared.Tp.Rtc
             LinkId = linkId;
             LinkToken = linkToken;
             SdpInit = sdpInit;
+        }
+    }
+
+    [Serializable]
+    public struct RtcSdpInit
+    {
+        //TODO: can be replaced with type / sdp
+        public string Json;
+        public RtcSdpInit(string json)
+        {
+            Json = json;
+        }
+    }
+
+    [Serializable]
+    public struct RtcIceCandidate
+    {
+        //TODO: can be replaced with candidate / sdpM* fields / another optional data
+        public string Json;
+        public RtcIceCandidate(string json)
+        {
+            Json = json;
         }
     }
 }

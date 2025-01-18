@@ -22,7 +22,7 @@ public sealed class ApiController(IMeta meta)
     [HttpPost]
     [Route("setanswer")]
     // public ValueTask<string> SetAnswer(string token, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken)
-    public async ValueTask<string> SetAnswer(string token, CancellationToken cancellationToken)
+    public async ValueTask<RtcIceCandidate[]> SetAnswer(string token, CancellationToken cancellationToken)
     {
         using var reader = new StreamReader(HttpContext.Request.Body);
         var answerJson = await reader.ReadToEndAsync(cancellationToken);
