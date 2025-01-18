@@ -52,7 +52,7 @@ namespace Shared.Meta.Client
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            _logger.Info($"response: {content}");
+            _logger.Info($"RET: {content}");
 
             var result = WebSerializer.DeserializeObject<RtcOffer>(content);
             return result;
@@ -67,7 +67,7 @@ namespace Shared.Meta.Client
             using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
-            _logger.Info($"response: {content}");
+            _logger.Info($"RET: {content}");
 
             var result = WebSerializer.DeserializeObject<RtcIceCandidate[]>(content);
             return result;
@@ -81,6 +81,7 @@ namespace Shared.Meta.Client
             var json = WebSerializer.SerializeObject(candidates);
             using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
+            _logger.Info("OK");
         }
     }
 }

@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using Shared.Log;
 using Shared.Web;
 using Unity.WebRTC;
 
@@ -14,8 +13,6 @@ namespace Shared.Tp.Rtc.Unity
 {
     public class UnityRtcLink : BaseRtcLink
     {
-        private static readonly Slog.Area _log = new();
-        
         private RTCPeerConnection? _peerConnection;
         private RTCDataChannel? _dataChannel;
         private readonly List<RTCIceCandidateInit> _iceCandidates = new();
@@ -30,7 +27,7 @@ namespace Shared.Tp.Rtc.Unity
         {
             var offerStr = await ObtainOffer(cancellationToken);
             var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
-            _log.Info($"{UnityRtcDebug.Describe(offer)}");
+            _log.Info($"request: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
@@ -91,11 +88,11 @@ namespace Shared.Tp.Rtc.Unity
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
-            _log.Info("Creating answer");
+            _log.Info("creating answer");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            _log.Info($"Created answer: {UnityRtcDebug.Describe(answer)}");
+            _log.Info($"created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates

@@ -13,8 +13,6 @@ namespace Shared.Tp.Rtc.Webgl
 {
     public class WebglRtcLink : BaseRtcLink
     {
-        private static readonly Slog.Area _log = new();
-
         //pin managed object as pointer in native implementation (speedup managed object association within callbacks)
         private GCHandle _managedHandle;
         private readonly IntPtr _managedPtr;
@@ -65,7 +63,7 @@ namespace Shared.Tp.Rtc.Webgl
             if (handle.IsAllocated)
                 return (WebglRtcLink)handle.Target;
 
-            _log.Error($"GetLink failed managedPtr={managedPtr}", member: member);
+            Slog.Error($"GetLink failed managedPtr={managedPtr}", member: member);
             return null;
         }
         
@@ -109,9 +107,9 @@ namespace Shared.Tp.Rtc.Webgl
         public static void ConnectCompleteCallback(IntPtr managedPtr, string? error)
         {
             if (error != null)
-                _log.Error($"failure: managedPtr={managedPtr}: {error}");
+                Slog.Error($"failure: managedPtr={managedPtr}: {error}");
             else
-                _log.Info($"success: managedPtr={managedPtr}");
+                Slog.Info($"success: managedPtr={managedPtr}");
             //TODO: add Task await on connect
         }
 

@@ -29,6 +29,8 @@ namespace Shared.Tp.Rtc
             LinkToken = linkToken;
             SdpInit = sdpInit;
         }
+
+        public override string ToString() => $"{nameof(RtcOffer)}({LinkId} '{LinkToken}' {SdpInit})";
     }
 
     [Serializable]
@@ -40,6 +42,8 @@ namespace Shared.Tp.Rtc
         {
             Json = json;
         }
+        
+        public override string ToString() => $"{nameof(RtcSdpInit)}({Json})";
     }
 
     [Serializable]
@@ -51,5 +55,7 @@ namespace Shared.Tp.Rtc
         {
             Json = json;
         }
+        
+        public override string ToString() => $"{nameof(RtcIceCandidate)}({Json})";
     }
 }

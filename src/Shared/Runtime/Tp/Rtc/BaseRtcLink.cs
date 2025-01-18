@@ -9,7 +9,7 @@ namespace Shared.Tp.Rtc
     /// </summary>
     public abstract class BaseRtcLink : ITpLink
     {
-        private readonly Slog.Area _log;
+        protected readonly Slog.Area _log;
 
         private readonly IRtcService _service;
         private readonly ITpReceiver _receiver;
