@@ -1,7 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Shared.Meta.Api;
 using Shared.Tp.Rtc;
-using Shared.Web;
 
 namespace server.Controllers;
 
@@ -9,6 +8,7 @@ namespace server.Controllers;
 [Route("[controller]")]
 public sealed class ApiController(IMeta meta) 
     : ControllerBase
+    , IRtcService
 {
     public void Dispose() { }
 
@@ -30,10 +30,6 @@ public sealed class ApiController(IMeta meta)
 
     [HttpPost]
     [Route("addicecandidates")]
-    public async ValueTask AddIceCandidates(string token, CancellationToken cancellationToken)
-    {
-        using var reader = new StreamReader(HttpContext.Request.Body);
-        var candidatesJson = await reader.ReadToEndAsync(cancellationToken);
-        await meta.AddIceCandidates(token, candidatesJson, cancellationToken);
-    }
+    public ValueTask AddIceCandidates(string token, [FromBody] RtcIceCandidate[] candidates, CancellationToken cancellationToken) =>
+        meta.AddIceCandidates(token, candidates, cancellationToken);
 }

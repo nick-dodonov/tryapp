@@ -87,14 +87,16 @@ namespace Shared.Tp.Rtc.Sip
             return candidates;
         }
 
-        ValueTask IRtcService.AddIceCandidates(string token, string candidatesJson, CancellationToken cancellationToken)
+        ValueTask IRtcService.AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
         {
-            //TODO: current http-signal protocol part will be removed when shared RTC structs will appear
-            var candidates = candidatesJson.FromJson<RTCIceCandidateInit[]>();
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"AddIceCandidates: link not found for token: {token}");
 
-            return link.AddIceCandidates(candidates, cancellationToken);
+            var sipCandidates = candidates
+                .Select(x => x.Json.FromJson<RTCIceCandidateInit>())
+                .ToArray();
+            
+            return link.AddIceCandidates(sipCandidates, cancellationToken);
         }
 
         internal void RemoveLink(string token) => _links.TryRemove(token, out _);

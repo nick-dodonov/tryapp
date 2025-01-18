@@ -63,8 +63,8 @@ namespace Shared.Meta.Client
             var uri = $"api/setanswer?token={token}";
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
-            var answerJson = WebSerializer.SerializeObject(answer);
-            using var response = await _client.PostAsync(uri, answerJson, cancellationToken);
+            var json = WebSerializer.SerializeObject(answer);
+            using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"response: {content}");
@@ -73,12 +73,13 @@ namespace Shared.Meta.Client
             return result;
         }
 
-        public async ValueTask AddIceCandidates(string token, string candidates, CancellationToken cancellationToken)
+        public async ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
         {
             var uri = $"api/addicecandidates?token={token}";
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
-            using var response = await _client.PostAsync(uri, candidates, cancellationToken);
+            var json = WebSerializer.SerializeObject(candidates);
+            using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
         }
     }

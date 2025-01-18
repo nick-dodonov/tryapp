@@ -50,10 +50,10 @@ namespace Shared.Tp.Rtc
             return candidates;
         }
 
-        protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
+        protected async Task ReportIceCandidates(RtcIceCandidate[] candidates, CancellationToken cancellationToken)
         {
-            _log.Info($"request: {candidatesJson}");
-            await _service.AddIceCandidates(_linkToken!, candidatesJson, cancellationToken);
+            _log.Info($"request: {candidates}");
+            await _service.AddIceCandidates(_linkToken!, candidates, cancellationToken);
             _log.Info("complete");
         }
 

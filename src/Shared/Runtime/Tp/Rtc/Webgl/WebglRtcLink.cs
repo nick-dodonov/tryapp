@@ -95,7 +95,9 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportIceCandidates(string candidatesJson)
         {
-            ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
+            var candidateJsons = WebSerializer.DeserializeObject<string[]>(candidatesJson);
+            var candidates = candidateJsons.Select(x => new RtcIceCandidate(x)).ToArray();
+            ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
             {
                 var status = t.Status;
                 //TODO: handle connection error

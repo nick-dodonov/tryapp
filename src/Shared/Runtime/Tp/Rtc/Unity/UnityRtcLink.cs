@@ -2,6 +2,7 @@
 #if UNITY_EDITOR || !UNITY_WEBGL
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -50,8 +51,10 @@ namespace Shared.Tp.Rtc.Unity
                     _log.Info($"OnIceGatheringStateChange: {state}");
                     if (state == RTCIceGatheringState.Complete)
                     {
-                        var candidatesJson = WebSerializer.SerializeObject(_iceCandidates);
-                        await ReportIceCandidates(candidatesJson, cancellationToken);
+                        var candidates = _iceCandidates
+                            .Select(x => new RtcIceCandidate(WebSerializer.SerializeObject(x)))
+                            .ToArray();
+                        await ReportIceCandidates(candidates, cancellationToken);
                     }
                 }
                 catch (Exception ex)
