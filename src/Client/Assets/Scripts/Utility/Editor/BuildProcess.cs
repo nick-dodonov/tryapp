@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using Shared.Log;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -8,6 +9,8 @@ namespace Client.Utility.Editor
 {
     public class BuildProcess : IPreprocessBuildWithReport
     {
+        private static readonly Slog.Area _log = new();
+        
         [InitializeOnLoadMethod]
         private static void InitOnLoad()
         {
@@ -17,8 +20,8 @@ namespace Client.Utility.Editor
         private static void OnBuildPlayer(BuildPlayerOptions options)
         {
             var buildOptions = options.options;
-            Debug.Log($"BuildProcess: OnBuildPlayer: {buildOptions}");
-            
+            _log.Info($"{buildOptions}");
+
             // replace default webgl build hosting service
             //  there is the issue with WebRTC usage because of several response headers miss 
             var autoRun = (buildOptions & BuildOptions.AutoRunPlayer) != 0;
@@ -32,7 +35,7 @@ namespace Client.Utility.Editor
             {
                 //TODO: different browsers or hosting variants / start hosting / etc
                 const string url = "http://localhost:5500/build/WebGL/local/index.html";
-                Debug.Log($"BuildProcess: OnBuildPlayer: just open browser (VSCode Five Server hosting): {url}");
+                _log.Info($"opening browser (VSCode 'Five Server' hosting): {url}");
                 var process = new Process();
                 process.StartInfo.FileName = url;
                 process.Start();
@@ -42,7 +45,11 @@ namespace Client.Utility.Editor
         int IOrderedCallback.callbackOrder => 0;
         void IPreprocessBuildWithReport.OnPreprocessBuild(BuildReport report)
         {
-            Debug.Log($"BuildProcess: OnPreprocessBuild: {report.summary.outputPath}");
+            var summary = report.summary;
+            _log.Info(@$"{summary.outputPath}
+platform: {summary.platform}
+buildType: {summary.buildType} 
+options: ""{summary.options}""");
         }
     }
 }
