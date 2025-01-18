@@ -2,11 +2,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
-using Shared.Meta.Api;
 using Shared.Tp.Rtc;
 using Shared.Web;
 
-namespace Shared.Meta.Client
+namespace Common.Meta
 {
     public class MetaClient : IMeta
     {

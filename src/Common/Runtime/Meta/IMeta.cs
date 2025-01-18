@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Shared.Tp.Rtc;
 
-namespace Shared.Meta.Api
+namespace Common.Meta
 {
     public interface IMeta : IDisposable
     {

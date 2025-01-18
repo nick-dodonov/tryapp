@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Client.Diagnostics.Debug;
 using Shared.Log;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Scripting;
 using UnityEngine.UI;
-using Assembly = System.Reflection.Assembly;
 
-namespace Client.Diagnostics.Debug
+namespace Diagnostics.Debug
 {
     /// <summary>
     /// TODO: possibly replace with thirdparty
