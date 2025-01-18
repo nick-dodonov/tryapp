@@ -65,7 +65,7 @@ namespace Shared.Tp.Rtc.Sip
             {
                 LinkId = id,
                 LinkToken = token,
-                SdpInit = new(sdpInit.toJSON())
+                SdpInit = sdpInit.ToShared()
             };
         }
 
@@ -74,14 +74,12 @@ namespace Shared.Tp.Rtc.Sip
             if (!_links.TryGetValue(token, out var link))
                 throw new InvalidOperationException($"SetAnswer: link not found for token: {token}");
 
-            if (!RTCSessionDescriptionInit.TryParse(answer.Json, out var sipAnswer))
-                throw new InvalidOperationException($"SetAnswer: answer must contain SDP for link id: {link.LinkId}");
-
+            var sipAnswer = answer.FromShared();
             var sipCandidates = await link.SetAnswer(sipAnswer, cancellationToken);
-
             var candidates = sipCandidates
                 .Select(x => x.ToShared())
                 .ToArray();
+
             _logger.Info($"result for id={link.LinkId}: [{candidates.Length}] candidates");
             return candidates;
         }

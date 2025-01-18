@@ -50,9 +50,9 @@ namespace Shared.Tp.Rtc.Webgl
 
         public async Task Connect(CancellationToken cancellationToken)
         {
-            var offerStr = await ObtainOffer(cancellationToken);
-            _log.Info("requesting");
-            _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offerStr);
+            _log.Info(".");
+            var offer = await ObtainOffer(cancellationToken);
+            _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offer.ToJson());
             _log.Info($"result nativeHandle={_nativeHandle}");
         }
 
@@ -72,15 +72,24 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportAnswer(string answerJson)
         {
-            ReportAnswer(new(answerJson), CancellationToken.None).ContinueWith(t =>
+            try
             {
-                //TODO: handle connection error
-                var candidates = t.Result;
-                
-                _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
-                foreach (var candidate in candidates)
-                    WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                _log.Info(answerJson);
+                var answerSdp = RtcSdpInit.FromJson(answerJson);
+                ReportAnswer(answerSdp, CancellationToken.None).ContinueWith(t =>
+                {
+                    //TODO: handle connection error
+                    var candidates = t.Result;
+                    
+                    _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
+                    foreach (var candidate in candidates)
+                        WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            catch (Exception e)
+            {
+                _log.Error($"{e}");
+            }
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]

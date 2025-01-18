@@ -37,14 +37,22 @@ namespace Shared.Tp.Rtc
     [Serializable]
     public struct RtcSdpInit
     {
-        //TODO: can be replaced with fields of RTCSessionDescriptionInit: type / sdp
-        public string Json;
-        public RtcSdpInit(string json)
-        {
-            Json = json;
-        }
+        // ReSharper disable UnusedMember.Global
+        public string type;
+        public string sdp;
+        // ReSharper restore UnusedMember.Global
         
-        public override string ToString() => $"{nameof(RtcSdpInit)}({Json})";
+        public override string ToString() => $"{nameof(RtcSdpInit)}({ToJson()})";
+        
+        private string? _json;
+        public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
+
+        public static RtcSdpInit FromJson(string json)
+        {
+            var result = WebSerializer.DeserializeObject<RtcSdpInit>(json);
+            result._json = json;
+            return result;
+        }
     }
 
     [Serializable]
