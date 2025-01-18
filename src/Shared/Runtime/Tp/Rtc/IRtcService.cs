@@ -1,5 +1,7 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Web;
 
 namespace Shared.Tp.Rtc
 {
@@ -9,8 +11,62 @@ namespace Shared.Tp.Rtc
     public interface IRtcService
     {
         //TODO: shared RTC types for SDP (offer, answer) and ICE candidates
-        public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken);
-        public ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken);
-        public ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken);
+        public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken);
+        public ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken);
+        public ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken);
+    }
+
+    [Serializable]
+    public struct RtcOffer
+    {
+        public int LinkId;
+        public string LinkToken;
+
+        public RtcSdpInit SdpInit;
+
+        public RtcOffer(int linkId, string linkToken, in RtcSdpInit sdpInit)
+        {
+            LinkId = linkId;
+            LinkToken = linkToken;
+            SdpInit = sdpInit;
+        }
+
+        public override string ToString() => $"{nameof(RtcOffer)}({LinkId} '{LinkToken}' {SdpInit})";
+    }
+
+    [Serializable]
+    public struct RtcSdpInit
+    {
+        //TODO: can be replaced with fields of RTCSessionDescriptionInit: type / sdp
+        public string Json;
+        public RtcSdpInit(string json)
+        {
+            Json = json;
+        }
+        
+        public override string ToString() => $"{nameof(RtcSdpInit)}({Json})";
+    }
+
+    [Serializable]
+    public struct RtcIceCandidate //TODO: rename to RtcIceCandidateInit
+    {
+        // ReSharper disable UnusedMember.Global
+        public string candidate;
+        public string sdpMid;
+        public ushort sdpMLineIndex;
+        public string usernameFragment;
+        // ReSharper restore UnusedMember.Global
+
+        public override string ToString() => $"{nameof(RtcIceCandidate)}({ToJson()})";
+
+        private string? _json;
+        public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
+
+        public static RtcIceCandidate FromJson(string json)
+        {
+            var result = WebSerializer.DeserializeObject<RtcIceCandidate>(json);
+            result._json = json;
+            return result;
+        }
     }
 }

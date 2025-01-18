@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Meta.Api;
+using Shared.Tp.Rtc;
 using Shared.Web;
 
 namespace Shared.Meta.Client
@@ -43,30 +44,44 @@ namespace Shared.Meta.Client
             // var result = await JsonSerializer.DeserializeAsync<ServerInfo>(contentStream, _serializerOptions, cancellationToken); //webgl-disabled:.ConfigureAwait(false);
         }
 
-        public async ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
+        public async ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken)
         {
-            var uri = $"api/getoffer?id={id}";
-            _logger.Info($"{_client.BaseAddress}{uri}");
+            var uri = "api/getoffer";
+            _logger.Info($"GET: {_client.BaseAddress}{uri}");
+
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.Info($"RET: {content}");
+
+            var result = WebSerializer.DeserializeObject<RtcOffer>(content);
+            return result;
         }
 
-        public async ValueTask<string> SetAnswer(string id, string answer, CancellationToken cancellationToken)
+        public async ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
         {
-            var uri = $"api/setanswer?id={id}";
-            _logger.Info($"{_client.BaseAddress}{uri}");
-            using var response = await _client.PostAsync(uri, answer, cancellationToken);
+            var uri = $"api/setanswer?token={token}";
+            _logger.Info($"POST: {_client.BaseAddress}{uri}");
+
+            var json = WebSerializer.SerializeObject(answer);
+            using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
-            return await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync();
+            _logger.Info($"RET: {content}");
+
+            var result = WebSerializer.DeserializeObject<RtcIceCandidate[]>(content);
+            return result;
         }
 
-        public async ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
+        public async ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
         {
-            var uri = $"api/addicecandidates?id={id}";
-            _logger.Info($"{_client.BaseAddress}{uri}");
-            using var response = await _client.PostAsync(uri, candidates, cancellationToken);
+            var uri = $"api/addicecandidates?token={token}";
+            _logger.Info($"POST: {_client.BaseAddress}{uri}");
+
+            var json = WebSerializer.SerializeObject(candidates);
+            using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
+            _logger.Info("OK");
         }
     }
 }

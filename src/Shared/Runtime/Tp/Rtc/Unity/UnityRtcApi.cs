@@ -1,5 +1,4 @@
-#if UNITY_5_6_OR_NEWER
-#if UNITY_EDITOR || !UNITY_WEBGL
+#if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -46,5 +45,4 @@ namespace Shared.Tp.Rtc.Unity
             => $"address={candidate.Address} port={candidate.Port} protocol={candidate.Protocol} candidate=\"{candidate.Candidate}\"";
     }
 }
-#endif
 #endif

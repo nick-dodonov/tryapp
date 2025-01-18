@@ -31,12 +31,12 @@ public sealed class MetaServer(IRtcService rtcService, ILogger<MetaServer> logge
         return new(result);
     }
 
-    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken) 
-        => rtcService.GetOffer(id, cancellationToken);
+    public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken) 
+        => rtcService.GetOffer(cancellationToken);
 
-    public ValueTask<string> SetAnswer(string id, string answerJson, CancellationToken cancellationToken)
-        => rtcService.SetAnswer(id, answerJson, cancellationToken);
+    public ValueTask<RtcIceCandidate[]> SetAnswer(string token, RtcSdpInit answer, CancellationToken cancellationToken)
+        => rtcService.SetAnswer(token, answer, cancellationToken);
 
-    public ValueTask AddIceCandidates(string id, string candidates, CancellationToken cancellationToken)
-        => rtcService.AddIceCandidates(id, candidates, cancellationToken);
+    public ValueTask AddIceCandidates(string token, RtcIceCandidate[] candidates, CancellationToken cancellationToken)
+        => rtcService.AddIceCandidates(token, candidates, cancellationToken);
 }

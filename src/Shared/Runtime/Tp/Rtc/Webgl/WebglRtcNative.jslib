@@ -8,7 +8,7 @@ const RtcApi = {
     },
     connectCandidatesCallback: null,
     CallConnectCandidates: function (managedPtr, candidates) {
-        console.log("RtcApi: CallCandidates:", managedPtr, candidates);
+        console.log("RtcApi: CallConnectCandidates:", managedPtr, candidates);
         const candidateJson = JSON.stringify(candidates)
         const ptr = stringToNewUTF8(candidateJson)
         {{{ makeDynCall('vii', 'RtcApi.connectCandidatesCallback') }}}(managedPtr, ptr)
@@ -152,23 +152,19 @@ function RtcConnect(managedPtr, offerPtr) {
     return nativeHandle;
 }
 
-function RtcSetAnswerResult(nativeHandle, candidatesJsonPtr) {
-    const candidatesJson = UTF8ToString(candidatesJsonPtr);
-    console.log("RtcSetAnswerResult:", nativeHandle, candidatesJson);
+function RtcAddIceCandidate(nativeHandle, candidateJsonPtr) {
+    const candidateJson = UTF8ToString(candidateJsonPtr);
+    console.log("RtcAddIceCandidate:", nativeHandle, candidateJson);
     const pc = RtcApi.GetPeer(nativeHandle);
     if (pc) {
-        const candidates = JSON.parse(candidatesJson);
-        for (let candidateJson of candidates) {
-            let candidateObj = JSON.parse(candidateJson);
-            let candidate = new RTCIceCandidate(candidateObj);
-            console.log("RtcSetAnswerResult:", nativeHandle, candidate);
-            pc.addIceCandidate(candidate).catch((e) => {
-                console.log("RtcSetAnswerResult: addIceCandidate: failed:", nativeHandle, candidate, e);
-            });
-        }
+        let candidate = new RTCIceCandidate(JSON.parse(candidateJson));
+        console.log("RtcAddIceCandidate:", nativeHandle, candidate);
+        pc.addIceCandidate(candidate).catch((e) => {
+            console.log("RtcAddIceCandidate: addIceCandidate: failed:", nativeHandle, candidate, e);
+        });
     } else {
         //TODO: to get rid of this warning if session is already closed make fetch('setanswer') cancellable via `AbortController`
-        console.warn("RtcSetAnswerResult: failed to find peer", nativeHandle);
+        console.warn("RtcAddIceCandidate: failed to find peer", nativeHandle);
     }
 }
 
@@ -203,7 +199,7 @@ const RtcApiLib = {
     $RtcApi: RtcApi,
     RtcInit,
     RtcConnect,
-    RtcSetAnswerResult,
+    RtcAddIceCandidate,
     RtcClose,
     RtcSend,
 };

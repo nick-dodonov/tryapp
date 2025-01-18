@@ -1,11 +1,10 @@
-#if UNITY_5_6_OR_NEWER
-#if UNITY_EDITOR || !UNITY_WEBGL
+#if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
-using Shared.Log;
 using Shared.Web;
 using Unity.WebRTC;
 
@@ -13,8 +12,6 @@ namespace Shared.Tp.Rtc.Unity
 {
     public class UnityRtcLink : BaseRtcLink
     {
-        private static readonly Slog.Area _log = new();
-        
         private RTCPeerConnection? _peerConnection;
         private RTCDataChannel? _dataChannel;
         private readonly List<RTCIceCandidateInit> _iceCandidates = new();
@@ -29,7 +26,7 @@ namespace Shared.Tp.Rtc.Unity
         {
             var offerStr = await ObtainOffer(cancellationToken);
             var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
-            _log.Info($"{UnityRtcDebug.Describe(offer)}");
+            _log.Info($"request: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
@@ -50,8 +47,10 @@ namespace Shared.Tp.Rtc.Unity
                     _log.Info($"OnIceGatheringStateChange: {state}");
                     if (state == RTCIceGatheringState.Complete)
                     {
-                        var candidatesJson = WebSerializer.SerializeObject(_iceCandidates);
-                        await ReportIceCandidates(candidatesJson, cancellationToken);
+                        var candidates = _iceCandidates
+                            .Select(x => x.ToShared())
+                            .ToArray();
+                        await ReportIceCandidates(candidates, cancellationToken);
                     }
                 }
                 catch (Exception ex)
@@ -88,33 +87,32 @@ namespace Shared.Tp.Rtc.Unity
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
-            _log.Info("Creating answer");
+            _log.Info("creating answer");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            _log.Info($"Created answer: {UnityRtcDebug.Describe(answer)}");
+            _log.Info($"created answer: {UnityRtcDebug.Describe(answer)}");
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates
             var answerJson = WebSerializer.SerializeObject(answer);
-            var candidatesListJson = await ReportAnswer(answerJson, cancellationToken);
+            var candidates = await ReportAnswer(new(answerJson), cancellationToken);
             
             // add remote ICE candidates
-            var candidatesList = WebSerializer.DeserializeObject<string[]>(candidatesListJson);
-            foreach (var candidateJson in candidatesList)
+            foreach (var candidate in candidates)
             {
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: json: {candidateJson}");
-                var candidateInit = WebSerializer.DeserializeObject<RTCIceCandidateInit>(candidateJson);
+                var unityCandidateInit = candidate.FromShared();
                 //Slog.Info($"UnityRtcLink: AddIceCandidate: init: {UnityRtcDebug.Describe(candidateInit)}");
-                var candidate = new RTCIceCandidate(candidateInit);
-                _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(candidate)}");
-                var rc = _peerConnection.AddIceCandidate(candidate);
+                var unityCandidate = new RTCIceCandidate(unityCandidateInit);
+                _log.Info($"AddIceCandidate: {UnityRtcDebug.Describe(unityCandidate)}");
+                var rc = _peerConnection.AddIceCandidate(unityCandidate);
                 if (!rc) 
                     _log.Error("AddIceCandidate: FAILED");
             }
             
             _log.Info("Awaiting data channel");
-            await _dataChannelTcs.Task; //TODO: implement System.Threading.Tasks WaitAsync that is introduced in .NET 6
+            await _dataChannelTcs.Task.WaitAsync(cancellationToken);
         }
 
         public override void Dispose()
@@ -124,6 +122,9 @@ namespace Shared.Tp.Rtc.Unity
             _peerConnection?.Dispose();
             _peerConnection = null;
         }
+
+        //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
+        public override string GetRemotePeerId() => throw new NotImplementedException();
 
         public override void Send(byte[] bytes)
         {
@@ -135,5 +136,4 @@ namespace Shared.Tp.Rtc.Unity
         }
     }
 }
-#endif
 #endif

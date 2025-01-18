@@ -31,6 +31,7 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpLink : IDisposable
     {
+        string GetRemotePeerId();
         void Send(byte[] bytes);
     }
 
@@ -41,6 +42,7 @@ namespace Shared.Tp
     {
         /// <summary>
         /// Client side
+        /// TODO: replace localPeerId with IPeerIdProvider passed to *Api impl
         /// </summary>
         Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken);
 

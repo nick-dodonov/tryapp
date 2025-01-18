@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Shared.Meta.Api;
+using Shared.Tp.Rtc;
 
 namespace server.Controllers;
 
@@ -7,36 +8,28 @@ namespace server.Controllers;
 [Route("[controller]")]
 public sealed class ApiController(IMeta meta) 
     : ControllerBase
+    , IRtcService
 {
     public void Dispose() { }
 
     [Route("info")]
-    public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) 
-        => meta.GetInfo(cancellationToken);
-    
+    public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) => 
+        meta.GetInfo(cancellationToken);
+
     [Route("getoffer")]
-    public ValueTask<string> GetOffer(string id, CancellationToken cancellationToken)
-        => meta.GetOffer(id, cancellationToken);
+    public ValueTask<RtcOffer> GetOffer(CancellationToken cancellationToken) => 
+        meta.GetOffer(cancellationToken);
 
     [HttpPost]
     [Route("setanswer")]
-    public async ValueTask<string> SetAnswer(string id, CancellationToken cancellationToken)
-    {
-        using var reader = new StreamReader(HttpContext.Request.Body);
-        var answerJson = await reader.ReadToEndAsync(cancellationToken);
-        return await meta.SetAnswer(id, answerJson, cancellationToken);
-    }
-    // [HttpPost]
-    // [Route("setanswer-TODO")]
-    // public ValueTask<string> SetAnswer(string id, [FromBody] RTCSessionDescriptionInit answer, CancellationToken cancellationToken) 
-    //     => rtcService.SetAnswer(id, answer, cancellationToken);
-    
+    public ValueTask<RtcIceCandidate[]> SetAnswer(string token, [FromBody] RtcSdpInit answer, CancellationToken cancellationToken) =>
+        // using var reader = new StreamReader(HttpContext.Request.Body);
+        // var json = await reader.ReadToEndAsync(cancellationToken);
+        // var answer = WebSerializer.DeserializeObject<RtcSdpInit>(json);
+        meta.SetAnswer(token, answer, cancellationToken);
+
     [HttpPost]
     [Route("addicecandidates")]
-    public async ValueTask AddIceCandidates(string id, CancellationToken cancellationToken)
-    {
-        using var reader = new StreamReader(HttpContext.Request.Body);
-        var candidatesJson = await reader.ReadToEndAsync(cancellationToken);
-        await meta.AddIceCandidates(id, candidatesJson, cancellationToken);
-    }
+    public ValueTask AddIceCandidates(string token, [FromBody] RtcIceCandidate[] candidates, CancellationToken cancellationToken) =>
+        meta.AddIceCandidates(token, candidates, cancellationToken);
 }

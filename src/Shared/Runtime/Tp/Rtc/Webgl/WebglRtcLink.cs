@@ -6,13 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
+using Shared.Web;
 
 namespace Shared.Tp.Rtc.Webgl
 {
     public class WebglRtcLink : BaseRtcLink
     {
-        private static readonly Slog.Area _log = new();
-
         //pin managed object as pointer in native implementation (speedup managed object association within callbacks)
         private GCHandle _managedHandle;
         private readonly IntPtr _managedPtr;
@@ -40,6 +39,9 @@ namespace Shared.Tp.Rtc.Webgl
             _managedHandle.Free();
         }
 
+        //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
+        public override string GetRemotePeerId() => throw new NotImplementedException();
+
         public override void Send(byte[] bytes)
         {
             //_log.Info($"{bytes.Length} bytes");
@@ -60,7 +62,7 @@ namespace Shared.Tp.Rtc.Webgl
             if (handle.IsAllocated)
                 return (WebglRtcLink)handle.Target;
 
-            _log.Error($"GetLink failed managedPtr={managedPtr}", member: member);
+            Slog.Error($"GetLink failed managedPtr={managedPtr}", member: member);
             return null;
         }
         
@@ -70,12 +72,14 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportAnswer(string answerJson)
         {
-            ReportAnswer(answerJson, CancellationToken.None).ContinueWith(t =>
+            ReportAnswer(new(answerJson), CancellationToken.None).ContinueWith(t =>
             {
-                var candidatesListJson = t.Result; 
                 //TODO: handle connection error
-                _log.Info($"ReportAnswer: {candidatesListJson}");
-                WebglRtcNative.RtcSetAnswerResult(_nativeHandle, candidatesListJson);
+                var candidates = t.Result;
+                
+                _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
+                foreach (var candidate in candidates)
+                    WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
             }, TaskScheduler.FromCurrentSynchronizationContext());
         }
 
@@ -85,21 +89,31 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void CallReportIceCandidates(string candidatesJson)
         {
-            ReportIceCandidates(candidatesJson, CancellationToken.None).ContinueWith(t =>
+            try
             {
-                var status = t.Status;
-                //TODO: handle connection error
-                _log.Info($"ReportIceCandidates: managedPtr={_managedPtr}: {status}");
-            }, TaskScheduler.FromCurrentSynchronizationContext());
+                _log.Info(candidatesJson);
+                var candidates = WebSerializer.DeserializeObject<RtcIceCandidate[]>(candidatesJson);
+                _log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
+                ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
+                {
+                    //TODO: handle connection error
+                    var status = t.Status;
+                    _log.Info($"ReportIceCandidates: status: {status}");
+                }, TaskScheduler.FromCurrentSynchronizationContext());
+            }
+            catch (Exception e)
+            {
+                _log.Error($"{e}");
+            }
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
         public static void ConnectCompleteCallback(IntPtr managedPtr, string? error)
         {
             if (error != null)
-                _log.Error($"failure: managedPtr={managedPtr}: {error}");
+                Slog.Error($"failure: managedPtr={managedPtr}: {error}");
             else
-                _log.Info($"success: managedPtr={managedPtr}");
+                Slog.Info($"success: managedPtr={managedPtr}");
             //TODO: add Task await on connect
         }
 

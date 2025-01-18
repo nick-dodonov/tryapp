@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -10,44 +9,51 @@ namespace Shared.Tp.Rtc
     /// </summary>
     public abstract class BaseRtcLink : ITpLink
     {
-        private readonly Slog.Area _log;
+        protected readonly Slog.Area _log;
 
-        private readonly string _clientId; //TODO: client id can be obtained from offer instead of generation
         private readonly IRtcService _service;
         private readonly ITpReceiver _receiver;
 
+        private int _linkId = -1; // -1 until offer is not obtained
+        private string? _linkToken; // null until offer is not obtained
+        
         public abstract void Dispose();
+        public abstract string GetRemotePeerId();
         public abstract void Send(byte[] bytes);
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
-            _clientId = Guid.NewGuid().ToString();
+            _log = new(GetType().Name);
+            
             _service = service;
             _receiver = receiver;
-
-            _log = new($"{nameof(BaseRtcLink)}[{_clientId}]");
         }
 
         protected async Task<string> ObtainOffer(CancellationToken cancellationToken)
         {
             _log.Info("request");
-            var offerStr = await _service.GetOffer(_clientId, cancellationToken);
-            _log.Info($"result: {offerStr}");
-            return offerStr;
+            var offer = await _service.GetOffer(cancellationToken);
+            _log.Info($"result: {offer}");
+
+            _linkId = offer.LinkId;
+            _log.AddCategorySuffix($" <{_linkId}>");
+            _linkToken = offer.LinkToken;
+
+            return offer.SdpInit.Json;
         }
 
-        protected async Task<string> ReportAnswer(string answerJson, CancellationToken cancellationToken)
+        protected async Task<RtcIceCandidate[]> ReportAnswer(RtcSdpInit answer, CancellationToken cancellationToken)
         {
-            _log.Info($"request: {answerJson}");
-            var candidatesListJson = await _service.SetAnswer(_clientId, answerJson, cancellationToken);
-            _log.Info($"result: {candidatesListJson}");
-            return candidatesListJson;
+            _log.Info($"request: {answer}");
+            var candidates = await _service.SetAnswer(_linkToken!, answer, cancellationToken);
+            _log.Info($"result: {candidates}");
+            return candidates;
         }
 
-        protected async Task ReportIceCandidates(string candidatesJson, CancellationToken cancellationToken)
+        protected async Task ReportIceCandidates(RtcIceCandidate[] candidates, CancellationToken cancellationToken)
         {
-            _log.Info($"request: {candidatesJson}");
-            await _service.AddIceCandidates(_clientId, candidatesJson, cancellationToken);
+            _log.Info($"request: {candidates}");
+            await _service.AddIceCandidates(_linkToken!, candidates, cancellationToken);
             _log.Info("complete");
         }
 
@@ -55,6 +61,7 @@ namespace Shared.Tp.Rtc
         {
             if (bytes == null)
                 _log.Info("disconnected");
+
             _receiver.Received(this, bytes);
         }
     }

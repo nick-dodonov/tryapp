@@ -84,12 +84,27 @@ namespace Shared.Log
         /// </summary>
         public class Area
         {
-            private readonly Category _category;
+            private Category _category;
             public Area(string? customName = null, [CallerFilePath] string path = "")
             {
                 _category = customName != null 
                     ? new(customName) 
                     : new(path);
+            }
+
+            public void AddCategorySuffix(string suffix)
+            {
+                var sb = ZString.CreateStringBuilder(true);
+                try
+                {
+                    sb.Append(_category.NameSpan);
+                    sb.Append(suffix);
+                    _category = new(sb.ToString());
+                }
+                finally
+                {
+                    sb.Dispose();
+                }
             }
 
             [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]

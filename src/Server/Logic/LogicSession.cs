@@ -7,10 +7,11 @@ using Shared.Web;
 
 namespace Server.Logic;
 
-public class LogicSession(ILogger<LogicSession> logger, ITpApi tpApi) 
+public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi) 
     : IHostedService, ITpListener, ITpReceiver
 {
     private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<LogicSession>();
     
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
@@ -22,8 +23,8 @@ public class LogicSession(ILogger<LogicSession> logger, ITpApi tpApi)
 
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
-        logger.Info($"{link}");
-        var peer = new LogicPeer(this, link);
+        _logger.Info($"{link}");
+        var peer = new LogicPeer(loggerFactory.CreateLogger<LogicPeer>(), this, link);
         _peers.TryAdd(link, peer);
         return this;
     }
@@ -32,18 +33,18 @@ public class LogicSession(ILogger<LogicSession> logger, ITpApi tpApi)
     {
         if (bytes == null)
         {
-            logger.Info($"disconnected: {link}");
+            _logger.Info($"disconnected: {link}");
             if (!_peers.TryRemove(link, out var peer))
-                logger.Warn($"peer not connected: {link}");
+                _logger.Warn($"peer not connected: {link}");
             else
                 peer.Dispose();
         }
         else
         {
             var content = Encoding.UTF8.GetString(bytes);
-            logger.Info($"[{bytes.Length}]: {content}");
+            _logger.Info($"[{bytes.Length}]: {content}");
             if (!_peers.TryGetValue(link, out var peer))
-                logger.Warn($"peer not connected: {link}");
+                _logger.Warn($"peer not connected: {link}");
             else
             {
                 try
@@ -52,12 +53,16 @@ public class LogicSession(ILogger<LogicSession> logger, ITpApi tpApi)
                 }
                 catch (Exception e)
                 {
-                    logger.Error($"failed to deserialize: {e}");
+                    _logger.Error($"failed to deserialize: {e}");
                 }
             }
         }
     }
 
-    public ClientState[] CollectClientStates()
-        => _peers.Select(x => x.Value.LastClientState).ToArray();
+    public PeerState[] GetPeerStates() =>
+        _peers.Select(x => new PeerState
+        {
+            Id = x.Key.GetRemotePeerId(),
+            ClientState = x.Value.LastClientState
+        }).ToArray();
 }
