@@ -3,7 +3,6 @@ using Shared.Log;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
-using Debug = UnityEngine.Debug;
 
 namespace Client.Utility.Editor
 {
