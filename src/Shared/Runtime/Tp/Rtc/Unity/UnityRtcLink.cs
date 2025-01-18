@@ -24,8 +24,8 @@ namespace Shared.Tp.Rtc.Unity
 
         public async Task Connect(CancellationToken cancellationToken)
         {
-            var offerStr = await ObtainOffer(cancellationToken);
-            var offer = WebSerializer.DeserializeObject<RTCSessionDescription>(offerStr);
+            var sharedSdp = await ObtainOffer(cancellationToken);
+            var offer = sharedSdp.FromShared();
             _log.Info($"request: {UnityRtcDebug.Describe(offer)}");
             
             _peerConnection = new();
@@ -95,8 +95,7 @@ namespace Shared.Tp.Rtc.Unity
             await _peerConnection.SetLocalDescription(ref answer);
             
             // send answer to remote side and obtain remote ice candidates
-            var answerJson = WebSerializer.SerializeObject(answer);
-            var candidates = await ReportAnswer(new(answerJson), cancellationToken);
+            var candidates = await ReportAnswer(answer.ToShared(), cancellationToken);
             
             // add remote ICE candidates
             foreach (var candidate in candidates)

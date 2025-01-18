@@ -29,7 +29,7 @@ namespace Shared.Tp.Rtc
             _receiver = receiver;
         }
 
-        protected async Task<string> ObtainOffer(CancellationToken cancellationToken)
+        protected async Task<RtcSdpInit> ObtainOffer(CancellationToken cancellationToken)
         {
             _log.Info("request");
             var offer = await _service.GetOffer(cancellationToken);
@@ -39,10 +39,10 @@ namespace Shared.Tp.Rtc
             _log.AddCategorySuffix($" <{_linkId}>");
             _linkToken = offer.LinkToken;
 
-            return offer.SdpInit.Json;
+            return offer.SdpInit;
         }
 
-        protected async Task<RtcIceCandidate[]> ReportAnswer(RtcSdpInit answer, CancellationToken cancellationToken)
+        protected async Task<RtcIcInit[]> ReportAnswer(RtcSdpInit answer, CancellationToken cancellationToken)
         {
             _log.Info($"request: {answer}");
             var candidates = await _service.SetAnswer(_linkToken!, answer, cancellationToken);
@@ -50,7 +50,7 @@ namespace Shared.Tp.Rtc
             return candidates;
         }
 
-        protected async Task ReportIceCandidates(RtcIceCandidate[] candidates, CancellationToken cancellationToken)
+        protected async Task ReportIceCandidates(RtcIcInit[] candidates, CancellationToken cancellationToken)
         {
             _log.Info($"request: {candidates}");
             await _service.AddIceCandidates(_linkToken!, candidates, cancellationToken);

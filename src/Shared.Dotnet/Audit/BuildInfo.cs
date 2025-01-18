@@ -1,6 +1,6 @@
 using System.Reflection;
 
-namespace Server.Info;
+namespace Shared.Audit;
 
 public static class BuildInfo
 {
@@ -8,7 +8,8 @@ public static class BuildInfo
     {
         get
         {
-            var attribute = Assembly.GetExecutingAssembly().GetCustomAttribute<BuildInfoAttribute>();
+            var assembly = Assembly.GetExecutingAssembly(); //Assembly.GetEntryAssembly();
+            var attribute = assembly.GetCustomAttribute<BuildInfoAttribute>();
             return attribute?.Timestamp ?? "<unknown>";
         }
     }

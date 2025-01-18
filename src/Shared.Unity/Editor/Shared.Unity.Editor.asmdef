@@ -1,0 +1,19 @@
+{
+    "name": "Shared.Unity.Editor",
+    "rootNamespace": "Shared.Editor",
+    "references": [
+        "Shared",
+        "Shared.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,6 +1,6 @@
 using System;
 
-namespace Client.Diagnostics.Debug
+namespace Diagnostics.Debug
 {
     public class DebugActionAttribute : Attribute
     {

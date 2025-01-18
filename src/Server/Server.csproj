@@ -15,13 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <AssemblyAttribute Include="BuildInfoAttribute">
-            <_Parameter1>$([System.DateTime]::Now.ToString(O))</_Parameter1>
-        </AssemblyAttribute>
-    </ItemGroup>
-
-    <ItemGroup>
-        <ProjectReference Include="..\Shared\Runtime\Shared.csproj"/>
+        <ProjectReference Include="..\Common\Runtime\Common.csproj"/>
+        <ProjectReference Include="..\Shared.Dotnet\Shared.Dotnet.csproj" />
     </ItemGroup>
 
 </Project>
