@@ -190,7 +190,7 @@ namespace Client
                 _meta = CreateMetaClient();
                 _tpApi = RtcApiFactory.CreateApi(_meta);
                 var localPeerId = GetLocalPeerId();
-                _tpLink = await _tpApi.Connect(localPeerId, this, destroyCancellationToken);
+                _tpLink = await _tpApi.Connect(this, destroyCancellationToken);
                 _updateSendFrame = 0;
 
                 clientTap.SetActive(true);

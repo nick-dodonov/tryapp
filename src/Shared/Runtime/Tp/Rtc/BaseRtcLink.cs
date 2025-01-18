@@ -20,9 +20,9 @@ namespace Shared.Tp.Rtc
         public abstract string GetRemotePeerId();
         public abstract void Send(byte[] bytes);
 
-        protected BaseRtcLink(string localPeerId, IRtcService service, ITpReceiver receiver)
+        protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
-            _clientId = localPeerId;
+            _clientId = Guid.NewGuid().ToString(); //TODO: rm for get offer vriant
             _service = service;
             _receiver = receiver;
 

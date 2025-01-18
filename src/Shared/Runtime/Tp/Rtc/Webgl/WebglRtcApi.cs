@@ -29,10 +29,10 @@ namespace Shared.Tp.Rtc.Webgl
             );
         }
 
-        async Task<ITpLink> ITpApi.Connect(string localPeerId, ITpReceiver receiver, CancellationToken cancellationToken)
+        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             _log.Info(".");
-            var link = new WebglRtcLink(localPeerId, _service, receiver);
+            var link = new WebglRtcLink(_service, receiver);
             await link.Connect(cancellationToken);
             return link;
         }

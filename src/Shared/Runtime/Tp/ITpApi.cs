@@ -44,7 +44,7 @@ namespace Shared.Tp
         /// Client side
         /// TODO: replace localPeerId with IPeerIdProvider passed to *Api impl
         /// </summary>
-        Task<ITpLink> Connect(string localPeerId, ITpReceiver receiver, CancellationToken cancellationToken);
+        Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken);
 
         /// <summary>
         /// Server side 
