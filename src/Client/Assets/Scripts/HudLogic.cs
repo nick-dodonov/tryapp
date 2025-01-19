@@ -41,20 +41,32 @@ namespace Client
 
         async Task ISessionController.StartSession(CancellationToken cancellationToken)
         {
-            try
+            _log.Info(".");
+            await ExecuteTextThrobber(async text =>
             {
-                _log.Info(".");
-                serverResponseText.text = "Starting...";
+                text("Starting...");
                 await clientSession.Begin(
                     serverControl.ServerWebClient,
                     StopSession,
                     cancellationToken);
-                serverResponseText.text = "RESULT:\nOK";
+                text("RESULT:\nOK");
+            }, (text, ex) =>
+            {
+                text($"ERROR:\n{ex.Message}");
+                StopSession("connect error");
+            });
+        }
+
+        private async Task ExecuteTextThrobber(Func<Action<string>, Task> action, Action<Action<string>, Exception> errorAction)
+        {
+            void SetText(string text) => serverResponseText.text = text;
+            try
+            {
+                await action(SetText);
             }
             catch (Exception ex)
             {
-                serverResponseText.text = $"ERROR:\n{ex.Message}";
-                StopSession("connect error");
+                errorAction(SetText, ex);
                 throw;
             }
         }
