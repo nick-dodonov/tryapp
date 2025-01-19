@@ -97,7 +97,9 @@ namespace Shared.Tp.Rtc.Sip
             channel.onopen += () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
-                _service.StartLinkLogic(this);
+                Receiver = _service.ListenerConnected(this);
+                if (Receiver == null)
+                    Close("not listened");
             };
             channel.onmessage += (_, _, data) =>
             {
@@ -135,13 +137,11 @@ namespace Shared.Tp.Rtc.Sip
 
             _peerConnection?.close();
             _peerConnection = null;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Close("dispose");
+            
             _service.RemoveLink(_linkToken);
         }
+
+        void IDisposable.Dispose() => Close("disposing");
 
         public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description,
             CancellationToken cancellationToken)
