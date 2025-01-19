@@ -5,12 +5,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Log.Asp;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 
 namespace Shared.Tp.Rtc.Sip
 {
-    internal class SipRtcLink : ITpLink
+    internal sealed class SipRtcLink : ITpLink
     {
         private readonly ILogger _logger;
 
@@ -18,9 +19,10 @@ namespace Shared.Tp.Rtc.Sip
 
         public int LinkId { get; }
         private readonly string _linkToken;
+        private readonly string _remotePeerId;
 
         private readonly SipRtcService _service;
-        
+
         private RTCPeerConnection? _peerConnection;
         private RTCDataChannel? _dataChannel;
 
@@ -34,16 +36,22 @@ namespace Shared.Tp.Rtc.Sip
         {
             LinkId = linkId;
             _linkToken = linkToken;
-            
+
+            //decided to use linkId as remote peer identification
+            //TODO: add some hash (but NOT full token as it always personal for link)
+            _remotePeerId = linkId.ToString();
+
             _service = service;
-            _logger = new SipLinkLogger(loggerFactory.CreateLogger<SipRtcLink>(), linkId.ToString());
+            _logger = new IdLogger(loggerFactory.CreateLogger<SipRtcLink>(), _remotePeerId);
             _logger.Info(".");
         }
+
+        public override string ToString() => $"{nameof(SipRtcLink)}({_remotePeerId})"; //only for diagnostics
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
             _logger.Info(".");
-            
+
             _peerConnection = new(configuration
                 //, bindPort: 40000
                 , portRange: portRange
@@ -63,7 +71,7 @@ namespace Shared.Tp.Rtc.Sip
             };
             _peerConnection.onicecandidateerror += (candidate, error) =>
                 _logger.Warn($"onicecandidateerror: '{error}' {candidate}");
-            _peerConnection.oniceconnectionstatechange += state => 
+            _peerConnection.oniceconnectionstatechange += state =>
                 _logger.Info($"oniceconnectionstatechange: {state}");
             _peerConnection.onicegatheringstatechange += state =>
             {
@@ -104,9 +112,9 @@ namespace Shared.Tp.Rtc.Sip
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
                 Receiver?.Received(this, null);
             };
-            channel.onerror += error => 
+            channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
-            
+
             _logger.Info("creating offer");
             var offer = _peerConnection.createOffer();
 
@@ -135,14 +143,15 @@ namespace Shared.Tp.Rtc.Sip
             _service.RemoveLink(_linkToken);
         }
 
-        public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description, CancellationToken cancellationToken)
+        public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description,
+            CancellationToken cancellationToken)
         {
             _logger.Info($"setRemoteDescription: {description.toJSON()}");
             if (_peerConnection == null)
                 throw new InvalidOperationException("SetAnswer: peer connection not initialized");
-            
+
             _peerConnection.setRemoteDescription(description);
-            
+
             _logger.Info("waiting ice candidates");
             var candidates = await _iceCollectCompleteTcs.Task.WaitAsync(cancellationToken);
 
@@ -166,7 +175,7 @@ namespace Shared.Tp.Rtc.Sip
             return default;
         }
 
-        string ITpLink.GetRemotePeerId() => _linkToken; //TODO: think maybe _linkId is better for it
+        string ITpLink.GetRemotePeerId() => _remotePeerId;
 
         void ITpLink.Send(byte[] bytes)
         {

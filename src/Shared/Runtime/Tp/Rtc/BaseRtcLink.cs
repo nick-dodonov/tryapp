@@ -46,13 +46,13 @@ namespace Shared.Tp.Rtc
         {
             _log.Info($"request: {answer}");
             var candidates = await _service.SetAnswer(_linkToken!, answer, cancellationToken);
-            _log.Info($"result: {candidates}");
+            _log.Info($"result: [{candidates.Length}] candidates:\n{string.Join('\n', candidates)}");
             return candidates;
         }
 
         protected async Task ReportIceCandidates(RtcIcInit[] candidates, CancellationToken cancellationToken)
         {
-            _log.Info($"request: {candidates}");
+            _log.Info($"request: [{candidates.Length}] candidates:\n{string.Join('\n', candidates)}");
             await _service.AddIceCandidates(_linkToken!, candidates, cancellationToken);
             _log.Info("complete");
         }

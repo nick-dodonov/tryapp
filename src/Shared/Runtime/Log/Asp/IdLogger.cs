@@ -2,17 +2,21 @@
 using System;
 using Microsoft.Extensions.Logging;
 
-namespace Shared.Tp.Rtc.Sip
+namespace Shared.Log.Asp
 {
-    internal class SipLinkLogger : ILogger
+    /// <summary>
+    /// Helper to simplify logging of specific peers
+    /// TODO: speedup with custom formatter instead of string interpolation
+    /// </summary>
+    public class IdLogger : ILogger
     {
         private readonly ILogger _inner;
-        private readonly string _linkId;
+        private readonly string _id;
 
-        public SipLinkLogger(ILogger inner, string linkId)
+        public IdLogger(ILogger inner, string id)
         {
             _inner = inner;
-            _linkId = linkId;
+            _id = id;
         }
 
         public IDisposable? BeginScope<TState>(TState state) where TState : notnull => _inner.BeginScope(state);
@@ -24,7 +28,7 @@ namespace Shared.Tp.Rtc.Sip
         {
             if (!IsEnabled(logLevel)) return;
             var message = formatter(state, exception);
-            var prefixedMessage = $"<{_linkId}> {message}";
+            var prefixedMessage = $"<{_id}> {message}";
             _inner.Log(logLevel, eventId, prefixedMessage, exception, (m, _) => m);
         }
     }

@@ -29,14 +29,23 @@ namespace Shared.Web
             }
         };
 
-        public static string SerializeObject<T>(T obj) 
+        private static readonly JsonSerializerSettings PrettyJsonSettings = new(JsonSettings)
+        {
+            Formatting = Formatting.Indented
+        };
+
+        public static string SerializeObject<T>(T obj)
             => JsonConvert.SerializeObject(obj, JsonSettings);
 
+        public static string SerializeObject<T>(T obj, bool pretty)
+            => JsonConvert.SerializeObject(obj, pretty ? PrettyJsonSettings: JsonSettings);
+        
         public static T DeserializeObject<T>(string json)
         {
             var obj = JsonConvert.DeserializeObject<T>(json, JsonSettings);
             if (obj == null)
-                throw new SerializationException($"Failed to deserialize object {typeof(T).FullName} from json: {json}");
+                throw new SerializationException(
+                    $"Failed to deserialize object {typeof(T).FullName} from json: {json}");
             return obj;
         }
     }

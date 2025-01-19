@@ -6,17 +6,17 @@ namespace Shared.Tp.Rtc.Unity
 {
     public static class UnityRtcExtensions
     {
-        public static RtcIcInit ToShared(this RTCIceCandidateInit candidate)
+        public static RtcIcInit ToShared(this RTCIceCandidate candidate)
         {
-            var unityLineIndex = candidate.sdpMLineIndex;
+            var unityLineIndex = candidate.SdpMLineIndex;
             if (unityLineIndex > ushort.MaxValue)
                 throw new ArgumentException($"sdpMLineIndex too big: {unityLineIndex}");
             
             var sharedLineIndex = (ushort)(unityLineIndex ?? 0);
             return new()
             {
-                candidate = candidate.candidate,
-                sdpMid = candidate.sdpMid,
+                candidate = candidate.Candidate,
+                sdpMid = candidate.SdpMid,
                 sdpMLineIndex = sharedLineIndex
             };
         }
