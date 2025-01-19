@@ -7,6 +7,10 @@ using Shared.Tp;
 
 namespace Common.Logic
 {
+    /// <summary>
+    /// TODO: listen await until peed id is not received
+    /// TODO: syn/ack for reliable initial state
+    /// </summary>
     public class PeerLink : ExtLink
     {
         private readonly ILoggerFactory _loggerFactory = null!;

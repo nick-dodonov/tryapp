@@ -6,6 +6,9 @@ using Shared.Tp;
 
 namespace Common.Logic
 {
+    /// <summary>
+    /// TODO: custom initial state (not only peer id is required for logic)
+    /// </summary>
     public class PeerApi : ExtApi<PeerLink>
     {
         private readonly ILoggerFactory _loggerFactory;
