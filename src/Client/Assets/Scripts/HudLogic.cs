@@ -167,13 +167,12 @@ namespace Client
             _log.Info(reason);
             try
             {
-                clientSession.Finish();
+                clientSession.Finish(reason);
             }
             catch (Exception ex)
             {
                 _log.Error(ex.ToString());
             }
-
             sessionControl.NotifyStopped();
         }
 

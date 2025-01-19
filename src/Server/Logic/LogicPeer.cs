@@ -21,9 +21,9 @@ public sealed class LogicPeer : IDisposable
         _logger = logger;
         _session = session;
         _link = link;
-        _timer = new(1000);
 
         var frame = 0;
+        _timer = new(1000);
         _timer.Elapsed += (_, _) => { Send(frame++); };
         _timer.Start();
     }

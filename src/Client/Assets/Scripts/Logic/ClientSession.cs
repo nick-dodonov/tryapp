@@ -69,9 +69,10 @@ namespace Client.Logic
             // }
         }
 
-        public void Finish()
+        public void Finish(string reason)
         {
-            _log.Info(".");
+            _log.Info(reason);
+
             foreach (var kv in _peerTaps)
                 Destroy(kv.Value.gameObject);
             _peerTaps.Clear();
@@ -129,6 +130,7 @@ namespace Client.Logic
         {
             if (bytes == null)
             {
+                _log.Info("disconnected (notifying handler)");
                 _notifyFinishingCallback("disconnected");
                 return;
             }
