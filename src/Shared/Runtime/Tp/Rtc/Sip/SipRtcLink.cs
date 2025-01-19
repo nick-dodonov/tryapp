@@ -106,8 +106,10 @@ namespace Shared.Tp.Rtc.Sip
                 // //TODO: with diagnostics flags
                 // var str = Encoding.UTF8.GetString(data);
                 // _logger.Info($"DataChannel: onmessage: {str}");
-
-                _receiver?.Received(this, data);
+                if (_receiver != null)
+                    _receiver.Received(this, data);
+                else
+                    _logger.Warn("DataChannel: onmessage: receiver isn't set yet");
             };
             channel.onclose += () =>
             {
