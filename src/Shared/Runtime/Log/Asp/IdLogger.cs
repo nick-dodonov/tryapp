@@ -1,4 +1,3 @@
-#if !UNITY_5_6_OR_NEWER
 using System;
 using Microsoft.Extensions.Logging;
 
@@ -33,4 +32,3 @@ namespace Shared.Log.Asp
         }
     }
 }
-#endif
