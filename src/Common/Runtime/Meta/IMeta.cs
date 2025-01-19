@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Tp.Rtc;
+using UnityEngine.Scripting;
 
 namespace Common.Meta
 {
@@ -14,10 +15,10 @@ namespace Common.Meta
     [Serializable]
     public class ServerInfo
     {
-        // ReSharper disable UnassignedField.Global NotAccessedField.Global
-        public int RequestId;
-        public DateTime RequestTime;
-        public string? RandomName;
-        // ReSharper restore UnassignedField.Global NotAccessedField.Global
+        // ReSharper disable UnusedMember.Global UnassignedField.Global NotAccessedField.Global
+        [RequiredMember] public int RequestId;
+        [RequiredMember] public DateTime RequestTime;
+        [RequiredMember] public string? RandomName;
+        // ReSharper restore UnusedMember.Global UnassignedField.Global NotAccessedField.Global
     }
 }

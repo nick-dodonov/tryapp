@@ -22,17 +22,19 @@ namespace Client.UI
 
         public async Task ExecuteTextThrobber(
             Func<Action<string>, Task> action,
-            Action<Action<string>, Exception> errorAction,
+            Action<Action<string>, Exception> failed,
+            [CallerFilePath] string path = "",
             [CallerMemberName] string caller = "")
         {
-            _log.Info(caller);
             try
             {
+                _log.Info($"action: {new Category(path).NameSpan.ToString()}.{caller}");
                 await action(SetText);
             }
             catch (Exception ex)
             {
-                errorAction(SetText, ex);
+                _log.Warn($"failed: {new Category(path).NameSpan.ToString()}.{caller}: {ex.Message}");
+                failed(SetText, ex);
                 throw;
             }
         }
