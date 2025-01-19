@@ -23,7 +23,6 @@ namespace Client.Logic
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
-        private IWebClient _webClient;
         private IMeta _meta;
         private ITpApi _tpApi;
         private ITpLink _tpLink;
@@ -38,7 +37,7 @@ namespace Client.Logic
         private Action<string> _notifyFinishingCallback;
 
         public async Task Begin(
-            Func<IWebClient> webClientFactory,
+            IWebClient webClient,
             Action<string> notifyFinishingCallback,
             CancellationToken cancellationToken)
         {
@@ -48,8 +47,7 @@ namespace Client.Logic
 
             _notifyFinishingCallback = notifyFinishingCallback;
 
-            _webClient = webClientFactory();
-            _meta = new MetaClient(_webClient, Slog.Factory);
+            _meta = new MetaClient(webClient, Slog.Factory);
             _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
 
             //var localPeerId = GetLocalPeerId();
@@ -86,9 +84,6 @@ namespace Client.Logic
 
             _meta?.Dispose();
             _meta = null;
-
-            _webClient?.Dispose();
-            _webClient = null;
         }
 
         private const float UpdateSendSeconds = 1.0f;
