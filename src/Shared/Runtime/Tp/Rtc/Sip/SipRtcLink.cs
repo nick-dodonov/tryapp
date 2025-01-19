@@ -15,8 +15,6 @@ namespace Shared.Tp.Rtc.Sip
     {
         private readonly ILogger _logger;
 
-        internal ITpReceiver? Receiver { get; set; }
-
         public int LinkId { get; }
         private readonly string _linkToken;
         private readonly string _remotePeerId;
@@ -27,6 +25,8 @@ namespace Shared.Tp.Rtc.Sip
         private RTCDataChannel? _dataChannel;
 
         private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
+
+        private ITpReceiver? _receiver;
 
         public SipRtcLink(
             int linkId,
@@ -97,8 +97,8 @@ namespace Shared.Tp.Rtc.Sip
             channel.onopen += () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
-                Receiver = _service.ListenerConnected(this);
-                if (Receiver == null)
+                _receiver = _service.ListenerConnected(this);
+                if (_receiver == null)
                     Close("not listened");
             };
             channel.onmessage += (_, _, data) =>
@@ -107,12 +107,12 @@ namespace Shared.Tp.Rtc.Sip
                 // var str = Encoding.UTF8.GetString(data);
                 // _logger.Info($"DataChannel: onmessage: {str}");
 
-                Receiver?.Received(this, data);
+                _receiver?.Received(this, data);
             };
             channel.onclose += () =>
             {
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
-                Receiver?.Received(this, null);
+                _receiver?.Received(this, null);
             };
             channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
