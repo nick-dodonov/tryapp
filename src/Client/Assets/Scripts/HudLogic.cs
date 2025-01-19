@@ -26,6 +26,7 @@ namespace Client
         public Button serverRequestButton;
         public TMP_Text serverResponseText;
 
+        public ServerControl serverControl;
         public SessionControl sessionControl;
         public ClientSession clientSession;
 
