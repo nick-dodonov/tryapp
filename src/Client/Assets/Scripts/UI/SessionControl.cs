@@ -13,14 +13,14 @@ namespace Client.UI
         Task StartSession(CancellationToken cancellationToken);
         void StopSession();
     }
-    
+
     /// <summary>
     /// Provides fool-protection against multiple starts
     /// </summary>
     public class SessionControl : MonoBehaviour
     {
         private static readonly Slog.Area _log = new();
-        
+
         public Button actionButton;
         public TMP_Text actionText;
 
@@ -31,8 +31,9 @@ namespace Client.UI
             Started,
             CancellingStart
         }
+
         private State _state = State.Stopped;
-        
+
         public ISessionController Controller { get; set; }
 
         private void OnEnable()
@@ -45,7 +46,7 @@ namespace Client.UI
                     case State.Starting: CancelStartingSession(); break;
                     case State.Started: StopSession(); break;
                     case State.CancellingStart:
-                    default: 
+                    default:
                         throw new InvalidOperationException("must not be interactable");
                 }
             });
@@ -58,6 +59,7 @@ namespace Client.UI
         }
 
         private CancellationTokenSource _startingTcs;
+
         private async void StartSession() //TODO: add FireAndForget for async Task 
         {
             try
