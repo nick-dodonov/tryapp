@@ -23,7 +23,12 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpListener
     {
-        public ITpReceiver Connected(ITpLink link);
+        /// <summary>
+        /// Event for obtaining new link of established connection and setup receiving data handler  
+        /// </summary>
+        /// <param name="link">channel to send bytes</param>
+        /// <returns>handler for receiving bytes, null to close connection (starting/terminating/filled server, etc.)</returns>
+        public ITpReceiver? Connected(ITpLink link);
     }
 
     /// <summary>
