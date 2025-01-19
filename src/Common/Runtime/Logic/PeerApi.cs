@@ -1,6 +1,7 @@
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Tp;
 
@@ -8,12 +9,13 @@ namespace Common.Logic
 {
     public class PeerApi : ExtApi<PeerLink>
     {
-        private readonly Slog.Area _log = new();
+        private readonly ILogger _logger;
 
         private readonly string _peerId;
-        public PeerApi(ITpApi innerApi, string peerId) : base(innerApi)
+        public PeerApi(ITpApi innerApi, string peerId, ILoggerFactory loggerFactory) : base(innerApi)
         {
-            _log.Info(peerId);
+            _logger = loggerFactory.CreateLogger<PeerApi>();
+            _logger.Info(peerId);
             _peerId = peerId;
         }
 
@@ -21,6 +23,8 @@ namespace Common.Logic
         public override async Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = await base.Connect(receiver, cancellationToken);
+            
+            _logger.Info($"sending: {_peerId}");
             var bytes = Encoding.UTF8.GetBytes(_peerId);
             link.Send(bytes);
             return link;

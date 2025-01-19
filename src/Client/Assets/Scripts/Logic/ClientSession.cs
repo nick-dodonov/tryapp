@@ -53,8 +53,12 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
+
             var peerId = GetPeerId();
-            _api = new PeerApi(RtcApiFactory.CreateApi(_meta.RtcService), peerId);
+            _api = new PeerApi(
+                RtcApiFactory.CreateApi(_meta.RtcService), 
+                peerId,
+                Slog.Factory);
 
             _link = await _api.Connect(this, cancellationToken);
             _updateSendFrame = 0;
@@ -65,8 +69,8 @@ namespace Client.Logic
             //TODO: reimplement using IPeerIdProvider for sign-in features
             static string GetPeerId()
             {
-                var peerId = SystemInfo.deviceUniqueIdentifier;
-                // if (peerId == SystemInfo.unsupportedIdentifier)
+                var peerId = SystemInfo.deviceUniqueIdentifier[..8].ToUpper(); //tmp short to simplify diagnostics
+                if (peerId == SystemInfo.unsupportedIdentifier)
                 {
                     //TODO: implement for webgl platform (it doesn't support device unique id)
                     peerId = Guid.NewGuid().ToString("N")[..8].ToUpper();
