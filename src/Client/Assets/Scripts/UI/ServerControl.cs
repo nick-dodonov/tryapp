@@ -21,7 +21,10 @@ namespace Client.UI
         public TMP_Dropdown serverDropdown;
         public Button serverRequestButton;
 
-        private record ServerOption(string Text, string Url);
+        private record ServerOption(string Text, string Url)
+        {
+            public override string ToString() => $"({Text}): {Url}";
+        }
 
         private readonly List<ServerOption> _serverOptions = new();
 
@@ -39,13 +42,14 @@ namespace Client.UI
             var hostingOption = await NeedServerHostingOption();
             if (hostingOption != null)
             {
-                _log.Info($"add server ({hostingOption.Text}): {hostingOption.Url}");
-                _serverOptions.Add(new(hostingOption.Text, hostingOption.Url));
+                _log.Info($"add server {hostingOption}");
+                _serverOptions.Add(hostingOption);
             }
 
             serverDropdown.options.Clear();
             serverDropdown.options.AddRange(_serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
             serverDropdown.RefreshShownValue();
+
             serverDropdown.onValueChanged.RemoveAllListeners();
             serverDropdown.onValueChanged.AddListener(OnServerChanged);
 
@@ -90,18 +94,18 @@ namespace Client.UI
 #if UNITY_EDITOR
                 var env = OptionsReader.ParseEnvFileToDictionary();
                 if (env.TryGetValue("SERVER_URL", out var envUrl))
-                    return new(envUrl, ".env");
+                    return new(".env", envUrl);
 #endif
                 var optionsUrl = await OptionsReader.TryParseOptionsJsonServerFirst();
                 if (optionsUrl != null)
-                    return new(new Uri(optionsUrl).GetLeftPart(UriPartial.Authority), "options.json");
+                    return new("options.json", new Uri(optionsUrl).GetLeftPart(UriPartial.Authority));
             }
 
             var url = Application.absoluteURL;
             if (!string.IsNullOrEmpty(url))
             {
                 url = new Uri(url).GetLeftPart(UriPartial.Authority);
-                return new(url, "hosting");
+                return new("hosting", url);
             }
 
             return null;
@@ -126,9 +130,6 @@ namespace Client.UI
                     var result = await meta.GetInfo(destroyCancellationToken);
                     text($"Response: {WebSerializer.SerializeObject(result, true)}");
                 },
-                (text, ex) =>
-                {
-                    text($"ERROR:\n{ex.Message}");
-                });
+                (text, ex) => { text($"ERROR:\n{ex.Message}"); });
     }
 }
