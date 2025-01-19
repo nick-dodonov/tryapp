@@ -29,7 +29,7 @@ namespace Common.Logic
         protected override PeerLink CreateServerLink(ITpLink innerLink) =>
             new PeerLink(innerLink, _loggerFactory).InitPeerLogger();
 
-        public override async Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
+        public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = (PeerLink)await base.Connect(receiver, cancellationToken);
             await link.ConnectHandshake();

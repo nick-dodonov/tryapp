@@ -21,7 +21,7 @@ namespace Shared.Tp.Rtc.Unity
             _service = service;
         }
 
-        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
+        async ValueTask<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = new UnityRtcLink(_service, receiver);
             await link.Connect(cancellationToken);

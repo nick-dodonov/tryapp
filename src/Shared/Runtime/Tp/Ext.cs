@@ -14,7 +14,7 @@ namespace Shared.Tp
         protected ExtApi(ITpApi innerApi) => _innerApi = innerApi;
 
         protected virtual TLink CreateClientLink(ITpReceiver receiver) => new() { Receiver = receiver };
-        public virtual async Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
+        public virtual async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var clientLink = CreateClientLink(receiver);
             clientLink.InnerLink = await _innerApi.Connect(clientLink, cancellationToken);
