@@ -96,9 +96,10 @@ namespace Shared.Tp.Rtc.Sip
             return link.AddIceCandidates(sipCandidates, cancellationToken);
         }
 
-        internal void RemoveLink(string token) => _links.TryRemove(token, out _);
-        internal ValueTask<ITpReceiver?> ListenerConnected(SipRtcLink link) => 
-            _listener?.Connected(link) ?? default;
+        internal void RemoveLink(string token) => 
+            _links.TryRemove(token, out _);
+        internal ITpReceiver? CallConnected(SipRtcLink link) => 
+            _listener?.Connected(link);
 
         ValueTask<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
             => throw new NotSupportedException("Connect: server side doesn't connect now");

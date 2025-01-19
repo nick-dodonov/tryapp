@@ -1,5 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
+using Shared.Log;
 
 namespace Shared.Tp
 {
@@ -9,7 +10,7 @@ namespace Shared.Tp
     public class ExtApi<TLink> : ITpApi, ITpListener where TLink: ExtLink, new()
     {
         private readonly ITpApi _innerApi;
-        private ITpListener? _listener;
+        protected ITpListener? Listener;
 
         protected ExtApi(ITpApi innerApi) => _innerApi = innerApi;
 
@@ -23,20 +24,19 @@ namespace Shared.Tp
 
         public virtual void Listen(ITpListener listener)
         {
-            _listener = listener;
+            Listener = listener;
             _innerApi.Listen(this);
         }
 
         protected virtual TLink CreateServerLink(ITpLink innerLink) => new() { InnerLink = innerLink };
-        public virtual async ValueTask<ITpReceiver?> Connected(ITpLink link)
+        public virtual ITpReceiver? Connected(ITpLink link)
         {
-            if (_listener == null)
+            if (Listener == null)
                 return null;
             var extLink = CreateServerLink(link);
-            var receiver = await _listener.Connected(extLink);
+            var receiver = extLink.Receiver = Listener.Connected(extLink);
             if (receiver == null)
                 return null;
-            extLink.Receiver = receiver;
             return extLink;
         }
     }
@@ -44,17 +44,23 @@ namespace Shared.Tp
     public class ExtLink: ITpLink, ITpReceiver
     {
         protected internal ITpLink InnerLink = null!;
-        protected internal ITpReceiver Receiver = null!;
+        protected internal ITpReceiver? Receiver;
 
         protected ExtLink() {} //empty constructor only for generic usage
         protected ExtLink(ITpLink innerLink) => InnerLink = innerLink;
         protected ExtLink(ITpReceiver receiver) => Receiver = receiver;
 
-        public override string ToString() => $"{GetType().Name}({GetRemotePeerId()})"; //only for diagnostics
+        public override string ToString() => $"{GetType().Name}(<{GetRemotePeerId()}>)"; //only for diagnostics
 
         public virtual void Dispose() => InnerLink.Dispose();
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
-        public virtual void Received(ITpLink link, byte[]? bytes) => Receiver.Received(this, bytes);
+        public virtual void Received(ITpLink link, byte[]? bytes)
+        {
+            if (Receiver != null)
+                Receiver.Received(this, bytes);
+            else
+                Slog.Error($"{this}: no receiver yet");
+        }
     }
 }

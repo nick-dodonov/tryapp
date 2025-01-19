@@ -24,10 +24,10 @@ namespace Common.Logic
         }
 
         protected override PeerLink CreateClientLink(ITpReceiver receiver) =>
-            new(receiver, _peerId, _loggerFactory);
+            new(this, receiver, _peerId, _loggerFactory);
 
         protected override PeerLink CreateServerLink(ITpLink innerLink) =>
-            new PeerLink(innerLink, _loggerFactory).InitPeerLogger();
+            new(this, innerLink, _loggerFactory);
 
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
@@ -35,5 +35,14 @@ namespace Common.Logic
             await link.ConnectHandshake();
             return link;
         }
+
+        public override ITpReceiver Connected(ITpLink link)
+        {
+            var extLink = CreateServerLink(link);
+            return extLink;
+        }
+
+        internal ITpReceiver? CallConnected(PeerLink link) 
+            => Listener?.Connected(link);
     }
 }

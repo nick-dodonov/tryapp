@@ -28,7 +28,7 @@ namespace Shared.Tp
         /// </summary>
         /// <param name="link">channel to send bytes</param>
         /// <returns>handler for receiving bytes, null to close connection (starting/terminating/filled server, etc.)</returns>
-        public ValueTask<ITpReceiver?> Connected(ITpLink link);
+        public ITpReceiver? Connected(ITpLink link);
     }
 
     /// <summary>

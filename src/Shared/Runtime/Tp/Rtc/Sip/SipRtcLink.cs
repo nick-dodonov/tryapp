@@ -46,7 +46,7 @@ namespace Shared.Tp.Rtc.Sip
             _logger.Info(".");
         }
 
-        public override string ToString() => $"{nameof(SipRtcLink)}({_remotePeerId})"; //only for diagnostics
+        public override string ToString() => $"{nameof(SipRtcLink)}(<{_remotePeerId}>)"; //only for diagnostics
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
@@ -93,12 +93,12 @@ namespace Shared.Tp.Rtc.Sip
             };
 
             var channel = _dataChannel;
-            channel.onopen += async () =>
+            channel.onopen += () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
                 try
                 {
-                    _receiver = await _service.ListenerConnected(this);
+                    _receiver = _service.CallConnected(this);
                     if (_receiver == null)
                         Close("not listened");
                 }
