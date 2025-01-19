@@ -53,7 +53,7 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
+            _tpApi = new ExtApi(RtcApiFactory.CreateApi(_meta.RtcService));
 
             //var localPeerId = GetLocalPeerId();
             _tpLink = await _tpApi.Connect(this, cancellationToken);
