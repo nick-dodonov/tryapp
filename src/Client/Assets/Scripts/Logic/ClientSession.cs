@@ -29,8 +29,8 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         private IMeta _meta;
-        private ITpApi _tpApi;
-        private ITpLink _tpLink;
+        private ITpApi _api;
+        private ITpLink _link;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -47,16 +47,16 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_tpLink != null)
+            if (_link != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
 
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _tpApi = new ExtApi(RtcApiFactory.CreateApi(_meta.RtcService));
+            _api = new PeerApi(RtcApiFactory.CreateApi(_meta.RtcService));
 
             //var localPeerId = GetLocalPeerId();
-            _tpLink = await _tpApi.Connect(this, cancellationToken);
+            _link = await _api.Connect(this, cancellationToken);
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
@@ -83,9 +83,9 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
-            _tpLink?.Dispose();
-            _tpLink = null;
-            _tpApi = null;
+            _link?.Dispose();
+            _link = null;
+            _api = null;
 
             _meta?.Dispose();
             _meta = null;
@@ -97,7 +97,7 @@ namespace Client.Logic
 
         private void Update()
         {
-            if (_tpLink == null)
+            if (_link == null)
                 return;
 
             _updateElapsedTime += Time.deltaTime;
@@ -126,7 +126,7 @@ namespace Client.Logic
             var msg = WebSerializer.SerializeObject(clientState);
             var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
             _log.Info($"[{bytes.Length}] bytes: {msg}");
-            _tpLink.Send(bytes);
+            _link.Send(bytes);
         }
 
         void ITpReceiver.Received(ITpLink link, byte[] bytes)
