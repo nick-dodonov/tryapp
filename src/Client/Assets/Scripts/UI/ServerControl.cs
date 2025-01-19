@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Client.Utility;
+using Common.Meta;
 using Shared.Log;
 using Shared.Web;
 using TMPro;
@@ -11,20 +12,17 @@ using UnityEngine.UI;
 
 namespace Client.UI
 {
-    public interface IServerProvider
-    {
-        IWebClient ServerWebClient { get; }
-    }
-
-    public class ServerControl : MonoBehaviour, IServerProvider
+    public class ServerControl : MonoBehaviour
     {
         private static readonly Slog.Area _log = new();
 
+        public InfoControl infoControl;
+
         public TMP_Dropdown serverDropdown;
         public Button serverRequestButton;
-        public TMP_Text serverResponseText;
 
         private record ServerOption(string Text, string Url);
+
         private readonly List<ServerOption> _serverOptions = new();
 
         // ReSharper disable once AsyncVoidMethod
@@ -50,14 +48,13 @@ namespace Client.UI
             serverDropdown.RefreshShownValue();
             serverDropdown.onValueChanged.RemoveAllListeners();
             serverDropdown.onValueChanged.AddListener(OnServerChanged);
-            
-            serverResponseText.text = "";
 
             serverRequestButton.onClick.RemoveAllListeners();
             serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
         }
 
         private IWebClient _webClient;
+
         public IWebClient ServerWebClient
         {
             get
@@ -71,7 +68,7 @@ namespace Client.UI
                 return _webClient;
             }
         }
-        
+
         private static bool NeedServerLocalhostOptions(out string localhost)
         {
             localhost = "localhost";
@@ -119,26 +116,19 @@ namespace Client.UI
             }
         }
 
-        private void OnServerRequestButtonClick()
-        {
-            try
-            {
-                serverResponseText.text = "Requesting...";
-
-                throw new NotImplementedException();
-                // using var webClient = CreateWebClient();
-                // using var meta = CreateMetaClient(webClient);
-                //var result = await meta.GetInfo(destroyCancellationToken);
-//                 serverResponseText.text = @$"Response:
-// \tRandomName: {result.RandomName}
-// \tRequestId: {result.RequestId}
-// \tRequestTime: {result.RequestTime:O}
-// ";
-            }
-            catch (Exception ex)
-            {
-                serverResponseText.text = $"ERROR:\n{ex.Message}";
-            }
-        }
+        private void OnServerRequestButtonClick() =>
+            _ = infoControl.ExecuteTextThrobber(
+                async text =>
+                {
+                    text("Requesting...");
+                    var webClient = ServerWebClient;
+                    using var meta = new MetaClient(webClient, Slog.Factory);
+                    var result = await meta.GetInfo(destroyCancellationToken);
+                    text($"Response: {WebSerializer.SerializeObject(result, true)}");
+                },
+                (text, ex) =>
+                {
+                    text($"ERROR:\n{ex.Message}");
+                });
     }
 }
