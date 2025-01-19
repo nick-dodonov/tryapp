@@ -13,6 +13,11 @@ using UnityEngine;
 
 namespace Client.Logic
 {
+    public interface ISessionWorkflowOperator
+    {
+        void Disconnected();
+    }
+
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
@@ -34,18 +39,18 @@ namespace Client.Logic
             clientTap.SetActive(false);
         }
 
-        private Action<string> _notifyFinishingCallback;
+        ISessionWorkflowOperator _workflowOperator;
 
         public async Task Begin(
             IWebClient webClient,
-            Action<string> notifyFinishingCallback,
+            ISessionWorkflowOperator workflowOperator,
             CancellationToken cancellationToken)
         {
             _log.Info(".");
             if (_tpLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
 
-            _notifyFinishingCallback = notifyFinishingCallback;
+            _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
             _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
@@ -129,7 +134,7 @@ namespace Client.Logic
             if (bytes == null)
             {
                 _log.Info("disconnected (notifying handler)");
-                _notifyFinishingCallback("disconnected");
+                _workflowOperator.Disconnected();
                 return;
             }
 

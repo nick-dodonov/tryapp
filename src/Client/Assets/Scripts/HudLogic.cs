@@ -10,7 +10,7 @@ using UnityEngine;
 
 namespace Client
 {
-    public class HudLogic : MonoBehaviour, ISessionController
+    public class HudLogic : MonoBehaviour, ISessionController, ISessionWorkflowOperator
     {
         private static readonly Slog.Area _log = new();
 
@@ -45,7 +45,7 @@ namespace Client
                 text("Starting...");
                 await clientSession.Begin(
                     serverControl.ServerWebClient,
-                    StopSession,
+                    this,
                     cancellationToken);
                 text("RESULT:\nOK");
             }, (text, ex) =>
@@ -54,11 +54,8 @@ namespace Client
                 StopSession("connect error");
             });
 
-        void ISessionController.StopSession()
-        {
-            _log.Info(".");
-            StopSession("user request");
-        }
+        void ISessionController.StopSession() => StopSession("user request");
+        void ISessionWorkflowOperator.Disconnected() => StopSession("disconnected");
 
         private void StopSession(string reason)
         {
