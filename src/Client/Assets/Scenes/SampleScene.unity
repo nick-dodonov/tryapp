@@ -3906,7 +3906,7 @@ MonoBehaviour:
   serverRequestButton: {fileID: 2123365215}
   serverResponseText: {fileID: 1726573591}
   sessionControl: {fileID: 1737897845}
-  clientLogic: {fileID: 1987657743}
+  clientSession: {fileID: 1987657743}
 --- !u!114 &1987657739
 MonoBehaviour:
   m_ObjectHideFlags: 0

@@ -27,8 +27,7 @@ namespace Client
         public TMP_Text serverResponseText;
 
         public SessionControl sessionControl;
-
-        public ClientLogic clientLogic;
+        public ClientSession clientSession;
 
         private record ServerOption(string Text, string Url);
 
@@ -143,7 +142,7 @@ namespace Client
             {
                 _log.Info(".");
                 serverResponseText.text = "Starting...";
-                await clientLogic.Begin(
+                await clientSession.Begin(
                     CreateWebClient,
                     StopSession,
                     cancellationToken);
@@ -168,7 +167,7 @@ namespace Client
             _log.Info(reason);
             try
             {
-                clientLogic.Finish();
+                clientSession.Finish();
             }
             catch (Exception ex)
             {

@@ -16,7 +16,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientLogic : MonoBehaviour, ITpReceiver
+    public class ClientSession : MonoBehaviour, ITpReceiver
     {
         private static readonly Slog.Area _log = new();
 
