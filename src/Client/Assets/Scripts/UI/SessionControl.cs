@@ -74,7 +74,7 @@ namespace Client.UI
             }
             catch (Exception e)
             {
-                _log.Info($"failed: {e}");
+                _log.Warn($"failed: {e}");
                 ChangeState(State.Stopped);
             }
             finally

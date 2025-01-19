@@ -3,8 +3,6 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Web;
-using Unity.WebRTC;
 
 namespace Shared.Tp.Rtc.Unity
 {

@@ -1,6 +1,5 @@
 using System;
 using System.Net.Http;
-using System.Net.Http.Headers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -14,7 +13,6 @@ namespace Shared.Web
     public interface IWebClient : IDisposable
     {
         Uri BaseAddress { get; set; }
-        HttpRequestHeaders DefaultRequestHeaders { get; }
 
         Task<HttpResponseMessage> SendAsync(HttpRequestMessage message, HttpCompletionOption option, CancellationToken token);
         Task<HttpResponseMessage> PostAsync(string uri, string answer, CancellationToken cancellationToken);

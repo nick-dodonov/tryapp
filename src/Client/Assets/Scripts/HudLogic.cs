@@ -168,11 +168,14 @@ namespace Client
             try
             {
                 clientSession.Finish(reason);
+                _log.Info("client session finished");
             }
             catch (Exception ex)
             {
-                _log.Error(ex.ToString());
+                _log.Error($"{ex}");
             }
+
+            _log.Info("notifying session control");
             sessionControl.NotifyStopped();
         }
 

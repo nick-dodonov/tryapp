@@ -51,6 +51,7 @@ namespace Client.Logic
             _webClient = webClientFactory();
             _meta = new MetaClient(_webClient, Slog.Factory);
             _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
+
             //var localPeerId = GetLocalPeerId();
             _tpLink = await _tpApi.Connect(this, cancellationToken);
             _updateSendFrame = 0;
@@ -76,6 +77,7 @@ namespace Client.Logic
             foreach (var kv in _peerTaps)
                 Destroy(kv.Value.gameObject);
             _peerTaps.Clear();
+
             clientTap.SetActive(false);
 
             _tpLink?.Dispose();
@@ -84,6 +86,7 @@ namespace Client.Logic
 
             _meta?.Dispose();
             _meta = null;
+
             _webClient?.Dispose();
             _webClient = null;
         }

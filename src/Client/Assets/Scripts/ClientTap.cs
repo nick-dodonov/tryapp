@@ -1,4 +1,5 @@
 using Common.Logic;
+using Shared.Log;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
@@ -54,7 +55,11 @@ namespace Client
             }
         }
 
-        public void SetActive(bool active) => gameObject.SetActive(active);
+        public void SetActive(bool active)
+        {
+            Slog.Info($"{gameObject.name}: {active}");
+            gameObject.SetActive(active);
+        }
 
         public void Fill(ref ClientState state)
         {
