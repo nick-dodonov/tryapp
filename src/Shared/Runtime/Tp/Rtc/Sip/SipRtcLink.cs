@@ -88,8 +88,7 @@ namespace Shared.Tp.Rtc.Sip
                     RTCPeerConnectionState.disconnected or
                     RTCPeerConnectionState.failed)
                 {
-                    //TODO: replace with just notification to dispose outside
-                    ((IDisposable)this).Dispose();
+                    Close(state.ToString());
                 }
             };
 
