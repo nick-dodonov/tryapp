@@ -9,28 +9,30 @@ namespace Shared.Tp
     public class ExtApi<TLink> : ITpApi, ITpListener where TLink: ExtLink, new()
     {
         private readonly ITpApi _innerApi;
-        public ExtApi(ITpApi innerApi) => _innerApi = innerApi;
+        private ITpListener? _listener;
 
-        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
+        protected ExtApi(ITpApi innerApi) => _innerApi = innerApi;
+
+        protected virtual TLink CreateClientLink(ITpReceiver receiver) => new() { Receiver = receiver };
+        public virtual async Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var clientLink = new TLink { Receiver = receiver };
+            var clientLink = CreateClientLink(receiver);
             clientLink.InnerLink = await _innerApi.Connect(clientLink, cancellationToken);
             return clientLink;
         }
 
-        private ITpListener? _listener;
-
-        void ITpApi.Listen(ITpListener listener)
+        public virtual void Listen(ITpListener listener)
         {
             _listener = listener;
             _innerApi.Listen(this);
         }
 
-        ITpReceiver? ITpListener.Connected(ITpLink link)
+        protected virtual TLink CreateServerLink(ITpLink innerLink) => new() { InnerLink = innerLink };
+        public virtual ITpReceiver? Connected(ITpLink link)
         {
             if (_listener == null)
                 return null;
-            var extLink = new TLink { InnerLink = link };
+            var extLink = CreateServerLink(link);
             var receiver = _listener.Connected(extLink);
             if (receiver == null)
                 return null;
@@ -38,11 +40,11 @@ namespace Shared.Tp
             return extLink;
         }
     }
-    
+
     public class ExtLink: ITpLink, ITpReceiver
     {
-        internal ITpLink InnerLink = null!;
-        internal ITpReceiver Receiver = null!;
+        protected internal ITpLink InnerLink = null!;
+        protected internal ITpReceiver Receiver = null!;
 
         public virtual void Dispose() => InnerLink.Dispose();
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();

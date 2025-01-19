@@ -53,24 +53,26 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _api = new PeerApi(RtcApiFactory.CreateApi(_meta.RtcService));
+            var peerId = GetPeerId();
+            _api = new PeerApi(RtcApiFactory.CreateApi(_meta.RtcService), peerId);
 
-            //var localPeerId = GetLocalPeerId();
             _link = await _api.Connect(this, cancellationToken);
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
+            return;
 
-            // static string GetLocalPeerId()
-            // {
-            //     var peerId = SystemInfo.deviceUniqueIdentifier;
-            //     if (peerId == SystemInfo.unsupportedIdentifier)
-            //     {
-            //         //TODO: reimplement using IPeerIdProvider
-            //         peerId = Guid.NewGuid().ToString();
-            //     }
-            //     return peerId;
-            // }
+            //TODO: reimplement using IPeerIdProvider for sign-in features
+            static string GetPeerId()
+            {
+                var peerId = SystemInfo.deviceUniqueIdentifier;
+                // if (peerId == SystemInfo.unsupportedIdentifier)
+                {
+                    //TODO: implement for webgl platform (it doesn't support device unique id)
+                    peerId = Guid.NewGuid().ToString("N")[..8].ToUpper();
+                }
+                return peerId;
+            }
         }
 
         public void Finish(string reason)
