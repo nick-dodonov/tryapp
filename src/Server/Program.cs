@@ -17,7 +17,7 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<ITpApi>(sp => sp.GetRequiredService<SipRtcService>())
+    .AddSingleton<ITpApi>(sp => new ExtApi(sp.GetRequiredService<SipRtcService>()))
     .AddSingleton<LogicSession>()
     .AddHostedService<LogicSession>(sp => sp.GetRequiredService<LogicSession>())
     ;

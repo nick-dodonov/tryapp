@@ -1,31 +1,52 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Shared.Tp
 {
-    public class ExtApi : ITpApi
+    /// <summary>
+    /// TODO: correctly handle exception on inner/outer calls
+    /// </summary>
+    public class ExtApi : ITpApi, ITpListener
     {
-        private readonly ITpApi _hostApi;
-        public ExtApi(ITpApi hostApi) => _hostApi = hostApi;
+        private readonly ITpApi _innerApi;
+        public ExtApi(ITpApi innerApi) => _innerApi = innerApi;
 
         async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = await _hostApi.Connect(receiver, cancellationToken);
-            return new ExtLink(link);
+            var clientLink = new Link { Receiver = receiver };
+            clientLink.InnerLink = await _innerApi.Connect(clientLink, cancellationToken);
+            return clientLink;
         }
 
-        void ITpApi.Listen(ITpListener listener) => throw new NotImplementedException();
-    }
+        private ITpListener? _listener;
 
-    public class ExtLink : ITpLink
-    {
-        private readonly ITpLink _hostLink;
+        void ITpApi.Listen(ITpListener listener)
+        {
+            _listener = listener;
+            _innerApi.Listen(this);
+        }
 
-        public ExtLink(ITpLink hostLink) => _hostLink = hostLink;
-        void IDisposable.Dispose() => _hostLink.Dispose();
+        ITpReceiver? ITpListener.Connected(ITpLink link)
+        {
+            if (_listener == null)
+                return null;
+            var extLink = new Link { InnerLink = link };
+            var receiver = _listener.Connected(extLink);
+            if (receiver == null)
+                return null;
+            extLink.Receiver = receiver;
+            return extLink;
+        }
 
-        string ITpLink.GetRemotePeerId() => throw new NotImplementedException();
-        void ITpLink.Send(byte[] bytes) => _hostLink.Send(bytes);
+        private class Link: ITpLink, ITpReceiver
+        {
+            internal ITpLink InnerLink = null!;
+            internal ITpReceiver Receiver = null!;
+
+            public void Dispose() => InnerLink.Dispose();
+            public string GetRemotePeerId() => "WRAP-" + InnerLink.GetRemotePeerId();
+            public void Send(byte[] bytes) => InnerLink.Send(bytes);
+            public void Received(ITpLink link, byte[]? bytes) => Receiver.Received(this, bytes);
+        }
     }
 }
