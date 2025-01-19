@@ -23,10 +23,10 @@ namespace Common.Logic
         }
 
         protected override PeerLink CreateClientLink(ITpReceiver receiver) =>
-            new(receiver, _peerId, new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), _peerId));
+            new(receiver, _peerId, _loggerFactory);
 
         protected override PeerLink CreateServerLink(ITpLink innerLink) =>
-            new(innerLink, new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), _peerId));
+            new PeerLink(innerLink, _loggerFactory).InitPeerLogger();
 
         public override async Task<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
@@ -38,22 +38,28 @@ namespace Common.Logic
 
     public class PeerLink : ExtLink
     {
-        private readonly ILogger _logger;
+        private readonly ILoggerFactory _loggerFactory = null!;
+        private ILogger _logger = null!;
         private string? _peerId;
 
-        public PeerLink() => _logger = null!; //empty constructor only for generic usage
-
-        public PeerLink(ITpReceiver receiver, string peerId, ILogger logger)
+        public PeerLink()
         {
-            _logger = logger;
-            Receiver = receiver;
+        } //empty constructor only for generic usage
+
+        public PeerLink(ITpReceiver receiver, string peerId, ILoggerFactory loggerFactory) : base(receiver)
+        {
+            _loggerFactory = loggerFactory;
             _peerId = peerId;
+            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), _peerId);
         }
 
-        public PeerLink(ITpLink innerLink, ILogger logger)
+        public PeerLink(ITpLink innerLink, ILoggerFactory loggerFactory) : base(innerLink)
+            => _loggerFactory = loggerFactory;
+
+        public PeerLink InitPeerLogger() // separate init allows to use virtual methods
         {
-            _logger = logger;
-            InnerLink = innerLink;
+            _logger = new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
+            return this;
         }
 
         public Task ConnectHandshake()
@@ -61,9 +67,9 @@ namespace Common.Logic
             _logger.Info($"sending peer id: {_peerId}");
             var bytes = Encoding.UTF8.GetBytes(_peerId!);
             Send(bytes);
-            
+
             //TODO: implement handshake await
-            
+
             return Task.CompletedTask;
         }
 
@@ -74,8 +80,9 @@ namespace Common.Logic
         {
             if (_peerId == null && bytes != null)
             {
-                _logger.Info($"received peer id: {bytes}");
                 _peerId = Encoding.UTF8.GetString(bytes);
+                InitPeerLogger();
+                _logger.Info($"received peer id: {_peerId}");
                 return;
             }
 

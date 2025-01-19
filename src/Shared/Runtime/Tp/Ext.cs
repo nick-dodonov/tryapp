@@ -46,6 +46,12 @@ namespace Shared.Tp
         protected internal ITpLink InnerLink = null!;
         protected internal ITpReceiver Receiver = null!;
 
+        protected ExtLink() {} //empty constructor only for generic usage
+        protected ExtLink(ITpLink innerLink) => InnerLink = innerLink;
+        protected ExtLink(ITpReceiver receiver) => Receiver = receiver;
+
+        public override string ToString() => $"{GetType().Name}({GetRemotePeerId()})"; //only for diagnostics
+
         public virtual void Dispose() => InnerLink.Dispose();
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
