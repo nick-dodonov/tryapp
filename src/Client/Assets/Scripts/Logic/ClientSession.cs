@@ -64,19 +64,6 @@ namespace Client.Logic
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
-            return;
-
-            //TODO: reimplement using IPeerIdProvider for sign-in features
-            static string GetPeerId()
-            {
-                var peerId = SystemInfo.deviceUniqueIdentifier[..8].ToUpper(); //tmp short to simplify diagnostics
-                if (peerId == SystemInfo.unsupportedIdentifier)
-                {
-                    //TODO: implement for webgl platform (it doesn't support device unique id)
-                    peerId = Guid.NewGuid().ToString("N")[..8].ToUpper();
-                }
-                return peerId;
-            }
         }
 
         public void Finish(string reason)
@@ -193,6 +180,20 @@ namespace Client.Logic
             {
                 _log.Error($"{e}");
             }
+        }
+        
+        //TODO: reimplement using IPeerIdProvider for sign-in features
+        private static string GetPeerId()
+        {
+            var peerId = SystemInfo.deviceUniqueIdentifier;
+            if (peerId == SystemInfo.unsupportedIdentifier)
+            {
+                //TODO: implement for webgl platform (it doesn't support device unique id)
+                peerId = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            }
+            else
+                peerId = peerId[..8].ToUpper(); //tmp short to simplify diagnostics
+            return peerId;
         }
     }
 }
