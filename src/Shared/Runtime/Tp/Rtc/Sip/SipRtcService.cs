@@ -97,7 +97,8 @@ namespace Shared.Tp.Rtc.Sip
         }
 
         internal void RemoveLink(string token) => _links.TryRemove(token, out _);
-        internal ITpReceiver? ListenerConnected(SipRtcLink link) => _listener?.Connected(link);
+        internal ValueTask<ITpReceiver?> ListenerConnected(SipRtcLink link) => 
+            _listener?.Connected(link) ?? default;
 
         ValueTask<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken) 
             => throw new NotSupportedException("Connect: server side doesn't connect now");

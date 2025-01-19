@@ -28,12 +28,12 @@ namespace Shared.Tp
         }
 
         protected virtual TLink CreateServerLink(ITpLink innerLink) => new() { InnerLink = innerLink };
-        public virtual ITpReceiver? Connected(ITpLink link)
+        public virtual async ValueTask<ITpReceiver?> Connected(ITpLink link)
         {
             if (_listener == null)
                 return null;
             var extLink = CreateServerLink(link);
-            var receiver = _listener.Connected(extLink);
+            var receiver = await _listener.Connected(extLink);
             if (receiver == null)
                 return null;
             extLink.Receiver = receiver;

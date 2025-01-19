@@ -93,12 +93,20 @@ namespace Shared.Tp.Rtc.Sip
             };
 
             var channel = _dataChannel;
-            channel.onopen += () =>
+            channel.onopen += async () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
-                _receiver = _service.ListenerConnected(this);
-                if (_receiver == null)
-                    Close("not listened");
+                try
+                {
+                    _receiver = await _service.ListenerConnected(this);
+                    if (_receiver == null)
+                        Close("not listened");
+                }
+                catch (Exception e)
+                {
+                    _logger.Error($"listener connected failed: {e}");
+                    Close(e.Message);
+                }
             };
             channel.onmessage += (_, _, data) =>
             {
