@@ -58,7 +58,7 @@ namespace Diagnostics
             Slog.Info($"obj-content: {obj.Content}");
         }
 
-        [Preserve, DebugAction]
+        //[Preserve, DebugAction]
         public static void TestManagedPin()
         {
             Slog.Info("start");
