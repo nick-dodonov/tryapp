@@ -6,6 +6,12 @@ using Shared.Tp;
 
 namespace Common.Logic
 {
+    public class HandshakeOptions
+    {
+        public int TimeoutMs = 3000;
+        public int SynRetryMs = 500;
+    }
+
     /// <summary>
     /// TODO: custom initial state (not only peer id is required for logic)
     /// </summary>
@@ -14,6 +20,8 @@ namespace Common.Logic
         private readonly ILoggerFactory _loggerFactory;
 
         private readonly string _peerId;
+
+        public HandshakeOptions HandshakeOptions { get; } = new();
 
         public PeerApi(ITpApi innerApi, string peerId, ILoggerFactory loggerFactory) : base(innerApi)
         {
@@ -35,7 +43,7 @@ namespace Common.Logic
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = (PeerLink)await base.Connect(receiver, cancellationToken);
-            await link.ConnectHandshake();
+            await link.ConnectHandshake(cancellationToken);
             return link;
         }
 

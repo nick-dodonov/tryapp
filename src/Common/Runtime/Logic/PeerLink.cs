@@ -1,6 +1,8 @@
 using System;
 using System.Buffers;
+using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
@@ -11,10 +13,12 @@ namespace Common.Logic
 {
     /// <summary>
     /// Wrapper link for establishing connection with initial reliable state:
-    ///     client->server initial state (peer id) now
+    ///   client->server initial state, simple 2-way handshake implemented now:
+    ///     * client send/resend syn state until ack is received
+    ///     * server answers ack immediately and includes ack with user data 
     ///
+    /// TODO: rfx to generic with any sync state (not only peer Id)
     /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
-    /// TODO: syn/ack for reliable initial state: 2-way for client->server state only (peer id), etc
     /// TODO: reconnect support (possibly another wrapper)
     /// </summary>
     public class PeerLink : ExtLink
@@ -31,13 +35,73 @@ namespace Common.Logic
         [Flags]
         private enum Flags : byte
         {
-            Syn = 1 << 1,   // client->server connection message: body is reliable initial state (peer id) 
-            Ack = 1 << 4    // server->client message flag: means initial state is received  
+            Syn = 1 << 1, // client->server connection message: body is reliable initial state (peer id) 
+            Ack = 1 << 4 // server->client message flag: means initial state is received  
         }
 
-        public PeerLink() { } //empty constructor only for generic usage
+        private struct SynState
+        {
+            private HandshakeOptions _options;
+            private TaskCompletionSource<object?>? _ackTcs; //null means ack already received
 
-        public PeerLink(PeerApi api, ITpReceiver receiver, string peerId, ILoggerFactory loggerFactory) : base(receiver)
+            private int _attempts;
+            private long _startMs;
+
+            public void Reset(HandshakeOptions options)
+            {
+                _options = options;
+
+                _ackTcs?.TrySetCanceled();
+                _ackTcs = new();
+
+                _attempts = 0;
+                _startMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            public void AckReceived()
+            {
+                if (_ackTcs == null)
+                    return;
+                _ackTcs.TrySetResult(null);
+                _ackTcs = null;
+            }
+
+            public async Task<bool> AwaitResend(CancellationToken cancellationToken)
+            {
+                var elapsedMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds() - _startMs;
+                var remainingMs = _options.TimeoutMs - elapsedMs;
+                long attemptMs = _options.SynRetryMs;
+                if (attemptMs > remainingMs)
+                    attemptMs = remainingMs;
+                try
+                {
+                    var ackTask = _ackTcs?.Task;
+                    if (ackTask is { IsCompleted: false }) // ack can already be received
+                        await ackTask.WaitAsync(TimeSpan.FromMilliseconds(attemptMs), cancellationToken);
+                    return false; // ack received successfully - no need to resend
+                }
+                catch (TimeoutException)
+                {
+                    _attempts++;
+                }
+
+                if (attemptMs < _options.SynRetryMs)
+                {
+                    throw new TimeoutException($"Handshake timeout: {_options.TimeoutMs}ms (attempts: {_attempts})");
+                }
+                return true;
+            }
+        }
+
+        private SynState _synState;
+
+        public PeerLink()
+        {
+        } //empty constructor only for generic usage
+
+        public PeerLink(PeerApi api, ITpReceiver receiver, string peerId, ILoggerFactory loggerFactory)
+            : base(receiver)
         {
             _api = api;
             _loggerFactory = loggerFactory;
@@ -45,40 +109,46 @@ namespace Common.Logic
             _peerId = peerId;
         }
 
-        public PeerLink(PeerApi api, ITpLink innerLink, ILoggerFactory loggerFactory) : base(innerLink)
+        public PeerLink(PeerApi api, ITpLink innerLink, ILoggerFactory loggerFactory)
+            : base(innerLink)
         {
             _api = api;
             _loggerFactory = loggerFactory;
             _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
         }
 
-        private TaskCompletionSource<object>? _handshakeTcs; // TODO: thread-safe interlocked interaction
-        public async Task ConnectHandshake()
+        public async Task ConnectHandshake(CancellationToken cancellationToken)
         {
             var peerId = _peerId!;
             _logger.Info($"sending syn: {peerId}");
 
-            _handshakeTcs = new();
             var charCount = peerId.Length;
             var maxByteLength = Encoding.UTF8.GetMaxByteCount(charCount);
             maxByteLength++; //flags byte
 
-            var sendBytes = ArrayPool<byte>.Shared.Rent(maxByteLength);
+            var synBytes = ArrayPool<byte>.Shared.Rent(maxByteLength);
             try
             {
-                sendBytes[0] = (byte)Flags.Syn;
-                var encodedCount = Encoding.UTF8.GetBytes(peerId.AsSpan(), sendBytes.AsSpan(1));
-                InnerLink.Send(sendBytes.AsSpan(0, 1 + encodedCount).ToArray());
+                synBytes[0] = (byte)Flags.Syn;
+                var encodedCount = Encoding.UTF8.GetBytes(peerId.AsSpan(), synBytes.AsSpan(1));
+
+                var sendBytes = synBytes.AsSpan(0, 1 + encodedCount).ToArray();
+                InnerLink.Send(sendBytes);
+
+                _logger.Info("awaiting ack");
+                _synState.Reset(_api.HandshakeOptions);
+                while (await _synState.AwaitResend(cancellationToken))
+                {
+                    _logger.Info($"re-sending syn: {peerId}");
+                    InnerLink.Send(sendBytes);
+                }
+
+                _logger.Info("connection established");
             }
             finally
             {
-                ArrayPool<byte>.Shared.Return(sendBytes);
+                ArrayPool<byte>.Shared.Return(synBytes);
             }
-
-            _logger.Info("awaiting ack");
-            await _handshakeTcs.Task;
-    
-            _logger.Info("connection established");
         }
 
         public sealed override string GetRemotePeerId() =>
@@ -104,7 +174,7 @@ namespace Common.Logic
             if (bytes != null)
             {
                 var flags = (Flags)bytes[0];
-                
+
                 if ((flags & Flags.Syn) != 0)
                 {
                     if (_peerId != null)
@@ -122,17 +192,12 @@ namespace Common.Logic
                     }
                     else
                         _logger.Info("disconnected on listen");
+
                     return;
                 }
 
                 if ((flags & Flags.Ack) != 0)
-                {
-                    if (_handshakeTcs != null)
-                    {
-                        _handshakeTcs.SetResult(new());
-                        _handshakeTcs = null;
-                    }
-                }
+                    _synState.AckReceived();
 
                 bytes = bytes.AsSpan(1).ToArray();
                 if (bytes.Length <= 0) // empty message (usually mere ack)
