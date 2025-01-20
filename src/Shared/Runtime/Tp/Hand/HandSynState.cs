@@ -3,7 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Common.Logic
+namespace Shared.Tp.Hand
 {
     internal class HandSynState
     {

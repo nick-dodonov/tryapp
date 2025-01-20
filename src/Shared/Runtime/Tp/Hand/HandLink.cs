@@ -5,9 +5,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
-using Shared.Tp;
 
-namespace Common.Logic
+namespace Shared.Tp.Hand
 {
     /// <summary>
     /// Wrapper link for establishing connection with initial reliable state:

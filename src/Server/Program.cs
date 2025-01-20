@@ -5,6 +5,7 @@ using Server.Meta;
 using Shared.Audit;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Tp.Hand;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
