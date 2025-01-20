@@ -26,7 +26,9 @@ namespace Shared.Tp
 
         public override string ToString() => $"{GetType().Name}(<{GetRemotePeerId()}>)"; //only for diagnostics
 
-        public virtual void Dispose() => InnerLink.Dispose();
+        public virtual void Close(string reason) => InnerLink.Dispose();
+        public virtual void Dispose() => Close("disposing");
+
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
         public virtual void Received(ITpLink link, byte[]? bytes)

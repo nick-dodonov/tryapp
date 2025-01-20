@@ -38,7 +38,7 @@ namespace Common.Logic
             Ack = 1 << 4 // server->client message flag: means initial state is received  
         }
 
-        private PeerSynState _synState;
+        private PeerSynState? _synState; //null means ack received or doesn't required
 
         public PeerLink()
         {
@@ -61,10 +61,16 @@ namespace Common.Logic
             _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
         }
 
-        public async Task ConnectHandshake(CancellationToken cancellationToken)
+        public override void Close(string reason)
+        {
+            _logger.Info(reason);
+            base.Close(reason);
+        }
+
+        public async Task Handshake(CancellationToken cancellationToken)
         {
             var peerId = _peerId!;
-            _logger.Info($"sending syn: {peerId}");
+            _logger.Info($"send syn and wait ack: {peerId}");
 
             var charCount = peerId.Length;
             var maxByteLength = Encoding.UTF8.GetMaxByteCount(charCount);
@@ -79,15 +85,21 @@ namespace Common.Logic
                 var sendBytes = synBytes.AsSpan(0, 1 + encodedCount).ToArray();
                 InnerLink.Send(sendBytes);
 
-                _logger.Info("awaiting ack");
-                _synState.Reset(_api.HandshakeOptions);
+                _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
-                    _logger.Info($"re-sending syn: {peerId}");
+                    _logger.Info($"re-send syn while waiting ack: {peerId}");
                     InnerLink.Send(sendBytes);
                 }
 
-                _logger.Info("connection established");
+                _logger.Info("connected");
+            }
+            catch (Exception e)
+            {
+                if (e is TimeoutException) _logger.Warn(e.Message);
+                else _logger.Error($"fail: {e}");
+                Close("handshake failed");
+                throw;
             }
             finally
             {
@@ -140,8 +152,12 @@ namespace Common.Logic
                     return;
                 }
 
-                if ((flags & Flags.Ack) != 0)
+                if ((flags & Flags.Ack) != 0 && _synState != null)
+                {
+                    _logger.Info("ack received");
                     _synState.AckReceived();
+                    _synState = null;
+                }
 
                 bytes = bytes.AsSpan(1).ToArray();
                 if (bytes.Length <= 0) // empty message (usually mere ack)

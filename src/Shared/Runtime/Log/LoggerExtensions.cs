@@ -11,6 +11,10 @@ namespace Shared.Log
     public static class LoggerExtensions
     {
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void Write(this ILogger logger, LogLevel logLevel, string message, [CallerMemberName] string member = "") 
+            => logger.Log(logLevel, 0, new(message, member), null, MsgState.Formatter);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Info(this ILogger logger, string message, [CallerMemberName] string member = "") 
             => logger.Log(LogLevel.Information, 0, new(message, member), null, MsgState.Formatter);
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

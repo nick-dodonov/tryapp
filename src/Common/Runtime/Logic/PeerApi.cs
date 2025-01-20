@@ -9,7 +9,7 @@ namespace Common.Logic
     public class HandshakeOptions
     {
         public int TimeoutMs = 3000;
-        public int SynRetryMs = 500;
+        public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
     /// <summary>
@@ -43,7 +43,7 @@ namespace Common.Logic
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = (PeerLink)await base.Connect(receiver, cancellationToken);
-            await link.ConnectHandshake(cancellationToken);
+            await link.Handshake(cancellationToken);
             return link;
         }
 
