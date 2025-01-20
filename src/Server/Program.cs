@@ -5,10 +5,11 @@ using Server.Meta;
 using Shared.Audit;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Tp.Hand;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
-Slog.Info($"==== starting server build {BuildInfo.Timestamp} ====");
+Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -18,9 +19,9 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<ITpApi>(sp => new PeerApi(
+    .AddSingleton<ITpApi>(sp => new HandApi(
         sp.GetRequiredService<SipRtcService>(), 
-        "[server]",
+        new ConnectStateProvider(null),
         sp.GetRequiredService<ILoggerFactory>()
         ))
     .AddSingleton<LogicSession>()
@@ -55,4 +56,5 @@ app.UseCors();
 
 app.MapControllers();
 
+Slog.Info("<<<<");
 app.Run();

@@ -7,6 +7,7 @@ using Common.Logic;
 using Common.Meta;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Tp.Hand;
 using Shared.Tp.Rtc;
 using Shared.Web;
 using UnityEngine;
@@ -55,9 +56,9 @@ namespace Client.Logic
             _meta = new MetaClient(webClient, Slog.Factory);
 
             var peerId = GetPeerId();
-            _api = new PeerApi(
+            _api = new HandApi(
                 RtcApiFactory.CreateApi(_meta.RtcService), 
-                peerId,
+                new ConnectStateProvider(new(peerId)),
                 Slog.Factory);
 
             _link = await _api.Connect(this, cancellationToken);

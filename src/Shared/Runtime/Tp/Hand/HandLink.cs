@@ -1,14 +1,12 @@
 using System;
 using System.Buffers;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
-using Shared.Tp;
 
-namespace Common.Logic
+namespace Shared.Tp.Hand
 {
     /// <summary>
     /// Wrapper link for establishing connection with initial reliable state:
@@ -16,17 +14,17 @@ namespace Common.Logic
     ///     * client send/resend syn state until ack is received
     ///     * server answers ack immediately and includes ack with user data 
     ///
-    /// TODO: rfx to generic with any sync state (not only peer Id)
     /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
     /// TODO: reconnect support (possibly another wrapper)
     /// </summary>
-    public class PeerLink : ExtLink
+    public class HandLink : ExtLink
     {
-        private readonly PeerApi _api = null!;
+        private readonly HandApi _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
-        private string? _peerId;
+        private readonly IHandStateProvider _stateProvider = null!;
+        private IHandConnectState? _connectState;
 
         /// <summary>
         /// Flags required for initial reliable state handshaking
@@ -34,31 +32,33 @@ namespace Common.Logic
         [Flags]
         private enum Flags : byte
         {
-            Syn = 1 << 1, // client->server connection message: body is reliable initial state (peer id) 
+            Syn = 1 << 1, // client->server connection message: body is reliable initial state 
             Ack = 1 << 4 // server->client message flag: means initial state is received  
         }
 
-        private PeerSynState? _synState; //null means ack received or doesn't required
+        private HandSynState? _synState; //null means ack received or doesn't required
 
-        public PeerLink()
-        {
-        } //empty constructor only for generic usage
+        public HandLink() { } //empty constructor only for generic usage
 
-        public PeerLink(PeerApi api, ITpReceiver receiver, string peerId, ILoggerFactory loggerFactory)
+        public HandLink(HandApi api, ITpReceiver receiver, 
+            IHandStateProvider stateProvider, ILoggerFactory loggerFactory)
             : base(receiver)
         {
             _api = api;
+            _stateProvider = stateProvider;
+            _connectState = _stateProvider.ProvideConnectState();
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), peerId);
-            _peerId = peerId;
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _connectState.LinkId);
         }
 
-        public PeerLink(PeerApi api, ITpLink innerLink, ILoggerFactory loggerFactory)
+        public HandLink(HandApi api, ITpLink innerLink, 
+            IHandStateProvider stateProvider, ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
+            _stateProvider = stateProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
 
         public override void Close(string reason)
@@ -69,26 +69,22 @@ namespace Common.Logic
 
         public async Task Handshake(CancellationToken cancellationToken)
         {
-            var peerId = _peerId!;
-            _logger.Info($"send syn and wait ack: {peerId}");
+            var connectState = _connectState!;
+            _logger.Info($"send syn and wait ack: {connectState}");
 
-            var charCount = peerId.Length;
-            var maxByteLength = Encoding.UTF8.GetMaxByteCount(charCount);
-            maxByteLength++; //flags byte
-
-            var synBytes = ArrayPool<byte>.Shared.Rent(maxByteLength);
+            var stateBytes = _stateProvider.Serialize(connectState);
+            var synBytes = ArrayPool<byte>.Shared.Rent(stateBytes.Length + 1);
             try
             {
                 synBytes[0] = (byte)Flags.Syn;
-                var encodedCount = Encoding.UTF8.GetBytes(peerId.AsSpan(), synBytes.AsSpan(1));
-
-                var sendBytes = synBytes.AsSpan(0, 1 + encodedCount).ToArray();
+                stateBytes.CopyTo(synBytes.AsSpan(1));
+                var sendBytes = synBytes.AsSpan(0, stateBytes.Length + 1).ToArray();
                 InnerLink.Send(sendBytes);
 
                 _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
-                    _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {peerId}");
+                    _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {connectState}");
                     InnerLink.Send(sendBytes);
                 }
 
@@ -110,7 +106,7 @@ namespace Common.Logic
         }
 
         public sealed override string GetRemotePeerId() =>
-            $"{_peerId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
+            $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
         public override void Send(byte[] bytes)
         {
@@ -135,12 +131,12 @@ namespace Common.Logic
 
                 if ((flags & Flags.Syn) != 0)
                 {
-                    if (_peerId != null)
+                    if (_connectState != null)
                         return; // duplicate syn received: already connected
 
-                    _peerId = Encoding.UTF8.GetString(bytes.AsSpan(1).ToArray());
-                    _logger.Info($"received peer id: {_peerId}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
+                    _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
+                    _logger.Info($"received connection state: {_connectState}");
+                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
 
                     // notify listener connection is established after handshake
                     if (_api.CallConnected(this))
