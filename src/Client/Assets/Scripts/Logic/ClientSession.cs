@@ -125,18 +125,11 @@ namespace Client.Logic
 
         void ITpReceiver.Received(ITpLink link, byte[] bytes)
         {
-            if (bytes == null)
-            {
-                _log.Info("disconnected (notifying handler)");
-                _workflowOperator.Disconnected();
-                return;
-            }
-
-            var msg = System.Text.Encoding.UTF8.GetString(bytes);
-            _log.Info($"[{bytes.Length}] bytes: {msg}");
-
             try
             {
+                var msg = System.Text.Encoding.UTF8.GetString(bytes);
+                _log.Info($"[{bytes.Length}] bytes: {msg}");
+
                 var serverState = WebSerializer.DeserializeObject<ServerState>(msg);
 
                 var count = 0;
@@ -182,7 +175,13 @@ namespace Client.Logic
                 _log.Error($"{e}");
             }
         }
-        
+
+        public void Disconnected(ITpLink link)
+        {
+            _log.Info("notifying handler");
+            _workflowOperator.Disconnected();
+        }
+
         //TODO: reimplement using IPeerIdProvider for sign-in features
         private static string GetPeerId()
         {

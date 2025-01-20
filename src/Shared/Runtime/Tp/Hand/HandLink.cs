@@ -61,7 +61,7 @@ namespace Shared.Tp.Hand
             _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
 
-        public override void Close(string reason)
+        protected override void Close(string reason)
         {
             _logger.Info(reason);
             base.Close(reason);
@@ -123,49 +123,46 @@ namespace Shared.Tp.Hand
             }
         }
 
-        public override void Received(ITpLink link, byte[]? bytes)
+        public override void Received(ITpLink link, byte[] bytes)
         {
-            if (bytes != null)
+            var flags = (Flags)bytes[0];
+
+            if ((flags & Flags.Syn) != 0)
             {
-                var flags = (Flags)bytes[0];
+                if (_connectState != null)
+                    return; // duplicate syn received: already connected
 
-                if ((flags & Flags.Syn) != 0)
+                _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
+                _logger.Info($"received connection state: {_connectState}");
+                _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
+
+                // notify listener connection is established after handshake
+                if (_api.CallConnected(this))
                 {
-                    if (_connectState != null)
-                        return; // duplicate syn received: already connected
-
-                    _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
-                    _logger.Info($"received connection state: {_connectState}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
-
-                    // notify listener connection is established after handshake
-                    if (_api.CallConnected(this))
-                    {
-                        _logger.Info("sending empty ack");
-                        Send(Array.Empty<byte>());
-                    }
-                    else
-                        _logger.Info("disconnected on listen");
-
-                    return;
+                    _logger.Info("sending empty ack");
+                    Send(Array.Empty<byte>());
                 }
+                else
+                    _logger.Info("disconnected on listen");
 
-                if ((flags & Flags.Ack) != 0 && _synState != null)
-                {
-                    _logger.Info("ack received");
-                    _synState.AckReceived();
-                    _synState = null;
-                }
+                return;
+            }
 
-                bytes = bytes.AsSpan(1).ToArray();
-                if (bytes.Length <= 0)
-                    return; // ignore empty message (usually initial ack)
+            if ((flags & Flags.Ack) != 0 && _synState != null)
+            {
+                _logger.Info("ack received");
+                _synState.AckReceived();
+                _synState = null;
+            }
 
-                if (_synState != null)
-                {
-                    _logger.Info($"skip without handshake: {bytes.Length} bytes");
-                    return; // ignore messages while handshake in progress
-                }
+            bytes = bytes.AsSpan(1).ToArray();
+            if (bytes.Length <= 0)
+                return; // ignore empty message (initial ack)
+
+            if (_synState != null)
+            {
+                _logger.Info($"skip without handshake: {bytes.Length} bytes");
+                return; // ignore messages while handshake in progress
             }
 
             base.Received(link, bytes);

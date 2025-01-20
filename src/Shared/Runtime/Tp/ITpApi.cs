@@ -11,11 +11,11 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpReceiver
     {
-        /// <summary>
         /// <param name="link">channel data from, allows to simplify server code allowing to use the same handler for several links</param>
-        /// <param name="bytes">data block from link, null means disconnected</param> 
-        /// </summary>
-        void Received(ITpLink link, byte[]? bytes);
+        /// <param name="bytes">data block from link</param> 
+        void Received(ITpLink link, byte[] bytes);
+        /// <param name="link">disconnected channel</param>
+        void Disconnected(ITpLink link);
     }
 
     /// <summary>

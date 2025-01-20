@@ -22,7 +22,7 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    ITpReceiver? ITpListener.Connected(ITpLink link)
+    ITpReceiver ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
         var peer = new LogicPeer(
@@ -32,27 +32,27 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
         return this;
     }
 
-    void ITpReceiver.Received(ITpLink link, byte[]? bytes)
+    void ITpReceiver.Received(ITpLink link, byte[] bytes)
     {
         var linkId = link.GetRemotePeerId();
-        if (!_peers.TryGetValue(link, out var peer))
-        {
-            var msg = $"{(bytes == null ? "disconnected" : $"[{bytes.Length}] bytes")}";
-            _logger.Warn($"peer not found: {linkId} ({msg})");
-            return;
-        }
-
-        if (bytes == null)
-        {
-            _logger.Info($"peer disconnected: {linkId}");
-            if (_peers.TryRemove(link, out peer))
-                peer.Dispose();
-            return;
-        }
-
-        peer.Received(bytes);
+        if (_peers.TryGetValue(link, out var peer))
+            peer.Received(bytes);
+        else
+            _logger.Warn($"peer not found: {linkId} ([{bytes.Length}] bytes)");
     }
 
+    void ITpReceiver.Disconnected(ITpLink link)
+    {
+        var linkId = link.GetRemotePeerId();
+        if (_peers.TryRemove(link, out var peer))
+        {
+            _logger.Info($"peer disconnected: {linkId}");
+            peer.Dispose();
+        }
+        else 
+            _logger.Warn($"peer not found: {linkId}");
+    }
+    
     public ServerState GetServerState(int frame)
     {
         var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

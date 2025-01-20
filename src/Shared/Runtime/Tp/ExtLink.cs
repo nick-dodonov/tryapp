@@ -15,7 +15,10 @@ namespace Shared.Tp
                 _receiver = value;
                 _receivePostponed.Feed(static (link, bytes) =>
                 {
-                    link._receiver!.Received(link, bytes);
+                    if (bytes != null)
+                        link._receiver!.Received(link, bytes);
+                    else
+                        link._receiver!.Disconnected(link);
                 }, this);
             }
         }
@@ -26,19 +29,29 @@ namespace Shared.Tp
 
         public override string ToString() => $"{GetType().Name}(<{GetRemotePeerId()}>)"; //only for diagnostics
 
-        public virtual void Close(string reason) => InnerLink.Dispose();
+        protected virtual void Close(string reason) => InnerLink.Dispose();
         public virtual void Dispose() => Close("disposing");
 
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
-        public virtual void Received(ITpLink link, byte[]? bytes)
+        public virtual void Received(ITpLink link, byte[] bytes)
         {
             if (_receiver != null)
                 _receiver.Received(this, bytes);
             else
             {
-                Slog.Info($"{this}: no receiver: temping {bytes?.Length} bytes");
+                Slog.Info($"{this}: no receiver: postpone {bytes.Length} bytes");
                 _receivePostponed.Add(bytes);
+            }
+        }
+        public virtual void Disconnected(ITpLink link)
+        {
+            if (_receiver != null)
+                _receiver.Disconnected(this);
+            else
+            {
+                Slog.Info($"{this}: no receiver: postpone disconnected");
+                _receivePostponed.Add(null);
             }
         }
     }

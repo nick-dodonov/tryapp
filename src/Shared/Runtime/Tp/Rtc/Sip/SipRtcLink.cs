@@ -109,7 +109,7 @@ namespace Shared.Tp.Rtc.Sip
             channel.onclose += () =>
             {
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
-                CallReceived(null);
+                CallDisconnected();
             };
             channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
@@ -215,7 +215,10 @@ namespace Shared.Tp.Rtc.Sip
                 }
                 _receivePostponed.Feed(static (link, bytes) =>
                 {
-                    link._receiver!.Received(link, bytes);
+                    if (bytes != null)
+                        link._receiver!.Received(link, bytes);
+                    else
+                        link._receiver!.Disconnected(link);
                 }, this);
             }
             catch (Exception e)
@@ -225,14 +228,25 @@ namespace Shared.Tp.Rtc.Sip
             }
         }
         
-        private void CallReceived(byte[]? bytes)
+        private void CallReceived(byte[] bytes)
         {
             if (_receiver != null)
                 _receiver.Received(this, bytes);
             else
             {
-                _logger.Warn($"no receiver, postpone: {(bytes != null ? $"[{bytes.Length}] bytes": "disconnected")}");
+                _logger.Warn($"no receiver, postpone [{bytes.Length}] bytes");
                 _receivePostponed.Add(bytes);
+            }
+        }
+        
+        private void CallDisconnected()
+        {
+            if (_receiver != null)
+                _receiver.Disconnected(this);
+            else
+            {
+                _logger.Warn("no receiver, postpone disconnected");
+                _receivePostponed.Add(null);
             }
         }
     }

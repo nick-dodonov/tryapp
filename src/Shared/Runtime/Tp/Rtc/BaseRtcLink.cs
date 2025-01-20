@@ -62,7 +62,12 @@ namespace Shared.Tp.Rtc
             if (bytes == null)
                 _log.Info("disconnected");
 
-            _receiver.Received(this, bytes);
+            if (bytes != null)
+                _receiver.Received(this, bytes);
+            else
+                _receiver.Disconnected(this);
+            // if (_receiver == null)
+            //     _log.Error("receiver is not set: TODO: postpone");
         }
     }
 }
