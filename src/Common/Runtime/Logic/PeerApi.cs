@@ -1,11 +1,37 @@
+using System;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Web;
 
 namespace Common.Logic
 {
+    [Serializable]
+    public class ConnectState
+    {
+        public string PeerId;
+        public ConnectState(string peerId)
+        {
+            PeerId = peerId;
+        }
+        public override string ToString() => $"ConnectState({PeerId})"; //diagnostics only
+
+        public byte[] Serialize()
+        {
+            var str = WebSerializer.SerializeObject(this);
+            return Encoding.UTF8.GetBytes(str);
+        }
+
+        public static ConnectState Deserialize(Span<byte> bytes)
+        {
+            var str = Encoding.UTF8.GetString(bytes);
+            return WebSerializer.DeserializeObject<ConnectState>(str);
+        }        
+    }
+
     public class HandshakeOptions
     {
         public int TimeoutMs = 5000;
@@ -18,24 +44,28 @@ namespace Common.Logic
     public class PeerApi : ExtApi<PeerLink>
     {
         private readonly ILoggerFactory _loggerFactory;
-
-        private readonly string _peerId;
+        private readonly ConnectState? _connectState;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public PeerApi(ITpApi innerApi, string peerId, ILoggerFactory loggerFactory) : base(innerApi)
+        public PeerApi(ITpApi innerApi, ConnectState? connectState, ILoggerFactory loggerFactory) 
+            : base(innerApi)
         {
+            _connectState = connectState;
             _loggerFactory = loggerFactory;
             var logger = loggerFactory.CreateLogger<PeerApi>();
-            logger.Info(peerId);
-            _peerId = peerId;
+            logger.Info($"connectState: {_connectState}");
         }
 
-        protected override PeerLink CreateClientLink(ITpReceiver receiver) =>
-            new(this, receiver, _peerId, _loggerFactory);
+        protected override PeerLink CreateClientLink(ITpReceiver receiver)
+        {
+            if (_connectState == null)
+                throw new InvalidOperationException("cannot connect without connection state specified");
+            return new(this, receiver, _connectState!, _loggerFactory);
+        }
 
         protected override PeerLink CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _loggerFactory);
+            new(this, innerLink, ConnectState.Deserialize, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 

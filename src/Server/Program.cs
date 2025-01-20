@@ -8,7 +8,7 @@ using Shared.Tp;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
-Slog.Info($"==== starting server build {BuildInfo.Timestamp} ====");
+Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -20,7 +20,7 @@ builder.Services
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => new PeerApi(
         sp.GetRequiredService<SipRtcService>(), 
-        "[server]",
+        null,
         sp.GetRequiredService<ILoggerFactory>()
         ))
     .AddSingleton<LogicSession>()
@@ -55,4 +55,5 @@ app.UseCors();
 
 app.MapControllers();
 
+Slog.Info("<<<<");
 app.Run();
