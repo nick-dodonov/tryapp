@@ -26,29 +26,29 @@ namespace Shared.Log
     /// </summary>
     internal readonly struct MsgState
     {
-        private readonly string _message;
-        private readonly string _member;
+        public readonly string Message;
+        public readonly string Member;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public MsgState(string message, string member)
         {
-            _message = message;
-            _member = member;
+            Message = message;
+            Member = member;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override string ToString()
         {
-            return $"{_member}: {_message}";
+            return $"{Member}: {Message}";
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void WriteTo(ref Utf16ValueStringBuilder sb)
         {
-            sb.Append(_member);
+            sb.Append(Member);
             sb.Append(':');
             sb.Append(' ');
-            sb.Append(_message);
+            sb.Append(Message);
         }
 
         internal static readonly Func<MsgState, Exception?, string> Formatter = MsgFormatter;

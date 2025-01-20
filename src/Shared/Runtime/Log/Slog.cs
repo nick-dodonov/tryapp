@@ -3,11 +3,13 @@ using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace Shared.Log
 {
     /// <summary>
     /// Static logger (useful for quick usage without additional setup in ASP or in shared with client code)
+    /// TODO: share message compose with Shared.Log.Unity.UnityLogger
     /// </summary>
     public static class Slog
     {
@@ -34,13 +36,7 @@ namespace Shared.Log
             var sb = ZString.CreateStringBuilder(true);
             try
             {
-#if UNITY_WEBGL && !UNITY_EDITOR
-                //prefix with '⚪' to separate from native logs
-                sb.Append("\u26aa ");
-#endif
-                sb.Append(category.NameSpan);
-                sb.Append(':');
-                sb.Append(' ');
+                WriteCategoryPrefix(ref sb, category.NameSpan, '\u24C8');
                 sb.Append(member);
                 sb.Append(':');
                 sb.Append(' ');
@@ -67,6 +63,25 @@ namespace Shared.Log
             {
                 sb.Dispose();
             }
+        }
+
+        /// <summary>
+        /// prefix (⚪\u26aa) to separate from native logs or distinguish different log ways (⚫\u26ab, 🔵?)
+        /// Ⓢ U+24C8 - Shared.Slog
+        /// Ⓜ U+24C2 - Microsoft.Extensions.Logging
+        /// Ⓔ U+24BA - ...
+        ///     https://www.compart.com/en/unicode/
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void WriteCategoryPrefix(ref Utf16ValueStringBuilder sb, ReadOnlySpan<char> category, char prefix)
+        {
+//#if UNITY_WEBGL && !UNITY_EDITOR
+            sb.Append(prefix);
+            sb.Append(' ');
+//#endif
+            sb.Append(category);
+            sb.Append(':');
+            sb.Append(' ');
         }
 
         [HideInCallstack, MethodImpl(MethodImplOptions.AggressiveInlining)]
