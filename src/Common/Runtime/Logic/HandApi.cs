@@ -9,7 +9,7 @@ namespace Common.Logic
 {
     public interface IHandConnectState
     {
-        public string PeerId { get; }
+        public string LinkId { get; }
     }
 
     public interface IHandStateProvider
@@ -25,9 +25,6 @@ namespace Common.Logic
         public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
-    /// <summary>
-    /// TODO: custom initial state (not only peer id is required for logic)
-    /// </summary>
     public class HandApi : ExtApi<HandLink>
     {
         private readonly ILoggerFactory _loggerFactory;

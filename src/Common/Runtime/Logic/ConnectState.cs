@@ -27,11 +27,11 @@ namespace Common.Logic
     [Serializable]
     public class ConnectState : IHandConnectState
     {
-        public string PeerId { get; }
-        public ConnectState(string peerId)
+        public string LinkId { get; }
+        public ConnectState(string linkId)
         {
-            PeerId = peerId;
+            LinkId = linkId;
         }
-        public override string ToString() => $"ConnectState({PeerId})"; //diagnostics only
+        public override string ToString() => $"ConnectState({LinkId})"; //diagnostics only
     }
 }

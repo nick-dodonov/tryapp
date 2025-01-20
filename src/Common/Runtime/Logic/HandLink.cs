@@ -15,7 +15,6 @@ namespace Common.Logic
     ///     * client send/resend syn state until ack is received
     ///     * server answers ack immediately and includes ack with user data 
     ///
-    /// TODO: rfx to generic with any sync state (not only peer Id)
     /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
     /// TODO: reconnect support (possibly another wrapper)
     /// </summary>
@@ -25,7 +24,7 @@ namespace Common.Logic
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
-        private IHandStateProvider _stateProvider = null!;
+        private readonly IHandStateProvider _stateProvider = null!;
         private IHandConnectState? _connectState;
 
         /// <summary>
@@ -34,7 +33,7 @@ namespace Common.Logic
         [Flags]
         private enum Flags : byte
         {
-            Syn = 1 << 1, // client->server connection message: body is reliable initial state (peer id) 
+            Syn = 1 << 1, // client->server connection message: body is reliable initial state 
             Ack = 1 << 4 // server->client message flag: means initial state is received  
         }
 
@@ -50,7 +49,7 @@ namespace Common.Logic
             _stateProvider = stateProvider;
             _connectState = _stateProvider.ProvideConnectState();
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _connectState.PeerId);
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _connectState.LinkId);
         }
 
         public HandLink(HandApi api, ITpLink innerLink, 
@@ -108,7 +107,7 @@ namespace Common.Logic
         }
 
         public sealed override string GetRemotePeerId() =>
-            $"{_connectState?.PeerId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
+            $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
         public override void Send(byte[] bytes)
         {
