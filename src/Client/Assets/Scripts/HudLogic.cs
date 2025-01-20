@@ -7,6 +7,7 @@ using Shared.Audit;
 using Shared.Log;
 using TMPro;
 using UnityEngine;
+using Utilities.Async;
 
 namespace Client
 {
@@ -21,16 +22,22 @@ namespace Client
         public SessionControl sessionControl;
         public ClientSession clientSession;
 
-        private void OnEnable()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static async void Initialize()
         {
-            //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-            _log.Info("==== starting client (static) ====");
+            _log.Info(">>>> starting client");
             // var logger = Slog.Factory.CreateLogger<HudLogic>();
             // logger.Info("==== starting client (logger) ====");
-
             StartupInfo.Print();
+            
+            // workaround for com.utilities.async init: creates CoroutineRunner to handle System.Threading.Timer
+            await Awaiters.UnityMainThread; 
+            _log.Info("<<<<");
+        }
+        
+        private void OnEnable()
+        {
             versionText.text = $"Version: {Application.version}";
-
             sessionControl.Controller = this;
         }
 
