@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Logic;
@@ -7,6 +8,7 @@ using Shared.Audit;
 using Shared.Log;
 using TMPro;
 using UnityEngine;
+using Utilities.Async;
 
 namespace Client
 {
@@ -21,7 +23,7 @@ namespace Client
         public SessionControl sessionControl;
         public ClientSession clientSession;
 
-        private void OnEnable()
+        private async void OnEnable()
         {
             //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
             _log.Info("==== starting client (static) ====");
@@ -32,6 +34,10 @@ namespace Client
             versionText.text = $"Version: {Application.version}";
 
             sessionControl.Controller = this;
+            
+            _log.Info(">>>> RunCoroutine");
+            await Awaiters.UnityMainThread;
+            _log.Info("<<<< RunCoroutine");
         }
 
         private void OnDisable()
