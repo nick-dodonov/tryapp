@@ -1,5 +1,4 @@
 using System;
-using System.Collections;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Logic;
@@ -23,21 +22,23 @@ namespace Client
         public SessionControl sessionControl;
         public ClientSession clientSession;
 
-        private async void OnEnable()
+        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        private static async void Initialize()
         {
-            //await UniTask.Delay(1000).WithCancellation(destroyCancellationToken);
-            _log.Info("==== starting client (static) ====");
+            _log.Info(">>>> starting client");
             // var logger = Slog.Factory.CreateLogger<HudLogic>();
             // logger.Info("==== starting client (logger) ====");
-
             StartupInfo.Print();
-            versionText.text = $"Version: {Application.version}";
-
-            sessionControl.Controller = this;
             
-            _log.Info(">>>> RunCoroutine");
-            await Awaiters.UnityMainThread;
-            _log.Info("<<<< RunCoroutine");
+            // workaround for com.utilities.async init: creates CoroutineRunner to handle System.Threading.Timer
+            await Awaiters.UnityMainThread; 
+            _log.Info("<<<<");
+        }
+        
+        private void OnEnable()
+        {
+            versionText.text = $"Version: {Application.version}";
+            sessionControl.Controller = this;
         }
 
         private void OnDisable()
