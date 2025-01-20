@@ -55,9 +55,9 @@ namespace Client.Logic
             _meta = new MetaClient(webClient, Slog.Factory);
 
             var peerId = GetPeerId();
-            _api = new PeerApi(
+            _api = new HandApi(
                 RtcApiFactory.CreateApi(_meta.RtcService), 
-                new(new(peerId)),
+                new ConnectStateProvider(new(peerId)),
                 Slog.Factory);
 
             _link = await _api.Connect(this, cancellationToken);

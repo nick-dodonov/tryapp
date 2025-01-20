@@ -20,7 +20,7 @@ builder.Services
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => new HandApi(
         sp.GetRequiredService<SipRtcService>(), 
-        new(null),
+        new ConnectStateProvider(null),
         sp.GetRequiredService<ILoggerFactory>()
         ))
     .AddSingleton<LogicSession>()

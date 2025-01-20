@@ -25,8 +25,8 @@ namespace Common.Logic
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
-        private ConnectStateProvider _connectStateProvider = null!;
-        private ConnectState? _connectState;
+        private IHandStateProvider _stateProvider = null!;
+        private IHandConnectState? _connectState;
 
         /// <summary>
         /// Flags required for initial reliable state handshaking
@@ -43,22 +43,22 @@ namespace Common.Logic
         public HandLink() { } //empty constructor only for generic usage
 
         public HandLink(HandApi api, ITpReceiver receiver, 
-            ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
+            IHandStateProvider stateProvider, ILoggerFactory loggerFactory)
             : base(receiver)
         {
             _api = api;
-            _connectStateProvider = connectStateProvider;
-            _connectState = _connectStateProvider.ProvideConnectState();
+            _stateProvider = stateProvider;
+            _connectState = _stateProvider.ProvideConnectState();
             _loggerFactory = loggerFactory;
             _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _connectState.PeerId);
         }
 
         public HandLink(HandApi api, ITpLink innerLink, 
-            ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
+            IHandStateProvider stateProvider, ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
-            _connectStateProvider = connectStateProvider;
+            _stateProvider = stateProvider;
             _loggerFactory = loggerFactory;
             _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
@@ -74,7 +74,7 @@ namespace Common.Logic
             var connectState = _connectState!;
             _logger.Info($"send syn and wait ack: {connectState}");
 
-            var stateBytes = _connectStateProvider.Serialize(connectState);
+            var stateBytes = _stateProvider.Serialize(connectState);
             var synBytes = ArrayPool<byte>.Shared.Rent(stateBytes.Length + 1);
             try
             {
@@ -136,7 +136,7 @@ namespace Common.Logic
                     if (_connectState != null)
                         return; // duplicate syn received: already connected
 
-                    _connectState = _connectStateProvider.Deserialize(bytes.AsSpan(1));
+                    _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
                     _logger.Info($"received connection state: {_connectState}");
                     _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
 

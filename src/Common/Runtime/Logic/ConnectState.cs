@@ -4,29 +4,30 @@ using Shared.Web;
 
 namespace Common.Logic
 {
-    public class ConnectStateProvider
+    public class ConnectStateProvider : IHandStateProvider
     {
         private readonly ConnectState? _connectState;
         public ConnectStateProvider(ConnectState? connectState) => _connectState = connectState;
-        public ConnectState ProvideConnectState() => _connectState!;
 
-        public byte[] Serialize(ConnectState state)
+        IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState!;
+
+        byte[] IHandStateProvider.Serialize(IHandConnectState connectState)
         {
             var str = WebSerializer.SerializeObject(this);
             return Encoding.UTF8.GetBytes(str);
         }
 
-        public ConnectState Deserialize(Span<byte> bytes)
+        IHandConnectState IHandStateProvider.Deserialize(Span<byte> span)
         {
-            var str = Encoding.UTF8.GetString(bytes);
+            var str = Encoding.UTF8.GetString(span);
             return WebSerializer.DeserializeObject<ConnectState>(str);
         }        
     }
 
     [Serializable]
-    public class ConnectState
+    public class ConnectState : IHandConnectState
     {
-        public string PeerId;
+        public string PeerId { get; }
         public ConnectState(string peerId)
         {
             PeerId = peerId;

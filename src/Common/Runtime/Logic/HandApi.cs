@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -6,6 +7,18 @@ using Shared.Tp;
 
 namespace Common.Logic
 {
+    public interface IHandConnectState
+    {
+        public string PeerId { get; }
+    }
+
+    public interface IHandStateProvider
+    {
+        IHandConnectState ProvideConnectState();
+        byte[] Serialize(IHandConnectState connectState);
+        IHandConnectState Deserialize(Span<byte> asSpan);
+    }
+    
     public class HandshakeOptions
     {
         public int TimeoutMs = 5000;
@@ -18,24 +31,24 @@ namespace Common.Logic
     public class HandApi : ExtApi<HandLink>
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ConnectStateProvider _connectStateProvider;
+        private readonly IHandStateProvider _stateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public HandApi(ITpApi innerApi, ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory) 
+        public HandApi(ITpApi innerApi, IHandStateProvider stateProvider, ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
-            _connectStateProvider = connectStateProvider;
+            _stateProvider = stateProvider;
             _loggerFactory = loggerFactory;
             var logger = loggerFactory.CreateLogger<HandApi>();
-            logger.Info($"connect state provider: {_connectStateProvider}");
+            logger.Info($"state provider: {stateProvider}");
         }
 
         protected override HandLink CreateClientLink(ITpReceiver receiver) 
-            => new(this, receiver, _connectStateProvider, _loggerFactory);
+            => new(this, receiver, _stateProvider, _loggerFactory);
 
         protected override HandLink CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _connectStateProvider, _loggerFactory);
+            new(this, innerLink, _stateProvider, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 
