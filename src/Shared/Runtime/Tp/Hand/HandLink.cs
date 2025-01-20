@@ -123,16 +123,17 @@ namespace Shared.Tp.Hand
             }
         }
 
-        public override void Received(ITpLink link, byte[] bytes)
+        public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            var flags = (Flags)bytes[0];
+            var flags = (Flags)span[0];
 
+            span = span[1..];
             if ((flags & Flags.Syn) != 0)
             {
                 if (_connectState != null)
                     return; // duplicate syn received: already connected
 
-                _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
+                _connectState = _stateProvider.Deserialize(span);
                 _logger.Info($"received connection state: {_connectState}");
                 _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
 
@@ -155,17 +156,16 @@ namespace Shared.Tp.Hand
                 _synState = null;
             }
 
-            bytes = bytes.AsSpan(1).ToArray();
-            if (bytes.Length <= 0)
+            if (span.Length <= 0)
                 return; // ignore empty message (initial ack)
 
             if (_synState != null)
             {
-                _logger.Info($"skip without handshake: {bytes.Length} bytes");
+                _logger.Info($"skip without handshake: {span.Length} bytes");
                 return; // ignore messages while handshake in progress
             }
 
-            base.Received(link, bytes);
+            base.Received(link, span);
         }
     }
 }

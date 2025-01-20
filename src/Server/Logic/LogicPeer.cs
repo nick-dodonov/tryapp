@@ -45,12 +45,12 @@ public sealed class LogicPeer : IDisposable
         _link.Send(bytes);
     }
 
-    public void Received(byte[] bytes)
+    public void Received(ReadOnlySpan<byte> span)
     {
         try
         {
-            var msg = Encoding.UTF8.GetString(bytes);
-            _logger.Info($"[{bytes.Length}] bytes: {msg}");
+            var msg = Encoding.UTF8.GetString(span);
+            _logger.Info($"[{span.Length}] bytes: {msg}");
             _lastClientState = WebSerializer.DeserializeObject<ClientState>(msg);
         }
         catch (Exception e)

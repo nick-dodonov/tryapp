@@ -18,7 +18,7 @@ namespace Common.Logic
             return Encoding.UTF8.GetBytes(str);
         }
 
-        IHandConnectState IHandStateProvider.Deserialize(Span<byte> span)
+        IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
         {
             var str = Encoding.UTF8.GetString(span);
             return WebSerializer.DeserializeObject<ConnectState>(str);

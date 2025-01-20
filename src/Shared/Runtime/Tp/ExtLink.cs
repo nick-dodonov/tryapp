@@ -1,3 +1,4 @@
+using System;
 using Shared.Log;
 
 namespace Shared.Tp
@@ -34,14 +35,14 @@ namespace Shared.Tp
 
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
-        public virtual void Received(ITpLink link, byte[] bytes)
+        public virtual void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
             if (_receiver != null)
-                _receiver.Received(this, bytes);
+                _receiver.Received(this, span);
             else
             {
-                Slog.Info($"{this}: no receiver: postpone {bytes.Length} bytes");
-                _receivePostponed.Add(bytes);
+                Slog.Info($"{this}: no receiver: postpone {span.Length} bytes");
+                _receivePostponed.Add(span);
             }
         }
         public virtual void Disconnected(ITpLink link)
@@ -51,7 +52,7 @@ namespace Shared.Tp
             else
             {
                 Slog.Info($"{this}: no receiver: postpone disconnected");
-                _receivePostponed.Add(null);
+                _receivePostponed.Disconnect();
             }
         }
     }

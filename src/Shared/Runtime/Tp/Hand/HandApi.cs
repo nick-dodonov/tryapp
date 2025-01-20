@@ -15,7 +15,7 @@ namespace Shared.Tp.Hand
     {
         IHandConnectState ProvideConnectState();
         byte[] Serialize(IHandConnectState connectState);
-        IHandConnectState Deserialize(Span<byte> asSpan);
+        IHandConnectState Deserialize(ReadOnlySpan<byte> span);
     }
     
     public class HandshakeOptions

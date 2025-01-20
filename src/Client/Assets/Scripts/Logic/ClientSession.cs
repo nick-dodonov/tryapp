@@ -123,12 +123,12 @@ namespace Client.Logic
             _link.Send(bytes);
         }
 
-        void ITpReceiver.Received(ITpLink link, byte[] bytes)
+        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
         {
             try
             {
-                var msg = System.Text.Encoding.UTF8.GetString(bytes);
-                _log.Info($"[{bytes.Length}] bytes: {msg}");
+                var msg = System.Text.Encoding.UTF8.GetString(span);
+                _log.Info($"[{span.Length}] bytes: {msg}");
 
                 var serverState = WebSerializer.DeserializeObject<ServerState>(msg);
 

@@ -12,8 +12,9 @@ namespace Shared.Tp
     public interface ITpReceiver
     {
         /// <param name="link">channel data from, allows to simplify server code allowing to use the same handler for several links</param>
-        /// <param name="bytes">data block from link</param> 
-        void Received(ITpLink link, byte[] bytes);
+        /// <param name="span">bytes block from link</param>
+        /// TO-DO: possibly replace with ReadOnlySequence for links that merge data
+        void Received(ITpLink link, ReadOnlySpan<byte> span);
         /// <param name="link">disconnected channel</param>
         void Disconnected(ITpLink link);
     }

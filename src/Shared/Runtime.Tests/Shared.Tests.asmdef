@@ -1,6 +1,6 @@
 {
     "name": "Shared.Tests",
-    "rootNamespace": "",
+    "rootNamespace": "Shared.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",

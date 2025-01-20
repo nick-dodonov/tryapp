@@ -246,7 +246,7 @@ namespace Shared.Tp.Rtc.Sip
             else
             {
                 _logger.Warn("no receiver, postpone disconnected");
-                _receivePostponed.Add(null);
+                _receivePostponed.Disconnect();
             }
         }
     }
