@@ -20,7 +20,7 @@ builder.Services
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => new PeerApi(
         sp.GetRequiredService<SipRtcService>(), 
-        null,
+        new(null),
         sp.GetRequiredService<ILoggerFactory>()
         ))
     .AddSingleton<LogicSession>()

@@ -25,10 +25,8 @@ namespace Common.Logic
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
+        private ConnectStateProvider _connectStateProvider = null!;
         private ConnectState? _connectState;
-
-        public delegate ConnectState ConnectStateDeserializer(Span<byte> bytes);
-        private readonly ConnectStateDeserializer? _connectStateDeserializer;
 
         /// <summary>
         /// Flags required for initial reliable state handshaking
@@ -42,26 +40,25 @@ namespace Common.Logic
 
         private PeerSynState? _synState; //null means ack received or doesn't required
 
-        public PeerLink()
-        {
-        } //empty constructor only for generic usage
+        public PeerLink() { } //empty constructor only for generic usage
 
         public PeerLink(PeerApi api, ITpReceiver receiver, 
-            ConnectState connectState, ILoggerFactory loggerFactory)
+            ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
             : base(receiver)
         {
             _api = api;
-            _connectState = connectState;
+            _connectStateProvider = connectStateProvider;
+            _connectState = _connectStateProvider.ProvideConnectState();
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), connectState.PeerId);
+            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), _connectState.PeerId);
         }
 
         public PeerLink(PeerApi api, ITpLink innerLink, 
-            ConnectStateDeserializer connectStateDeserializer, ILoggerFactory loggerFactory)
+            ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
-            _connectStateDeserializer = connectStateDeserializer;
+            _connectStateProvider = connectStateProvider;
             _loggerFactory = loggerFactory;
             _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
         }
@@ -77,7 +74,7 @@ namespace Common.Logic
             var connectState = _connectState!;
             _logger.Info($"send syn and wait ack: {connectState}");
 
-            var stateBytes = connectState.Serialize();
+            var stateBytes = _connectStateProvider.Serialize(connectState);
             var synBytes = ArrayPool<byte>.Shared.Rent(stateBytes.Length + 1);
             try
             {
@@ -139,7 +136,7 @@ namespace Common.Logic
                     if (_connectState != null)
                         return; // duplicate syn received: already connected
 
-                    _connectState = _connectStateDeserializer!.Invoke(bytes.AsSpan(1));
+                    _connectState = _connectStateProvider.Deserialize(bytes.AsSpan(1));
                     _logger.Info($"received connection state: {_connectState}");
                     _logger = new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
 

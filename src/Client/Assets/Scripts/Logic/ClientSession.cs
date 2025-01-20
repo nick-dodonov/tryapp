@@ -57,7 +57,7 @@ namespace Client.Logic
             var peerId = GetPeerId();
             _api = new PeerApi(
                 RtcApiFactory.CreateApi(_meta.RtcService), 
-                new(peerId),
+                new(new(peerId)),
                 Slog.Factory);
 
             _link = await _api.Connect(this, cancellationToken);
