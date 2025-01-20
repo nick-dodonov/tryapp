@@ -27,6 +27,7 @@ namespace Shared.Tp.Rtc.Sip
         private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
 
         private ITpReceiver? _receiver;
+        private PostponedBytes _receivePostponed; 
 
         public SipRtcLink(
             int linkId,
@@ -96,32 +97,19 @@ namespace Shared.Tp.Rtc.Sip
             channel.onopen += () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
-                try
-                {
-                    _receiver = _service.CallConnected(this);
-                    if (_receiver == null)
-                        Close("not listened");
-                }
-                catch (Exception e)
-                {
-                    _logger.Error($"listener connected failed: {e}");
-                    Close(e.Message);
-                }
+                CallConnected();
             };
             channel.onmessage += (_, _, data) =>
             {
-                // //TODO: with diagnostics flags
+                // TODO: with diagnostics flags
                 // var str = Encoding.UTF8.GetString(data);
                 // _logger.Info($"DataChannel: onmessage: {str}");
-                if (_receiver != null)
-                    _receiver.Received(this, data);
-                else
-                    _logger.Warn("DataChannel: onmessage: receiver isn't set yet");
+                CallReceived(data);
             };
             channel.onclose += () =>
             {
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
-                _receiver?.Received(this, null);
+                CallReceived(null);
             };
             channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
@@ -213,6 +201,39 @@ namespace Shared.Tp.Rtc.Sip
             // _logger.Info($"[{bytes.Length}]: {content}");
 
             _dataChannel?.send(bytes);
+        }
+
+        private void CallConnected()
+        {
+            try
+            {
+                _receiver = _service.CallConnected(this);
+                if (_receiver == null)
+                {
+                    Close("not listened");
+                    return;
+                }
+                _receivePostponed.Feed(static (link, bytes) =>
+                {
+                    link._receiver!.Received(link, bytes);
+                }, this);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"listener failed: {e}");
+                Close("listener failed");
+            }
+        }
+        
+        private void CallReceived(byte[]? bytes)
+        {
+            if (_receiver != null)
+                _receiver.Received(this, bytes);
+            else
+            {
+                _logger.Warn($"no receiver, postpone: {(bytes != null ? $"[{bytes.Length}] bytes": "disconnected")}");
+                _receivePostponed.Add(bytes);
+            }
         }
     }
 }

@@ -29,6 +29,9 @@ namespace Common.Logic
         protected override PeerLink CreateServerLink(ITpLink innerLink) =>
             new(this, innerLink, _loggerFactory);
 
+        /// <summary>
+        /// Connect is overriden to delay link return until handshake isn't complete 
+        /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             var link = (PeerLink)await base.Connect(receiver, cancellationToken);
@@ -36,13 +39,13 @@ namespace Common.Logic
             return link;
         }
 
+        /// <summary>
+        /// Connected is overriden to postpone listener notification until handshake isn't complete 
+        /// </summary>
         public override ITpReceiver Connected(ITpLink link)
         {
             var extLink = CreateServerLink(link);
             return extLink;
         }
-
-        internal ITpReceiver? CallConnected(PeerLink link) 
-            => Listener?.Connected(link);
     }
 }

@@ -34,17 +34,38 @@ namespace Shared.Tp
             if (Listener == null)
                 return null;
             var extLink = CreateServerLink(link);
-            var receiver = extLink.Receiver = Listener.Connected(extLink);
+            if (CallConnected(extLink))
+                return extLink;
+            return null;
+        }
+
+        public bool CallConnected(TLink link)
+        {
+            var receiver = Listener?.Connected(link);
             if (receiver == null)
-                return null;
-            return extLink;
+                return false;
+            link.Receiver = receiver;
+            return true;
         }
     }
 
     public class ExtLink: ITpLink, ITpReceiver
     {
         protected internal ITpLink InnerLink = null!;
-        protected internal ITpReceiver? Receiver;
+
+        private ITpReceiver? _receiver;
+        private PostponedBytes _receivePostponed; 
+        protected internal ITpReceiver Receiver
+        {
+            set
+            {
+                _receiver = value;
+                _receivePostponed.Feed(static (link, bytes) =>
+                {
+                    link._receiver!.Received(link, bytes);
+                }, this);
+            }
+        }
 
         protected ExtLink() {} //empty constructor only for generic usage
         protected ExtLink(ITpLink innerLink) => InnerLink = innerLink;
@@ -57,10 +78,13 @@ namespace Shared.Tp
         public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
         public virtual void Received(ITpLink link, byte[]? bytes)
         {
-            if (Receiver != null)
-                Receiver.Received(this, bytes);
+            if (_receiver != null)
+                _receiver.Received(this, bytes);
             else
-                Slog.Error($"{this}: no receiver yet");
+            {
+                Slog.Info($"{this}: no receiver: temping {bytes?.Length} bytes");
+                _receivePostponed.Add(bytes);
+            }
         }
     }
 }
