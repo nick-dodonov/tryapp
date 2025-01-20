@@ -9,7 +9,7 @@ namespace Shared.Tp
     public class ExtApi<TLink> : ITpApi, ITpListener where TLink: ExtLink, new()
     {
         private readonly ITpApi _innerApi;
-        protected ITpListener? Listener;
+        private ITpListener? _listener;
 
         protected ExtApi(ITpApi innerApi) => _innerApi = innerApi;
 
@@ -23,14 +23,14 @@ namespace Shared.Tp
 
         public virtual void Listen(ITpListener listener)
         {
-            Listener = listener;
+            _listener = listener;
             _innerApi.Listen(this);
         }
 
         protected virtual TLink CreateServerLink(ITpLink innerLink) => new() { InnerLink = innerLink };
         public virtual ITpReceiver? Connected(ITpLink link)
         {
-            if (Listener == null)
+            if (_listener == null)
                 return null;
             var extLink = CreateServerLink(link);
             if (CallConnected(extLink))
@@ -40,7 +40,7 @@ namespace Shared.Tp
 
         public bool CallConnected(TLink link)
         {
-            var receiver = Listener?.Connected(link);
+            var receiver = _listener?.Connected(link);
             if (receiver == null)
                 return false;
             link.Receiver = receiver;
