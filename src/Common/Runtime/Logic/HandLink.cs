@@ -19,9 +19,9 @@ namespace Common.Logic
     /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
     /// TODO: reconnect support (possibly another wrapper)
     /// </summary>
-    public class PeerLink : ExtLink
+    public class HandLink : ExtLink
     {
-        private readonly PeerApi _api = null!;
+        private readonly HandApi _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
@@ -38,11 +38,11 @@ namespace Common.Logic
             Ack = 1 << 4 // server->client message flag: means initial state is received  
         }
 
-        private PeerSynState? _synState; //null means ack received or doesn't required
+        private HandSynState? _synState; //null means ack received or doesn't required
 
-        public PeerLink() { } //empty constructor only for generic usage
+        public HandLink() { } //empty constructor only for generic usage
 
-        public PeerLink(PeerApi api, ITpReceiver receiver, 
+        public HandLink(HandApi api, ITpReceiver receiver, 
             ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
             : base(receiver)
         {
@@ -50,17 +50,17 @@ namespace Common.Logic
             _connectStateProvider = connectStateProvider;
             _connectState = _connectStateProvider.ProvideConnectState();
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), _connectState.PeerId);
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _connectState.PeerId);
         }
 
-        public PeerLink(PeerApi api, ITpLink innerLink, 
+        public HandLink(HandApi api, ITpLink innerLink, 
             ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
             _connectStateProvider = connectStateProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
 
         public override void Close(string reason)
@@ -138,7 +138,7 @@ namespace Common.Logic
 
                     _connectState = _connectStateProvider.Deserialize(bytes.AsSpan(1));
                     _logger.Info($"received connection state: {_connectState}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<PeerLink>(), GetRemotePeerId());
+                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
 
                     // notify listener connection is established after handshake
                     if (_api.CallConnected(this))

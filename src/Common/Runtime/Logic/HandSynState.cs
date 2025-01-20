@@ -2,11 +2,10 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Shared.Log;
 
 namespace Common.Logic
 {
-    internal class PeerSynState
+    internal class HandSynState
     {
         private readonly HandshakeOptions _options;
         private readonly TaskCompletionSource<object?> _ackTcs = new();
@@ -14,7 +13,7 @@ namespace Common.Logic
         private int _attempts;
         private readonly long _startMs;
 
-        public PeerSynState(HandshakeOptions options)
+        public HandSynState(HandshakeOptions options)
         {
             _options = options;
             _startMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();

@@ -15,26 +15,26 @@ namespace Common.Logic
     /// <summary>
     /// TODO: custom initial state (not only peer id is required for logic)
     /// </summary>
-    public class PeerApi : ExtApi<PeerLink>
+    public class HandApi : ExtApi<HandLink>
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly ConnectStateProvider _connectStateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public PeerApi(ITpApi innerApi, ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory) 
+        public HandApi(ITpApi innerApi, ConnectStateProvider connectStateProvider, ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
             _connectStateProvider = connectStateProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<PeerApi>();
+            var logger = loggerFactory.CreateLogger<HandApi>();
             logger.Info($"connect state provider: {_connectStateProvider}");
         }
 
-        protected override PeerLink CreateClientLink(ITpReceiver receiver) 
+        protected override HandLink CreateClientLink(ITpReceiver receiver) 
             => new(this, receiver, _connectStateProvider, _loggerFactory);
 
-        protected override PeerLink CreateServerLink(ITpLink innerLink) =>
+        protected override HandLink CreateServerLink(ITpLink innerLink) =>
             new(this, innerLink, _connectStateProvider, _loggerFactory);
 
         /// <summary>
@@ -42,7 +42,7 @@ namespace Common.Logic
         /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = (PeerLink)await base.Connect(receiver, cancellationToken);
+            var link = (HandLink)await base.Connect(receiver, cancellationToken);
             await link.Handshake(cancellationToken);
             return link;
         }

@@ -18,7 +18,7 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<ITpApi>(sp => new PeerApi(
+    .AddSingleton<ITpApi>(sp => new HandApi(
         sp.GetRequiredService<SipRtcService>(), 
         new(null),
         sp.GetRequiredService<ILoggerFactory>()
