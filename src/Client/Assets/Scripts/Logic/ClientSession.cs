@@ -29,8 +29,8 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         private IMeta _meta;
-        private ITpApi _tpApi;
-        private ITpLink _tpLink;
+        private ITpApi _api;
+        private ITpLink _link;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -47,30 +47,23 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_tpLink != null)
+            if (_link != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
 
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _tpApi = RtcApiFactory.CreateApi(_meta.RtcService);
 
-            //var localPeerId = GetLocalPeerId();
-            _tpLink = await _tpApi.Connect(this, cancellationToken);
+            var peerId = GetPeerId();
+            _api = new PeerApi(
+                RtcApiFactory.CreateApi(_meta.RtcService), 
+                peerId,
+                Slog.Factory);
+
+            _link = await _api.Connect(this, cancellationToken);
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
-
-            // static string GetLocalPeerId()
-            // {
-            //     var peerId = SystemInfo.deviceUniqueIdentifier;
-            //     if (peerId == SystemInfo.unsupportedIdentifier)
-            //     {
-            //         //TODO: reimplement using IPeerIdProvider
-            //         peerId = Guid.NewGuid().ToString();
-            //     }
-            //     return peerId;
-            // }
         }
 
         public void Finish(string reason)
@@ -83,9 +76,9 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
-            _tpLink?.Dispose();
-            _tpLink = null;
-            _tpApi = null;
+            _link?.Dispose();
+            _link = null;
+            _api = null;
 
             _meta?.Dispose();
             _meta = null;
@@ -97,7 +90,7 @@ namespace Client.Logic
 
         private void Update()
         {
-            if (_tpLink == null)
+            if (_link == null)
                 return;
 
             _updateElapsedTime += Time.deltaTime;
@@ -126,7 +119,7 @@ namespace Client.Logic
             var msg = WebSerializer.SerializeObject(clientState);
             var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
             _log.Info($"[{bytes.Length}] bytes: {msg}");
-            _tpLink.Send(bytes);
+            _link.Send(bytes);
         }
 
         void ITpReceiver.Received(ITpLink link, byte[] bytes)
@@ -187,6 +180,20 @@ namespace Client.Logic
             {
                 _log.Error($"{e}");
             }
+        }
+        
+        //TODO: reimplement using IPeerIdProvider for sign-in features
+        private static string GetPeerId()
+        {
+            var peerId = SystemInfo.deviceUniqueIdentifier;
+            if (peerId == SystemInfo.unsupportedIdentifier)
+            {
+                //TODO: implement for webgl platform (it doesn't support device unique id)
+                peerId = Guid.NewGuid().ToString("N")[..8].ToUpper();
+            }
+            else
+                peerId = peerId[..8].ToUpper(); //tmp short to simplify diagnostics
+            return peerId;
         }
     }
 }

@@ -29,7 +29,7 @@ namespace Shared.Tp.Rtc.Webgl
             );
         }
 
-        async Task<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
+        async ValueTask<ITpLink> ITpApi.Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
             _log.Info(".");
             var link = new WebglRtcLink(_service, receiver);

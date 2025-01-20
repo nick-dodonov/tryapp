@@ -22,7 +22,7 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 
     Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-    ITpReceiver ITpListener.Connected(ITpLink link)
+    ITpReceiver? ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
         var peer = new LogicPeer(

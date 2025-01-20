@@ -15,8 +15,6 @@ namespace Shared.Tp.Rtc.Sip
     {
         private readonly ILogger _logger;
 
-        internal ITpReceiver? Receiver { get; set; }
-
         public int LinkId { get; }
         private readonly string _linkToken;
         private readonly string _remotePeerId;
@@ -27,6 +25,9 @@ namespace Shared.Tp.Rtc.Sip
         private RTCDataChannel? _dataChannel;
 
         private readonly TaskCompletionSource<List<RTCIceCandidate>> _iceCollectCompleteTcs = new();
+
+        private ITpReceiver? _receiver;
+        private PostponedBytes _receivePostponed; 
 
         public SipRtcLink(
             int linkId,
@@ -46,7 +47,7 @@ namespace Shared.Tp.Rtc.Sip
             _logger.Info(".");
         }
 
-        public override string ToString() => $"{nameof(SipRtcLink)}({_remotePeerId})"; //only for diagnostics
+        public override string ToString() => $"{nameof(SipRtcLink)}(<{_remotePeerId}>)"; //only for diagnostics
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
@@ -88,8 +89,7 @@ namespace Shared.Tp.Rtc.Sip
                     RTCPeerConnectionState.disconnected or
                     RTCPeerConnectionState.failed)
                 {
-                    //TODO: replace with just notification to dispose outside
-                    ((IDisposable)this).Dispose();
+                    Close(state.ToString());
                 }
             };
 
@@ -97,20 +97,19 @@ namespace Shared.Tp.Rtc.Sip
             channel.onopen += () =>
             {
                 _logger.Info($"DataChannel: onopen: label={channel.label}");
-                _service.StartLinkLogic(this);
+                CallConnected();
             };
             channel.onmessage += (_, _, data) =>
             {
-                // //TODO: with diagnostics flags
+                // TODO: with diagnostics flags
                 // var str = Encoding.UTF8.GetString(data);
                 // _logger.Info($"DataChannel: onmessage: {str}");
-
-                Receiver?.Received(this, data);
+                CallReceived(data);
             };
             channel.onclose += () =>
             {
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
-                Receiver?.Received(this, null);
+                CallReceived(null);
             };
             channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
@@ -135,13 +134,11 @@ namespace Shared.Tp.Rtc.Sip
 
             _peerConnection?.close();
             _peerConnection = null;
-        }
-
-        void IDisposable.Dispose()
-        {
-            Close("dispose");
+            
             _service.RemoveLink(_linkToken);
         }
+
+        void IDisposable.Dispose() => Close("disposing");
 
         public async ValueTask<List<RTCIceCandidate>> SetAnswer(RTCSessionDescriptionInit description,
             CancellationToken cancellationToken)
@@ -204,6 +201,39 @@ namespace Shared.Tp.Rtc.Sip
             // _logger.Info($"[{bytes.Length}]: {content}");
 
             _dataChannel?.send(bytes);
+        }
+
+        private void CallConnected()
+        {
+            try
+            {
+                _receiver = _service.CallConnected(this);
+                if (_receiver == null)
+                {
+                    Close("not listened");
+                    return;
+                }
+                _receivePostponed.Feed(static (link, bytes) =>
+                {
+                    link._receiver!.Received(link, bytes);
+                }, this);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"listener failed: {e}");
+                Close("listener failed");
+            }
+        }
+        
+        private void CallReceived(byte[]? bytes)
+        {
+            if (_receiver != null)
+                _receiver.Received(this, bytes);
+            else
+            {
+                _logger.Warn($"no receiver, postpone: {(bytes != null ? $"[{bytes.Length}] bytes": "disconnected")}");
+                _receivePostponed.Add(bytes);
+            }
         }
     }
 }

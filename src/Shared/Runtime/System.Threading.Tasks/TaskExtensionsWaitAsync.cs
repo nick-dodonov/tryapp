@@ -6,8 +6,9 @@ namespace System.Threading.Tasks
     /// Helper for Task.WaitAsync() helpers (introduced in net6 and not available in netstandard2.1)
     ///
     /// Adopted net9 methods as extensions methods for netstandard2.1 using TaskCompletionSource
-    ///
-    /// TODO: adopt for WebGL builds (ConfigureAwait isn't supported)
+    /// Adopted for WebGL builds (ConfigureAwait isn't supported)
+    ///     TODO: DRY with #ifdef implementing SafeConfigureAwait variant with custom GetAwaiter repeating/delegating to ConfiguredTaskAwaitable/ConfiguredAsyncDisposable 
+    /// 
     /// TODO: possible speedup using custom GetAwaiter implementation
     /// TODO: add unit tests and comparison with core implementation behaviour
     /// </summary>
@@ -53,10 +54,16 @@ namespace System.Threading.Tasks
                                 else
                                     cancellationTcs.TrySetException(new TimeoutException());
                             })
-                        .ConfigureAwait(false);
+#if !UNITY_WEBGL
+                        .ConfigureAwait(false)
+#endif
+                        ;
                     var t = await Task
                         .WhenAny(task, cancellationTcs.Task)
-                        .ConfigureAwait(false);
+#if !UNITY_WEBGL
+                        .ConfigureAwait(false)
+#endif
+                        ;
                     return t.GetAwaiter().GetResult();
                 }
             }
@@ -98,10 +105,16 @@ namespace System.Threading.Tasks
                                 else
                                     cancellationTcs.TrySetException(new TimeoutException());
                             })
-                        .ConfigureAwait(false);
+#if !UNITY_WEBGL
+                        .ConfigureAwait(false)
+#endif
+                        ;
                     var t = await Task
                         .WhenAny(task, cancellationTcs.Task)
-                        .ConfigureAwait(false);
+#if !UNITY_WEBGL
+                        .ConfigureAwait(false)
+#endif
+                        ;
                     t.GetAwaiter().GetResult();
                 }
             }
