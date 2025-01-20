@@ -63,6 +63,8 @@ namespace Common.Logic
             {
                 if (_ackTcs == null)
                     return;
+
+                Slog.Info("ack received");
                 _ackTcs.TrySetResult(null);
                 _ackTcs = null;
             }
@@ -86,11 +88,12 @@ namespace Common.Logic
                     _attempts++;
                 }
 
-                if (attemptMs < _options.SynRetryMs)
-                {
-                    throw new TimeoutException($"Handshake timeout: {_options.TimeoutMs}ms (attempts: {_attempts})");
-                }
-                return true;
+                if (attemptMs >= _options.SynRetryMs) 
+                    return true;
+
+                var message = $"Handshake timeout: {_options.TimeoutMs}ms (attempts: {_attempts})";
+                Slog.Warn(message);
+                throw new TimeoutException(message);
             }
         }
 
