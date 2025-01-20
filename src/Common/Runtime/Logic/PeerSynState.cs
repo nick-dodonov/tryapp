@@ -20,6 +20,8 @@ namespace Common.Logic
             _startMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         }
 
+        public int Attempts => _attempts;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AckReceived()
         {

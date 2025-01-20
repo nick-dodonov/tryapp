@@ -88,7 +88,7 @@ namespace Common.Logic
                 _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
-                    _logger.Info($"re-send syn while waiting ack: {peerId}");
+                    _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {peerId}");
                     InnerLink.Send(sendBytes);
                 }
 
@@ -96,8 +96,10 @@ namespace Common.Logic
             }
             catch (Exception e)
             {
-                if (e is TimeoutException) _logger.Warn(e.Message);
-                else _logger.Error($"fail: {e}");
+                if (e is TimeoutException or TaskCanceledException) 
+                    _logger.Warn(e.Message);
+                else 
+                    _logger.Error($"fail: {e}");
                 Close("handshake failed");
                 throw;
             }
@@ -160,8 +162,14 @@ namespace Common.Logic
                 }
 
                 bytes = bytes.AsSpan(1).ToArray();
-                if (bytes.Length <= 0) // empty message (usually mere ack)
-                    return;
+                if (bytes.Length <= 0)
+                    return; // ignore empty message (usually initial ack)
+
+                if (_synState != null)
+                {
+                    _logger.Info($"skip without handshake: {bytes.Length} bytes");
+                    return; // ignore messages while handshake in progress
+                }
             }
 
             base.Received(link, bytes);

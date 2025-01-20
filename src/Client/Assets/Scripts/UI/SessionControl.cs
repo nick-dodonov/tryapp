@@ -88,6 +88,7 @@ namespace Client.UI
         private void CancelStartingSession()
         {
             if (_state != State.Starting) throw new InvalidOperationException($"invalid state: {_state}");
+            _startingTcs.Cancel();
             ChangeState(State.CancellingStart);
         }
 

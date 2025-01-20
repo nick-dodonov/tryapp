@@ -8,7 +8,7 @@ namespace Common.Logic
 {
     public class HandshakeOptions
     {
-        public int TimeoutMs = 3000;
+        public int TimeoutMs = 5000;
         public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
