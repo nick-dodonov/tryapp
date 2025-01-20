@@ -76,6 +76,8 @@ namespace Client.Utility
             var optionsUri = new Uri(new(absoluteUrl), "options.json");
             var request = UnityWebRequest.Get(optionsUri);
             await request.SendWebRequest();
+            if (request.result != UnityWebRequest.Result.Success)
+                return null;
             var content = request.downloadHandler.text;
             return content;
         }

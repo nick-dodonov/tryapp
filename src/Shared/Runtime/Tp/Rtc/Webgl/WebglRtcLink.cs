@@ -17,6 +17,8 @@ namespace Shared.Tp.Rtc.Webgl
         private readonly IntPtr _managedPtr;
         private int _nativeHandle = -1;
 
+        private readonly TaskCompletionSource<object?> _connectTcs = new();
+
         public WebglRtcLink(IRtcService service, ITpReceiver receiver)
             : base(service, receiver)
         {
@@ -32,6 +34,8 @@ namespace Shared.Tp.Rtc.Webgl
             _log.Info($"managedPtr={_managedPtr} allocated={allocated}");
             if (!allocated)
                 return;
+
+            _connectTcs.TrySetCanceled();
 
             WebglRtcNative.RtcClose(_nativeHandle);
             _nativeHandle = -1;
@@ -53,7 +57,11 @@ namespace Shared.Tp.Rtc.Webgl
             _log.Info(".");
             var offer = await ObtainOffer(cancellationToken);
             _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offer.ToJson());
-            _log.Info($"result nativeHandle={_nativeHandle}");
+
+            _log.Info($"result nativeHandle={_nativeHandle}, awaiting opened channel");
+            await _connectTcs.Task;
+
+            _log.Info("connection established");
         }
 
         private static WebglRtcLink? GetLink(IntPtr managedPtr, [CallerMemberName] string member = "")
@@ -65,9 +73,9 @@ namespace Shared.Tp.Rtc.Webgl
             Slog.Error($"GetLink failed managedPtr={managedPtr}", member: member);
             return null;
         }
-        
+
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
-        public static void ConnectAnswerCallback(IntPtr managedPtr, string answerJson) 
+        public static void ConnectAnswerCallback(IntPtr managedPtr, string answerJson)
             => GetLink(managedPtr)?.CallReportAnswer(answerJson);
 
         private void CallReportAnswer(string answerJson)
@@ -80,7 +88,7 @@ namespace Shared.Tp.Rtc.Webgl
                 {
                     //TODO: handle connection error
                     var candidates = t.Result;
-                    
+
                     _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
                     foreach (var candidate in candidates)
                         WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
@@ -93,7 +101,7 @@ namespace Shared.Tp.Rtc.Webgl
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
-        public static void ConnectCandidatesCallback(IntPtr managedPtr, string candidatesJson) 
+        public static void ConnectCandidatesCallback(IntPtr managedPtr, string candidatesJson)
             => GetLink(managedPtr)?.CallReportIceCandidates(candidatesJson);
 
         private void CallReportIceCandidates(string candidatesJson)
@@ -118,12 +126,20 @@ namespace Shared.Tp.Rtc.Webgl
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, string>))]
         public static void ConnectCompleteCallback(IntPtr managedPtr, string? error)
+            => GetLink(managedPtr)?.CallConnectComplete(error);
+
+        private void CallConnectComplete(string? error)
         {
-            if (error != null)
-                Slog.Error($"failure: managedPtr={managedPtr}: {error}");
+            if (error == null)
+            {
+                _log.Info("success");
+                _connectTcs.SetResult(null);
+            }
             else
-                Slog.Info($"success: managedPtr={managedPtr}");
-            //TODO: add Task await on connect
+            {
+                _log.Error(error);
+                _connectTcs.SetException(new Exception(error));
+            }
         }
 
         [MonoPInvokeCallback(typeof(Action<IntPtr, byte[]?, int>))]
