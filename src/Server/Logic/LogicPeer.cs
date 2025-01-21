@@ -38,12 +38,11 @@ public sealed class LogicPeer : IDisposable
     {
         var serverState = _session.GetServerState(frame);
 
-        var msg = WebSerializer.SerializeObject(serverState);
-        var bytes = Encoding.UTF8.GetBytes(msg);
+        //var msg = WebSerializer.SerializeObject(serverState);
+        //var bytes = Encoding.UTF8.GetBytes(msg);
+        //_logger.Info($"[{bytes.Length}] bytes: {msg}");
+        //_link.Send(bytes);
 
-        _logger.Info($"[{bytes.Length}] bytes: {msg}");
-
-        //XXXXXX _link.Send(bytes);
         _link.Send(static (writer, state) =>
         {
             WebSerializer.SerializeToWriter(writer, state);

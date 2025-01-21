@@ -129,9 +129,8 @@ namespace Shared.Tp.Hand
         {
             base.Send(static (writer, s) =>
             {
-                var (writeCb, state) = (s.Item1, s.Item2);
                 writer.Write((byte)Flags.Ack);
-                writeCb(writer, state);
+                s.writeCb(writer, s.state);
             }, (writeCb, state));
         }
 
