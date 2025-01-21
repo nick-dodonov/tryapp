@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Tp.Util;
 
 namespace Shared.Tp.Hand
 {
@@ -31,6 +32,8 @@ namespace Shared.Tp.Hand
                 s.writeCb(writer, s.state);
                 if (writer is ArrayBufferWriter<byte> arrayWriter)
                     Log(s._logger, arrayWriter.WrittenSpan, "out", s.member);
+                else if (writer is PooledBufferWriter pooledWriter)
+                    Log(s._logger, pooledWriter.WrittenSpan, "out", s.member);
                 else
                     s._logger.Error($"unsupported buffer writer: {writer.GetType()}");
             }, (_logger, member: InnerLink.ToString(), writeCb, state));

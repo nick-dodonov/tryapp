@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
+using Shared.Tp.Util;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 
@@ -210,7 +211,7 @@ namespace Shared.Tp.Rtc.Sip
         {
             try
             {
-                var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+                using var writer = PooledBufferWriter.Rent();
                 writeCb(writer, state);
                 Send(writer.WrittenSpan);
             }

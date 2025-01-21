@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Shared.Tp.Util;
 using Unity.WebRTC;
 
 namespace Shared.Tp.Rtc.Unity
@@ -128,7 +129,7 @@ namespace Shared.Tp.Rtc.Unity
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+            using var writer = PooledBufferWriter.Rent();
             writeCb(writer, state);
             Send(writer.WrittenSpan);
         }

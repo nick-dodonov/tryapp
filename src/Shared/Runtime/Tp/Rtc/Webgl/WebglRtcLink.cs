@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
+using Shared.Tp.Util;
 using Shared.Web;
 
 namespace Shared.Tp.Rtc.Webgl
@@ -58,7 +59,7 @@ namespace Shared.Tp.Rtc.Webgl
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+            using var writer = PooledBufferWriter.Rent();
             writeCb(writer, state);
             Send(writer.WrittenSpan);
         }
