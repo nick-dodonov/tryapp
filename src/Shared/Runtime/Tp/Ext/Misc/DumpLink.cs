@@ -7,6 +7,8 @@ using Shared.Tp.Util;
 
 namespace Shared.Tp.Ext.Misc
 {
+    //TODO: create Mere link wrapper above Ext to simplify declaration of just send/receive even more
+    //  possibly introduce separate LayerLink with custom processors list
     public class DumpLink : ExtLink
     {
         private const int MaxLogBytes = 100;

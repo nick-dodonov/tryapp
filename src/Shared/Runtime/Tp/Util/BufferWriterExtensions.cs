@@ -7,8 +7,8 @@ namespace Shared.Tp.Util
 {
     /// <summary>
     /// TODO: think to use CommunityToolkit.HighPerformance IBufferWriter extension instead
-    /// TODO: add little/big endian writes
-    /// TODO: add SequenceReader and it reads
+    /// TODO: add little/big endian writes (prefer little endian to use memcpy instead of shuffle on most client platforms)
+    /// TODO: add SequenceReader extensions too
     /// </summary>
     public static class BufferWriterExtensions
     {

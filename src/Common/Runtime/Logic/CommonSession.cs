@@ -13,8 +13,11 @@ namespace Common.Logic
             ILoggerFactory loggerFactory)
         {
             return new HandApi(
-                new DumpLink.Api(
-                    rtcApi,
+                new TimeLink.Api(
+                    new DumpLink.Api(
+                        rtcApi,
+                        loggerFactory
+                    ),
                     loggerFactory
                 ),
                 new ConnectStateProvider(connectState),

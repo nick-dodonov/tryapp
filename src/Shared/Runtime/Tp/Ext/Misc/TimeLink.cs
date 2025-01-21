@@ -1,41 +1,66 @@
 using System;
+using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Tp.Util;
 
 namespace Shared.Tp.Ext.Misc
 {
-    //TODO: create Mere link wrapper above Ext to simplify declaration of just send/receive even more
-    //  possibly introduce separate LayerLink with custom processors list
+    /// <summary>
+    /// TODO: use SequenceReader or analog to read data 
+    /// </summary>
     public class TimeLink : ExtLink
     {
-        private readonly ILogger _logger = null!;
-
         public class Api : ExtApi<TimeLink>
         {
+            private const long TicksPerNs = TimeSpan.TicksPerMillisecond;
+
             private readonly ILogger _logger;
+            private readonly long _startNs;
 
-            public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi) =>
+            public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi)
+            {
                 _logger = loggerFactory.CreateLogger<TimeLink>();
+                _startNs = DateTime.UtcNow.Ticks / TicksPerNs;
+                _logger.Info($"start ns: {_startNs}");
+            }
 
-            protected override TimeLink CreateClientLink(ITpReceiver receiver) => new(_logger) { Receiver = receiver };
-            protected override TimeLink CreateServerLink(ITpLink innerLink) => new(_logger) { InnerLink = innerLink };
+            public long LocalNs => DateTime.UtcNow.Ticks / TicksPerNs - _startNs;
+
+            protected override TimeLink CreateClientLink(ITpReceiver receiver) => 
+                new(this, _logger) { Receiver = receiver };
+            protected override TimeLink CreateServerLink(ITpLink innerLink) => 
+                new(this, _logger) { InnerLink = innerLink };
         }
 
+        private readonly ILogger _logger = null!;
+        private readonly Api _api = null!;
+
         public TimeLink() { }
-        private TimeLink(ILogger logger) => _logger = logger;
+        private TimeLink(Api api, ILogger logger) => (_api, _logger) = (api, logger);
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
             base.Send(static (writer, s) =>
             {
                 s.writeCb(writer, s.state);
-                s._logger.Error("SSSSSSSSSSSS");
-            }, (_logger, member: InnerLink.ToString(), writeCb, state));
+
+                var localNs = s._api.LocalNs;
+                s._logger.Info($"local ns: {localNs}");
+                writer.Write(localNs);
+            }, (_logger, _api, writeCb, state));
         }
 
-        public override void Received(ITpLink link, ReadOnlySpan<byte> span)
+        public override unsafe void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            _logger.Info("RRRRRRRRRRR");
+            var timeSpan = span[^sizeof(long)..];
+            fixed (byte* ptr = timeSpan)
+            {
+                var remoteNs = Unsafe.ReadUnaligned<long>(ptr);
+                _logger.Info($"remote ns: {remoteNs}");
+            }
+
+            span = span[..^sizeof(long)];
             base.Received(link, span);
         }
     }
