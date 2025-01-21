@@ -30,6 +30,10 @@ namespace Client
             // logger.Info("==== starting client (logger) ====");
             StartupInfo.Print();
             
+            //workaround because project setting -> player -> background is not working in editor
+            if (Application.isEditor)
+                Application.runInBackground = true;
+
             // workaround for com.utilities.async init: creates CoroutineRunner to handle System.Threading.Timer
             await Awaiters.UnityMainThread; 
             _log.Info("<<<<");
