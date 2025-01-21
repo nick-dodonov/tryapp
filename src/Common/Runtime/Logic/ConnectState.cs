@@ -14,7 +14,7 @@ namespace Common.Logic
 
         byte[] IHandStateProvider.Serialize(IHandConnectState connectState)
         {
-            var str = WebSerializer.SerializeObject(this);
+            var str = WebSerializer.SerializeObject(connectState);
             return Encoding.UTF8.GetBytes(str);
         }
 
@@ -28,11 +28,11 @@ namespace Common.Logic
     [Serializable]
     public class ConnectState : IHandConnectState
     {
-        public string LinkId { get; }
-        public ConnectState(string linkId)
-        {
-            LinkId = linkId;
-        }
+        public string LinkId { get; set; } = string.Empty;
+
+        public ConnectState() {}
+        public ConnectState(string linkId) => LinkId = linkId;
+
         public override string ToString() => $"ConnectState({LinkId})"; //diagnostics only
     }
 }

@@ -22,11 +22,7 @@ namespace Shared.Tp.Hand
         }
 
         public DumpLink() { }
-
-        private DumpLink(ILogger logger)
-        {
-            _logger = logger;
-        }
+        private DumpLink(ILogger logger) => _logger = logger;
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
@@ -61,7 +57,7 @@ namespace Shared.Tp.Hand
             var ellipsis = maxBytesToConvert < span.Length ? "…" : null; // '⋯' '…' Unicode Ellipsis
             var charsStr = new string(chars[..charsWritten]);
             logger.Info(
-                $"{prefix}: [{span.Length}] bytes '{charsStr}{ellipsis}'", //｟｠⦅⦆ «»
+                $"{prefix}: [{span.Length}] bytes: {charsStr}{ellipsis}", //｟｠⦅⦆ «»
                 member: member);
         }
     }

@@ -1,4 +1,3 @@
-using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -17,7 +16,9 @@ namespace Shared.Tp.Rtc
 
         private int _linkId = -1; // -1 until offer is not obtained
         private string? _linkToken; // null until offer is not obtained
-        
+
+        protected int LinkId => _linkId;
+
         public abstract void Dispose();
         public abstract string GetRemotePeerId();
 
@@ -27,7 +28,7 @@ namespace Shared.Tp.Rtc
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
             _log = new(GetType().Name);
-            
+
             _service = service;
             _receiver = receiver;
         }

@@ -11,6 +11,7 @@ using Shared.Tp.Hand;
 using Shared.Tp.Rtc;
 using Shared.Web;
 using UnityEngine;
+using Microsoft.Extensions.Logging;
 
 namespace Client.Logic
 {
@@ -57,7 +58,10 @@ namespace Client.Logic
 
             var peerId = GetPeerId();
             _api = new HandApi(
-                RtcApiFactory.CreateApi(_meta.RtcService), 
+                new DumpLink.Api(
+                    RtcApiFactory.CreateApi(_meta.RtcService),
+                    Slog.Factory.CreateLogger<DumpLink>()
+                ),
                 new ConnectStateProvider(new(peerId)),
                 Slog.Factory);
 

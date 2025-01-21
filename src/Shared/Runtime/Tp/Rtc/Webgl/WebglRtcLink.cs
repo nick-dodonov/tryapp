@@ -29,6 +29,8 @@ namespace Shared.Tp.Rtc.Webgl
             _log.Info($"managedPtr={_managedPtr}");
         }
 
+        public override string ToString() => $"{nameof(WebglRtcLink)}<{_nativeHandle}/{LinkId}>"; //only for diagnostics
+
         public override void Dispose()
         {
             var allocated = _managedHandle.IsAllocated;
@@ -58,7 +60,7 @@ namespace Shared.Tp.Rtc.Webgl
         {
             var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
             writeCb(writer, state);
-            Send(writer.WrittenSpan);            
+            Send(writer.WrittenSpan);
         }
 
         public async Task Connect(CancellationToken cancellationToken)

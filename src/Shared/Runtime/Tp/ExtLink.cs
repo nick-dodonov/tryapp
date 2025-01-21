@@ -28,7 +28,7 @@ namespace Shared.Tp
         protected ExtLink(ITpLink innerLink) => InnerLink = innerLink;
         protected ExtLink(ITpReceiver receiver) => Receiver = receiver;
 
-        public override string ToString() => $"{GetType().Name}(<{GetRemotePeerId()}>)"; //only for diagnostics
+        public override string ToString() => $"{GetType().Name}<{GetRemotePeerId()}>"; //only for diagnostics
 
         protected virtual void Close(string reason) => InnerLink.Dispose();
         public virtual void Dispose() => Close("disposing");
