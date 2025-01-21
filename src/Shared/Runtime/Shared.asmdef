@@ -12,6 +12,7 @@
     "precompiledReferences": [
         "Microsoft.Extensions.Logging.Abstractions.dll",
         "Microsoft.Extensions.Logging.dll",
+        "System.Text.Json.dll",
         "Newtonsoft.Json.dll",
         "ZString.dll"
     ],

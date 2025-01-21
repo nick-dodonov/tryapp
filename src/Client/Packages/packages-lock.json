@@ -202,6 +202,17 @@
       },
       "url": "https://unitynuget-registry.azurewebsites.net"
     },
+    "org.nuget.system.io.pipelines": {
+      "version": "9.0.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "org.nuget.system.buffers": "4.5.1",
+        "org.nuget.system.memory": "4.5.5",
+        "org.nuget.system.threading.tasks.extensions": "4.5.4"
+      },
+      "url": "https://unitynuget-registry.azurewebsites.net"
+    },
     "org.nuget.system.memory": {
       "version": "4.5.5",
       "depth": 2,
@@ -227,9 +238,35 @@
       "dependencies": {},
       "url": "https://unitynuget-registry.azurewebsites.net"
     },
+    "org.nuget.system.text.encodings.web": {
+      "version": "9.0.1",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "org.nuget.system.buffers": "4.5.1",
+        "org.nuget.system.memory": "4.5.5",
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
+      },
+      "url": "https://unitynuget-registry.azurewebsites.net"
+    },
+    "org.nuget.system.text.json": {
+      "version": "9.0.1",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.1",
+        "org.nuget.system.io.pipelines": "9.0.1",
+        "org.nuget.system.text.encodings.web": "9.0.1",
+        "org.nuget.system.buffers": "4.5.1",
+        "org.nuget.system.memory": "4.5.5",
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0",
+        "org.nuget.system.threading.tasks.extensions": "4.5.4"
+      },
+      "url": "https://unitynuget-registry.azurewebsites.net"
+    },
     "org.nuget.system.threading.tasks.extensions": {
       "version": "4.5.4",
-      "depth": 3,
+      "depth": 2,
       "source": "registry",
       "dependencies": {
         "org.nuget.system.runtime.compilerservices.unsafe": "4.5.3"
@@ -254,6 +291,7 @@
         "com.cysharp.unitask": "2.5.10",
         "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
         "org.nuget.microsoft.extensions.logging": "9.0.1",
+        "org.nuget.system.text.json": "9.0.1",
         "org.nuget.zstring": "2.6.0",
         "com.unity.modules.unitywebrequest": "1.0.0",
         "com.unity.nuget.newtonsoft-json": "3.2.1",
