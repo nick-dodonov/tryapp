@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
@@ -7,25 +8,31 @@ using Shared.Tp.Util;
 namespace Shared.Tp.Ext.Misc
 {
     /// <summary>
-    /// TODO: use SequenceReader or analog to read data 
+    /// TODO: add api for client/server session to obtain "session time"
+    /// TODO: make average and deviation RTT calculations, throw anything with 3-sigma rule
+    /// TODO: make protocol more efficient using cyclic buffer to store local ticks
+    ///     instead of sending and receiving it back with adjustment (send only index and adjustment)
+    /// TODO: use SequenceReader or analog to read data
+    /// TODO: efficient (lock-free) atomic change for _receivedRemote/_receivedLocal (fix rare wrong calculation on send)
     /// </summary>
     public class TimeLink : ExtLink
     {
         public class Api : ExtApi<TimeLink>
         {
-            private const long TicksPerNs = TimeSpan.TicksPerMillisecond;
+            // run-tick is current time measure //TODO: decide to make in ns instead of ms
+            private const long TicksPerRt = TimeSpan.TicksPerMillisecond;
 
             private readonly ILogger _logger;
-            private readonly long _startNs;
+            private readonly long _start; //rt
 
             public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi)
             {
                 _logger = loggerFactory.CreateLogger<TimeLink>();
-                _startNs = DateTime.UtcNow.Ticks / TicksPerNs;
-                _logger.Info($"start ns: {_startNs}");
+                _start = DateTime.UtcNow.Ticks / TicksPerRt;
+                _logger.Info($"start: {_start}");
             }
 
-            public long LocalNs => DateTime.UtcNow.Ticks / TicksPerNs - _startNs;
+            public long LocalRt => DateTime.UtcNow.Ticks / TicksPerRt - _start;
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) => 
                 new(this, _logger) { Receiver = receiver };
@@ -36,6 +43,11 @@ namespace Shared.Tp.Ext.Misc
         private readonly ILogger _logger = null!;
         private readonly Api _api = null!;
 
+        private long _receivedRemote; //rt
+        private long _receivedLocal; //rt
+
+        private int _rtt; //rt
+        
         public TimeLink() { }
         private TimeLink(Api api, ILogger logger) => (_api, _logger) = (api, logger);
 
@@ -44,24 +56,50 @@ namespace Shared.Tp.Ext.Misc
             base.Send(static (writer, s) =>
             {
                 s.writeCb(writer, s.state);
-
-                var localNs = s._api.LocalNs;
-                s._logger.Info($"local ns: {localNs}");
-                writer.Write(localNs);
-            }, (_logger, _api, writeCb, state));
+                s.@this.WriteTime(writer);
+            }, (@this: this, writeCb, state));
         }
 
-        public override unsafe void Received(ITpLink link, ReadOnlySpan<byte> span)
+        public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            var timeSpan = span[^sizeof(long)..];
+            span = ReadTime(span);
+            base.Received(link, span);
+        }
+        
+        private void WriteTime(IBufferWriter<byte> writer)
+        {
+            var local = _api.LocalRt;
+
+            var passedLocal = _receivedLocal != 0 ? local - _receivedLocal: 0;
+            writer.Write(local);
+
+            //adjustment from previous receive, so remote side correctly calculates rtt
+            var receivedRemote = _receivedRemote;
+            receivedRemote += passedLocal;
+            writer.Write(receivedRemote);
+
+            _logger.Info($"local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
+        }
+
+        private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
+        {
+            var local = _api.LocalRt;
+
+            const int length = sizeof(long)*2;
+            var timeSpan = span[^length..];
             fixed (byte* ptr = timeSpan)
             {
-                var remoteNs = Unsafe.ReadUnaligned<long>(ptr);
-                _logger.Info($"remote ns: {remoteNs}");
+                _receivedLocal = local;
+                _receivedRemote = Unsafe.ReadUnaligned<long>(ptr);
+                var sentLocalAdjusted = Unsafe.ReadUnaligned<long>(ptr + sizeof(long));
+
+                if (sentLocalAdjusted != 0)
+                    _rtt = (int)(local - sentLocalAdjusted);
+
+                _logger.Info($"local={local} remote={_receivedRemote} sentLocalAdjusted={sentLocalAdjusted} (rtt={_rtt})");
             }
 
-            span = span[..^sizeof(long)];
-            base.Received(link, span);
+            return span[..^length];
         }
     }
 }
