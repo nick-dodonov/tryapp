@@ -1,5 +1,6 @@
 using Common.Logic;
 using Common.Meta;
+using Server;
 using Server.Logic;
 using Server.Meta;
 using Shared.Audit;
@@ -12,6 +13,8 @@ using Shared.Tp.Rtc.Sip;
 
 Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
 var builder = WebApplication.CreateBuilder(args);
+
+builder.AddPrettyConsoleLoggerProvider();
 
 // Add services to the container.
 //TODO: add custom console formatter with category recolor to simplify debug
