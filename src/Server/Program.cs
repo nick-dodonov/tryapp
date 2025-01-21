@@ -21,7 +21,7 @@ builder.Services
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => new HandApi(
-        sp.GetRequiredService<SipRtcService>(), 
+        new DumpLink.Api(sp.GetRequiredService<SipRtcService>()), 
         new ConnectStateProvider(null),
         sp.GetRequiredService<ILoggerFactory>()
         ))
