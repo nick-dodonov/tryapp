@@ -34,26 +34,20 @@ namespace Shared.Tp
     }
 
     /// <summary>
+    /// Delegate for sending data via buffer writer
+    ///     (allows to use implementation buffer directly in user code and extensions)
+    /// </summary>
+    public delegate void TpWriteCb<in T>(IBufferWriter<byte> writer, T state);
+
+    /// <summary>
     /// Interface for specific link implementations allowing to send data on client/server side
     /// </summary>
     public interface ITpLink : IDisposable
     {
         string GetRemotePeerId();
 
-        void Send(ReadOnlySpan<byte> span);
-        //TRY void Send<T>(WriteCb<T> writeCb, in T state);
-    }
-
-    public delegate void TpWriteCb<in T>(IBufferWriter<byte> writer, T state);
-    public static class TpLinkExtensions
-    {
-        //TRY solution for future
-        public static void Send<T>(this ITpLink link, TpWriteCb<T> writeCb, in T state)
-        {
-            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
-            writeCb.Invoke(writer, state);
-            link.Send(writer.WrittenSpan);
-        }
+        //void Send(ReadOnlySpan<byte> span);
+        void Send<T>(TpWriteCb<T> writeCb, in T state);
     }
 
     /// <summary>

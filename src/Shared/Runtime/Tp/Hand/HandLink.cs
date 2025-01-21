@@ -111,19 +111,28 @@ namespace Shared.Tp.Hand
         public sealed override string GetRemotePeerId() =>
             $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
-        public override void Send(ReadOnlySpan<byte> span)
+        // public override void Send(ReadOnlySpan<byte> span)
+        // {
+        //     var sendBytes = ArrayPool<byte>.Shared.Rent(span.Length + 1);
+        //     try
+        //     {
+        //         sendBytes[0] = (byte)Flags.Ack;
+        //         span.CopyTo(sendBytes.AsSpan(1));
+        //         base.Send(sendBytes.AsSpan(0, span.Length + 1));
+        //     }
+        //     finally
+        //     {
+        //         ArrayPool<byte>.Shared.Return(sendBytes);
+        //     }
+        // }
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            var sendBytes = ArrayPool<byte>.Shared.Rent(span.Length + 1);
-            try
+            base.Send(static (writer, s) =>
             {
-                sendBytes[0] = (byte)Flags.Ack;
-                span.CopyTo(sendBytes.AsSpan(1));
-                base.Send(sendBytes.AsSpan(0, span.Length + 1));
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(sendBytes);
-            }
+                var (writeCb, state) = (s.Item1, s.Item2);
+                writer.Write((byte)Flags.Ack);
+                writeCb(writer, state);
+            }, (writeCb, state));
         }
 
         public override void Received(ITpLink link, ReadOnlySpan<byte> span)
@@ -144,7 +153,8 @@ namespace Shared.Tp.Hand
                 if (_api.CallConnected(this))
                 {
                     _logger.Info("sending empty ack");
-                    Send(Array.Empty<byte>());
+                    //Send(Array.Empty<byte>());
+                    Send(static (_, _) => { }, 0);
                 }
                 else
                     _logger.Info("disconnected on listen");

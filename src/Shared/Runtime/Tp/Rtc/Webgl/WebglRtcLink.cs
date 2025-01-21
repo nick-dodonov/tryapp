@@ -1,5 +1,6 @@
 #if UNITY_5_6_OR_NEWER
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -46,12 +47,18 @@ namespace Shared.Tp.Rtc.Webgl
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(ReadOnlySpan<byte> span)
+        private void Send(ReadOnlySpan<byte> span)
         {
             //_log.Info($"{bytes.Length} bytes");
-
             var bytes = span.ToArray(); //TODO: speedup: make try to pass span
             WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
+        }
+
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+            writeCb(writer, state);
+            Send(writer.WrittenSpan);            
         }
 
         public async Task Connect(CancellationToken cancellationToken)

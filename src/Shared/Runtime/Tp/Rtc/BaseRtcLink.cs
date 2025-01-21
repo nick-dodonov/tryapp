@@ -20,7 +20,9 @@ namespace Shared.Tp.Rtc
         
         public abstract void Dispose();
         public abstract string GetRemotePeerId();
-        public abstract void Send(ReadOnlySpan<byte> span);
+
+        //public abstract void Send(ReadOnlySpan<byte> span);
+        public abstract void Send<T>(TpWriteCb<T> writeCb, in T state);
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {

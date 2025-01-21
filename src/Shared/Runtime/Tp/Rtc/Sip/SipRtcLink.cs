@@ -206,19 +206,19 @@ namespace Shared.Tp.Rtc.Sip
             _dataChannel?.send(bytes);
         }
 
-        // void Send<T>(TpWriteCb<T> writeCb, T state)
-        // {
-        //     try
-        //     {
-        //         var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
-        //         writeCb.Invoke(writer, state);
-        //         Send(writer.WrittenSpan);
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         _logger.Error($"failed: {e}");
-        //     }
-        // }
+        void ITpLink.Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            try
+            {
+                var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+                writeCb(writer, state);
+                Send(writer.WrittenSpan);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"failed: {e}");
+            }
+        }
 
         private void CallConnected()
         {

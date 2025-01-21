@@ -1,5 +1,6 @@
 #if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -115,13 +116,20 @@ namespace Shared.Tp.Rtc.Unity
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(ReadOnlySpan<byte> span)
+        private void Send(ReadOnlySpan<byte> span)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)
                 _dataChannel.Send(span.ToArray()); //TODO: speedup: ask Unity.WebRTC to support spans 
             else
                 _log.Error("no data channel yet (TODO: wait on connect)");
+        }
+
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+            writeCb(writer, state);
+            Send(writer.WrittenSpan);            
         }
 
         private static string Describe(RTCDataChannel channel) 
