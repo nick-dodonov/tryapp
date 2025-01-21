@@ -1,11 +1,13 @@
 #if !UNITY_5_6_OR_NEWER
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
+using Shared.Tp.Util;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 
@@ -47,7 +49,7 @@ namespace Shared.Tp.Rtc.Sip
             _logger.Info(".");
         }
 
-        public override string ToString() => $"{nameof(SipRtcLink)}(<{_remotePeerId}>)"; //only for diagnostics
+        public override string ToString() => $"{nameof(SipRtcLink)}<{_remotePeerId}>"; //only for diagnostics
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
@@ -109,7 +111,7 @@ namespace Shared.Tp.Rtc.Sip
             channel.onclose += () =>
             {
                 _logger.Info($"DataChannel: onclose: label={channel.label}");
-                CallReceived(null);
+                CallDisconnected();
             };
             channel.onerror += error =>
                 _logger.Error($"DataChannel: onerror: {error}");
@@ -174,7 +176,7 @@ namespace Shared.Tp.Rtc.Sip
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;
 
-        void ITpLink.Send(byte[] bytes)
+        private void Send(ReadOnlySpan<byte> span)
         {
             if (_dataChannel?.readyState != RTCDataChannelState.open)
             {
@@ -185,14 +187,14 @@ namespace Shared.Tp.Rtc.Sip
             var connectionState = _peerConnection?.connectionState;
             if (connectionState != RTCPeerConnectionState.connected)
             {
-                _logger.Info($"skip: connectionState={connectionState}");
+                _logger.Warn($"skip: connectionState={connectionState}");
                 return;
             }
 
             var sctpState = _peerConnection?.sctp.state;
             if (sctpState != RTCSctpTransportState.Connected)
             {
-                _logger.Info($"skip: sctp.state={sctpState}");
+                _logger.Warn($"skip: sctp.state={sctpState}");
                 return;
             }
 
@@ -200,7 +202,23 @@ namespace Shared.Tp.Rtc.Sip
             // var content = Encoding.UTF8.GetString(bytes);
             // _logger.Info($"[{bytes.Length}]: {content}");
 
+            //TODO: speedup: ask/modify SIPSorcery to support ReadOnlySpan 
+            var bytes = span.ToArray();
             _dataChannel?.send(bytes);
+        }
+
+        void ITpLink.Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            try
+            {
+                using var writer = PooledBufferWriter.Rent();
+                writeCb(writer, state);
+                Send(writer.WrittenSpan);
+            }
+            catch (Exception e)
+            {
+                _logger.Error($"failed: {e}");
+            }
         }
 
         private void CallConnected()
@@ -215,7 +233,10 @@ namespace Shared.Tp.Rtc.Sip
                 }
                 _receivePostponed.Feed(static (link, bytes) =>
                 {
-                    link._receiver!.Received(link, bytes);
+                    if (bytes != null)
+                        link._receiver!.Received(link, bytes);
+                    else
+                        link._receiver!.Disconnected(link);
                 }, this);
             }
             catch (Exception e)
@@ -225,14 +246,25 @@ namespace Shared.Tp.Rtc.Sip
             }
         }
         
-        private void CallReceived(byte[]? bytes)
+        private void CallReceived(byte[] bytes)
         {
             if (_receiver != null)
                 _receiver.Received(this, bytes);
             else
             {
-                _logger.Warn($"no receiver, postpone: {(bytes != null ? $"[{bytes.Length}] bytes": "disconnected")}");
+                _logger.Warn($"no receiver, postpone [{bytes.Length}] bytes");
                 _receivePostponed.Add(bytes);
+            }
+        }
+        
+        private void CallDisconnected()
+        {
+            if (_receiver != null)
+                _receiver.Disconnected(this);
+            else
+            {
+                _logger.Warn("no receiver, postpone disconnected");
+                _receivePostponed.Disconnect();
             }
         }
     }

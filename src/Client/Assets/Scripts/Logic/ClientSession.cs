@@ -11,6 +11,7 @@ using Shared.Tp.Hand;
 using Shared.Tp.Rtc;
 using Shared.Web;
 using UnityEngine;
+using Microsoft.Extensions.Logging;
 
 namespace Client.Logic
 {
@@ -57,7 +58,10 @@ namespace Client.Logic
 
             var peerId = GetPeerId();
             _api = new HandApi(
-                RtcApiFactory.CreateApi(_meta.RtcService), 
+                new DumpLink.Api(
+                    RtcApiFactory.CreateApi(_meta.RtcService),
+                    Slog.Factory.CreateLogger<DumpLink>()
+                ),
                 new ConnectStateProvider(new(peerId)),
                 Slog.Factory);
 
@@ -117,27 +121,14 @@ namespace Client.Logic
 
         private void Send(in ClientState clientState)
         {
-            var msg = WebSerializer.SerializeObject(clientState);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            _log.Info($"[{bytes.Length}] bytes: {msg}");
-            _link.Send(bytes);
+            _link.Send(WebSerializer.Default.Serialize, in clientState);
         }
 
-        void ITpReceiver.Received(ITpLink link, byte[] bytes)
+        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            if (bytes == null)
-            {
-                _log.Info("disconnected (notifying handler)");
-                _workflowOperator.Disconnected();
-                return;
-            }
-
-            var msg = System.Text.Encoding.UTF8.GetString(bytes);
-            _log.Info($"[{bytes.Length}] bytes: {msg}");
-
             try
             {
-                var serverState = WebSerializer.DeserializeObject<ServerState>(msg);
+                var serverState = WebSerializer.Default.Deserialize<ServerState>(span);
 
                 var count = 0;
                 var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
@@ -182,7 +173,13 @@ namespace Client.Logic
                 _log.Error($"{e}");
             }
         }
-        
+
+        public void Disconnected(ITpLink link)
+        {
+            _log.Info("notifying handler");
+            _workflowOperator.Disconnected();
+        }
+
         //TODO: reimplement using IPeerIdProvider for sign-in features
         private static string GetPeerId()
         {

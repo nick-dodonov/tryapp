@@ -1,11 +1,13 @@
 #if UNITY_5_6_OR_NEWER
 using System;
+using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using AOT;
 using Shared.Log;
+using Shared.Tp.Util;
 using Shared.Web;
 
 namespace Shared.Tp.Rtc.Webgl
@@ -28,6 +30,8 @@ namespace Shared.Tp.Rtc.Webgl
             _log.Info($"managedPtr={_managedPtr}");
         }
 
+        public override string ToString() => $"{nameof(WebglRtcLink)}<{_nativeHandle}/{LinkId}>"; //only for diagnostics
+
         public override void Dispose()
         {
             var allocated = _managedHandle.IsAllocated;
@@ -46,10 +50,18 @@ namespace Shared.Tp.Rtc.Webgl
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(byte[] bytes)
+        private void Send(ReadOnlySpan<byte> span)
         {
             //_log.Info($"{bytes.Length} bytes");
+            var bytes = span.ToArray(); //TODO: speedup: make try to pass span
             WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
+        }
+
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            using var writer = PooledBufferWriter.Rent();
+            writeCb(writer, state);
+            Send(writer.WrittenSpan);
         }
 
         public async Task Connect(CancellationToken cancellationToken)
@@ -109,7 +121,7 @@ namespace Shared.Tp.Rtc.Webgl
             try
             {
                 _log.Info(candidatesJson);
-                var candidates = WebSerializer.DeserializeObject<RtcIcInit[]>(candidatesJson);
+                var candidates = WebSerializer.Default.Deserialize<RtcIcInit[]>(candidatesJson);
                 _log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
                 ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
                 {

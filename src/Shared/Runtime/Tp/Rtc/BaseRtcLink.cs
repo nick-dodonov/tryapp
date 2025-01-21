@@ -16,15 +16,19 @@ namespace Shared.Tp.Rtc
 
         private int _linkId = -1; // -1 until offer is not obtained
         private string? _linkToken; // null until offer is not obtained
-        
+
+        protected int LinkId => _linkId;
+
         public abstract void Dispose();
         public abstract string GetRemotePeerId();
-        public abstract void Send(byte[] bytes);
+
+        //public abstract void Send(ReadOnlySpan<byte> span);
+        public abstract void Send<T>(TpWriteCb<T> writeCb, in T state);
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {
             _log = new(GetType().Name);
-            
+
             _service = service;
             _receiver = receiver;
         }
@@ -62,7 +66,12 @@ namespace Shared.Tp.Rtc
             if (bytes == null)
                 _log.Info("disconnected");
 
-            _receiver.Received(this, bytes);
+            if (bytes != null)
+                _receiver.Received(this, bytes);
+            else
+                _receiver.Disconnected(this);
+            // if (_receiver == null)
+            //     _log.Error("receiver is not set: TODO: postpone");
         }
     }
 }

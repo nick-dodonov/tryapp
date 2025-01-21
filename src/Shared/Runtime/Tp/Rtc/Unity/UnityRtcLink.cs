@@ -1,9 +1,11 @@
 #if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
+using Shared.Tp.Util;
 using Unity.WebRTC;
 
 namespace Shared.Tp.Rtc.Unity
@@ -13,19 +15,20 @@ namespace Shared.Tp.Rtc.Unity
         private RTCPeerConnection? _peerConnection;
         private RTCDataChannel? _dataChannel;
         private readonly List<RtcIcInit> _iceCandidates = new();
-        
+
         private readonly TaskCompletionSource<RTCDataChannel> _dataChannelTcs = new();
 
         public UnityRtcLink(IRtcService service, ITpReceiver receiver)
-            : base(service, receiver)
-        {}
+            : base(service, receiver) { }
+
+        public override string ToString() => $"{nameof(UnityRtcLink)}<{LinkId}>"; //only for diagnostics
 
         public async Task Connect(CancellationToken cancellationToken)
         {
             var sharedOffer = await ObtainOffer(cancellationToken);
             _log.Info($"request: {sharedOffer}");
             var offer = sharedOffer.FromShared();
-            
+
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
             {
@@ -47,7 +50,7 @@ namespace Shared.Tp.Rtc.Unity
                     _log.Error($"OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
                 }
             };
-            _peerConnection.OnIceConnectionChange = state => 
+            _peerConnection.OnIceConnectionChange = state =>
                 _log.Info($"OnIceConnectionChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
             {
@@ -87,7 +90,7 @@ namespace Shared.Tp.Rtc.Unity
 
             // send answer to remote side and obtain remote ice candidates
             var candidates = await ReportAnswer(answer.ToShared(), cancellationToken);
-            
+
             // add remote ICE candidates
             foreach (var candidate in candidates)
             {
@@ -95,10 +98,10 @@ namespace Shared.Tp.Rtc.Unity
                 var unityCandidateInit = candidate.FromShared();
                 var unityCandidate = new RTCIceCandidate(unityCandidateInit);
                 var rc = _peerConnection.AddIceCandidate(unityCandidate);
-                if (!rc) 
+                if (!rc)
                     _log.Error("FAILED to add ice candidate");
             }
-            
+
             _log.Info("awaiting data channel is opened");
             await _dataChannelTcs.Task.WaitAsync(cancellationToken);
             _log.Info("connection established");
@@ -115,17 +118,25 @@ namespace Shared.Tp.Rtc.Unity
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(byte[] bytes)
+        private void Send(ReadOnlySpan<byte> span)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)
-                _dataChannel.Send(bytes);
+                _dataChannel.Send(span.ToArray()); //TODO: speedup: ask Unity.WebRTC to support spans 
             else
                 _log.Error("no data channel yet (TODO: wait on connect)");
         }
 
-        private static string Describe(RTCDataChannel channel) 
-            => $"Id={channel.Id} Label={channel.Label} ReadyState={channel.ReadyState} Protocol={channel.Protocol} Ordered={channel.Ordered} MaxRetransmits={channel.MaxRetransmits} MaxRetransmitTime={channel.MaxRetransmitTime} Negotiated={channel.Negotiated} BufferedAmount={channel.BufferedAmount}";
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
+        {
+            using var writer = PooledBufferWriter.Rent();
+            writeCb(writer, state);
+            Send(writer.WrittenSpan);
+        }
+
+        private static string Describe(RTCDataChannel channel)
+            =>
+                $"Id={channel.Id} Label={channel.Label} ReadyState={channel.ReadyState} Protocol={channel.Protocol} Ordered={channel.Ordered} MaxRetransmits={channel.MaxRetransmits} MaxRetransmitTime={channel.MaxRetransmitTime} Negotiated={channel.Negotiated} BufferedAmount={channel.BufferedAmount}";
     }
 }
 #endif

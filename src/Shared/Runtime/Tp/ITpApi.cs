@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,11 +12,12 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpReceiver
     {
-        /// <summary>
         /// <param name="link">channel data from, allows to simplify server code allowing to use the same handler for several links</param>
-        /// <param name="bytes">data block from link, null means disconnected</param> 
-        /// </summary>
-        void Received(ITpLink link, byte[]? bytes);
+        /// <param name="span">bytes block from link</param>
+        /// TO-DO: possibly replace with ReadOnlySequence for links that merge data
+        void Received(ITpLink link, ReadOnlySpan<byte> span);
+        /// <param name="link">disconnected channel</param>
+        void Disconnected(ITpLink link);
     }
 
     /// <summary>
@@ -32,12 +34,20 @@ namespace Shared.Tp
     }
 
     /// <summary>
+    /// Delegate for sending data via buffer writer
+    ///     (allows to use implementation buffer directly in user code and extensions)
+    /// </summary>
+    public delegate void TpWriteCb<in T>(IBufferWriter<byte> writer, T state);
+
+    /// <summary>
     /// Interface for specific link implementations allowing to send data on client/server side
     /// </summary>
     public interface ITpLink : IDisposable
     {
         string GetRemotePeerId();
-        void Send(byte[] bytes);
+
+        //void Send(ReadOnlySpan<byte> span);
+        void Send<T>(TpWriteCb<T> writeCb, in T state);
     }
 
     /// <summary>

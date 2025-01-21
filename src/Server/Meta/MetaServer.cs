@@ -34,7 +34,7 @@ public sealed class MetaServer(
             RandomName = RandomNames[new Random().Next(RandomNames.Length)],
         };
 
-        logger.Info(WebSerializer.SerializeObject(result));
+        logger.Info(WebSerializer.Default.Serialize(result));
         return new(result);
     }
 }

@@ -54,11 +54,11 @@ namespace Shared.Tp.Rtc
         public override string ToString() => $"{nameof(RtcSdpInit)}({ToJson()})";
         
         private string? _json;
-        public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
+        public string ToJson() => _json ??= WebSerializer.Default.Serialize(this);
 
         public static RtcSdpInit FromJson(string json)
         {
-            var result = WebSerializer.DeserializeObject<RtcSdpInit>(json);
+            var result = WebSerializer.Default.Deserialize<RtcSdpInit>(json);
             result._json = json;
             return result;
         }
@@ -80,11 +80,11 @@ namespace Shared.Tp.Rtc
         public override string ToString() => $"{nameof(RtcIcInit)}({ToJson()})";
 
         private string? _json;
-        public string ToJson() => _json ??= WebSerializer.SerializeObject(this);
+        public string ToJson() => _json ??= WebSerializer.Default.Serialize(this);
 
         public static RtcIcInit FromJson(string json)
         {
-            var result = WebSerializer.DeserializeObject<RtcIcInit>(json);
+            var result = WebSerializer.Default.Deserialize<RtcIcInit>(json);
             result._json = json;
             return result;
         }

@@ -61,7 +61,7 @@ namespace Shared.Tp.Hand
             _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
 
-        public override void Close(string reason)
+        protected override void Close(string reason)
         {
             _logger.Info(reason);
             base.Close(reason);
@@ -72,20 +72,15 @@ namespace Shared.Tp.Hand
             var connectState = _connectState!;
             _logger.Info($"send syn and wait ack: {connectState}");
 
-            var stateBytes = _stateProvider.Serialize(connectState);
-            var synBytes = ArrayPool<byte>.Shared.Rent(stateBytes.Length + 1);
             try
             {
-                synBytes[0] = (byte)Flags.Syn;
-                stateBytes.CopyTo(synBytes.AsSpan(1));
-                var sendBytes = synBytes.AsSpan(0, stateBytes.Length + 1).ToArray();
-                InnerLink.Send(sendBytes);
+                InnerLink.Send(WriteSyn, this);
 
                 _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
                     _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {connectState}");
-                    InnerLink.Send(sendBytes);
+                    InnerLink.Send(WriteSyn, this);
                 }
 
                 _logger.Info("connected");
@@ -99,76 +94,70 @@ namespace Shared.Tp.Hand
                 Close("handshake failed");
                 throw;
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(synBytes);
-            }
+        }
+
+        private static void WriteSyn(IBufferWriter<byte> writer, HandLink link)
+        {
+            writer.Write((byte)Flags.Syn);
+            link._stateProvider.Serialize(writer, link._connectState!);
         }
 
         public sealed override string GetRemotePeerId() =>
             $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
-        public override void Send(byte[] bytes)
+        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            var sendBytes = ArrayPool<byte>.Shared.Rent(bytes.Length + 1);
-            try
+            base.Send(static (writer, s) =>
             {
-                sendBytes[0] = (byte)Flags.Ack;
-                bytes.AsSpan().CopyTo(sendBytes.AsSpan(1));
-                base.Send(sendBytes.AsSpan(0, bytes.Length + 1).ToArray());
-            }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(sendBytes);
-            }
+                writer.Write((byte)Flags.Ack);
+                s.writeCb(writer, s.state);
+            }, (writeCb, state));
         }
 
-        public override void Received(ITpLink link, byte[]? bytes)
+        public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            if (bytes != null)
+            var flags = (Flags)span[0];
+
+            span = span[1..];
+            if ((flags & Flags.Syn) != 0)
             {
-                var flags = (Flags)bytes[0];
+                if (_connectState != null)
+                    return; // duplicate syn received: already connected
 
-                if ((flags & Flags.Syn) != 0)
+                _connectState = _stateProvider.Deserialize(span);
+                _logger.Info($"received connection state: {_connectState}");
+                _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
+
+                // notify listener connection is established after handshake
+                if (_api.CallConnected(this))
                 {
-                    if (_connectState != null)
-                        return; // duplicate syn received: already connected
-
-                    _connectState = _stateProvider.Deserialize(bytes.AsSpan(1));
-                    _logger.Info($"received connection state: {_connectState}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
-
-                    // notify listener connection is established after handshake
-                    if (_api.CallConnected(this))
-                    {
-                        _logger.Info("sending empty ack");
-                        Send(Array.Empty<byte>());
-                    }
-                    else
-                        _logger.Info("disconnected on listen");
-
-                    return;
+                    _logger.Info("sending empty ack");
+                    //Send(Array.Empty<byte>());
+                    Send(static (_, _) => { }, 0);
                 }
+                else
+                    _logger.Info("disconnected on listen");
 
-                if ((flags & Flags.Ack) != 0 && _synState != null)
-                {
-                    _logger.Info("ack received");
-                    _synState.AckReceived();
-                    _synState = null;
-                }
-
-                bytes = bytes.AsSpan(1).ToArray();
-                if (bytes.Length <= 0)
-                    return; // ignore empty message (usually initial ack)
-
-                if (_synState != null)
-                {
-                    _logger.Info($"skip without handshake: {bytes.Length} bytes");
-                    return; // ignore messages while handshake in progress
-                }
+                return;
             }
 
-            base.Received(link, bytes);
+            if ((flags & Flags.Ack) != 0 && _synState != null)
+            {
+                _logger.Info("ack received");
+                _synState.AckReceived();
+                _synState = null;
+            }
+
+            if (span.Length <= 0)
+                return; // ignore empty message (initial ack)
+
+            if (_synState != null)
+            {
+                _logger.Info($"skip without handshake: {span.Length} bytes");
+                return; // ignore messages while handshake in progress
+            }
+
+            base.Received(link, span);
         }
     }
 }

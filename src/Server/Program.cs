@@ -1,3 +1,4 @@
+using System.Buffers;
 using Common.Logic;
 using Common.Meta;
 using Server.Logic;
@@ -20,7 +21,10 @@ builder.Services
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .AddSingleton<ITpApi>(sp => new HandApi(
-        sp.GetRequiredService<SipRtcService>(), 
+        new DumpLink.Api(
+            sp.GetRequiredService<SipRtcService>(), 
+            sp.GetRequiredService<ILogger<DumpLink>>()
+            ), 
         new ConnectStateProvider(null),
         sp.GetRequiredService<ILoggerFactory>()
         ))

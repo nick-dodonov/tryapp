@@ -53,7 +53,7 @@ namespace Client.Utility
                 var content = await ReadOptionsJson();
                 if (content == null)
                     return null;
-                var options = WebSerializer.DeserializeObject<Options>(content);
+                var options = WebSerializer.Default.Deserialize<Options>(content);
                 return options.Servers[0];
             }
             catch (Exception e)

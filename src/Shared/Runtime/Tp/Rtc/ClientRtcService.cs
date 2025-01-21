@@ -33,7 +33,7 @@ namespace Shared.Tp.Rtc
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"RET: {content}");
 
-            var result = WebSerializer.DeserializeObject<RtcOffer>(content);
+            var result = WebSerializer.Default.Deserialize<RtcOffer>(content);
             return result;
         }
 
@@ -42,13 +42,13 @@ namespace Shared.Tp.Rtc
             var uri = GetUri($"token={token}");
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
-            var json = WebSerializer.SerializeObject(answer);
+            var json = WebSerializer.Default.Serialize(answer);
             using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"RET: {content}");
 
-            var result = WebSerializer.DeserializeObject<RtcIcInit[]>(content);
+            var result = WebSerializer.Default.Deserialize<RtcIcInit[]>(content);
             return result;
         }
 
@@ -57,7 +57,7 @@ namespace Shared.Tp.Rtc
             var uri = GetUri($"token={token}");
             _logger.Info($"POST: {_client.BaseAddress}{uri}");
 
-            var json = WebSerializer.SerializeObject(candidates);
+            var json = WebSerializer.Default.Serialize(candidates);
             using var response = await _client.PostAsync(uri, json, cancellationToken);
             response.EnsureSuccessStatusCode();
             _logger.Info("OK");
