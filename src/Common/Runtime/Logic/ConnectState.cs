@@ -1,6 +1,6 @@
 using System;
 using System.Buffers;
-using Shared.Tp.Hand;
+using Shared.Tp.Ext.Hand;
 using Shared.Web;
 
 namespace Common.Logic

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.Tp
+namespace Shared.Tp.Ext
 {
     /// <summary>
     /// TODO: correctly handle exception on inner/outer calls

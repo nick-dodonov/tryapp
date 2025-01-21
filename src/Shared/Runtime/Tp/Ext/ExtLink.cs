@@ -1,7 +1,8 @@
 using System;
 using Shared.Log;
+using Shared.Tp.Util;
 
-namespace Shared.Tp
+namespace Shared.Tp.Ext
 {
     public class ExtLink: ITpLink, ITpReceiver
     {

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Tp.Util;
 
-namespace Shared.Tp.Hand
+namespace Shared.Tp.Ext.Misc
 {
     public class DumpLink : ExtLink
     {
