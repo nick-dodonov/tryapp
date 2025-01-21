@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 
-namespace Shared.Tp.Hand
+namespace Shared.Tp.Ext.Hand
 {
     public interface IHandConnectState
     {

@@ -1,7 +1,7 @@
 using System;
 using System.Buffers;
 
-namespace Shared.Tp
+namespace Shared.Tp.Util
 {
     /// <summary>
     /// Helper to temporary keep send/received bytes messages.

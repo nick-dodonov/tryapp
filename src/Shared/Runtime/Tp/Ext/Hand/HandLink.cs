@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
 
-namespace Shared.Tp.Hand
+namespace Shared.Tp.Ext.Hand
 {
     /// <summary>
     /// Wrapper link for establishing connection with initial reliable state:
