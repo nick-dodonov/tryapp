@@ -121,20 +121,14 @@ namespace Client.Logic
 
         private void Send(in ClientState clientState)
         {
-            var msg = WebSerializer.Default.Serialize(clientState);
-            var bytes = System.Text.Encoding.UTF8.GetBytes(msg);
-            _log.Info($"[{bytes.Length}] bytes: {msg}");
-            _link.Send(bytes);
+            _link.Send(WebSerializer.Default.Serialize, in clientState);
         }
 
         void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
         {
             try
             {
-                var msg = System.Text.Encoding.UTF8.GetString(span);
-                _log.Info($"[{span.Length}] bytes: {msg}");
-
-                var serverState = WebSerializer.Default.Deserialize<ServerState>(msg);
+                var serverState = WebSerializer.Default.Deserialize<ServerState>(span);
 
                 var count = 0;
                 var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;

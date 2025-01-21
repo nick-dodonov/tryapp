@@ -175,7 +175,7 @@ namespace Shared.Tp.Rtc.Sip
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;
 
-        public void Send(ReadOnlySpan<byte> span)
+        private void Send(ReadOnlySpan<byte> span)
         {
             if (_dataChannel?.readyState != RTCDataChannelState.open)
             {
