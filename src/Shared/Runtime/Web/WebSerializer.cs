@@ -1,9 +1,10 @@
 #define SYSTEM_TEXT_JSON
 //#define NEWTONSOFT_JSON
 
+using System.Buffers;
+using System.Runtime.Serialization;
+
 #if SYSTEM_TEXT_JSON
-//TODO: test System.Text.Json with enabled WebGL embedded data (because System.Text.Json is better having span variants)
-//  https://docs.unity3d.com/Manual/webgl-embeddedresources.html
 using System.Text.Json;
 
 #elif NEWTONSOFT_JSON
@@ -14,6 +15,8 @@ using Newtonsoft.Json.Serialization;
 #else
 #error No JSON serializer defined
 #endif
+
+//TODO: split variants by iface
 
 namespace Shared.Web
 {
@@ -58,6 +61,16 @@ namespace Shared.Web
             => JsonConvert.SerializeObject(obj, pretty ? PrettyJsonSettings : JsonSettings);
 #endif
 
+        public static void SerializeToWriter<T>(IBufferWriter<byte> writer, T obj)
+        {
+#if SYSTEM_TEXT_JSON
+            var jsonWriter = new Utf8JsonWriter(writer); //TODO: cache utf8 writer
+            JsonSerializer.Serialize(jsonWriter, obj, _serializerOptions);
+#else
+            throw new System.NotImplementedException();
+#endif
+        }
+
         public static T DeserializeObject<T>(string json)
         {
 #if SYSTEM_TEXT_JSON
@@ -66,8 +79,7 @@ namespace Shared.Web
             var obj = JsonConvert.DeserializeObject<T>(json, JsonSettings);
 #endif
             if (obj == null)
-                throw new System.Runtime.Serialization.SerializationException(
-                    $"Failed to deserialize {typeof(T).FullName} from json: {json}");
+                throw new SerializationException($"Failed to deserialize {typeof(T).FullName} from json: {json}");
             return obj;
         }
     }
