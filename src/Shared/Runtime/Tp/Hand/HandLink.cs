@@ -78,14 +78,17 @@ namespace Shared.Tp.Hand
             {
                 synBytes[0] = (byte)Flags.Syn;
                 stateBytes.CopyTo(synBytes.AsSpan(1));
-                var sendBytes = synBytes.AsSpan(0, stateBytes.Length + 1).ToArray();
-                InnerLink.Send(sendBytes);
+                InnerLink.Send(synBytes.AsSpan(0, stateBytes.Length + 1));
+                // InnerLink.Send<ReadOnlySpan<byte>>(static (writer, span) =>
+                // {
+                //     writer.Write(span);
+                // }, sendSpan);
 
                 _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
                     _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {connectState}");
-                    InnerLink.Send(sendBytes);
+                    InnerLink.Send(synBytes.AsSpan(0, stateBytes.Length + 1));
                 }
 
                 _logger.Info("connected");
@@ -108,14 +111,14 @@ namespace Shared.Tp.Hand
         public sealed override string GetRemotePeerId() =>
             $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
-        public override void Send(byte[] bytes)
+        public override void Send(ReadOnlySpan<byte> span)
         {
-            var sendBytes = ArrayPool<byte>.Shared.Rent(bytes.Length + 1);
+            var sendBytes = ArrayPool<byte>.Shared.Rent(span.Length + 1);
             try
             {
                 sendBytes[0] = (byte)Flags.Ack;
-                bytes.AsSpan().CopyTo(sendBytes.AsSpan(1));
-                base.Send(sendBytes.AsSpan(0, bytes.Length + 1).ToArray());
+                span.CopyTo(sendBytes.AsSpan(1));
+                base.Send(sendBytes.AsSpan(0, span.Length + 1));
             }
             finally
             {

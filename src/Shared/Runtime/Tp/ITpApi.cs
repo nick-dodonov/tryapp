@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -38,7 +39,21 @@ namespace Shared.Tp
     public interface ITpLink : IDisposable
     {
         string GetRemotePeerId();
-        void Send(byte[] bytes);
+
+        void Send(ReadOnlySpan<byte> span);
+        //TRY void Send<T>(WriteCb<T> writeCb, in T state);
+    }
+
+    public delegate void TpWriteCb<in T>(IBufferWriter<byte> writer, T state);
+    public static class TpLinkExtensions
+    {
+        //TRY solution for future
+        public static void Send<T>(this ITpLink link, TpWriteCb<T> writeCb, in T state)
+        {
+            var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+            writeCb.Invoke(writer, state);
+            link.Send(writer.WrittenSpan);
+        }
     }
 
     /// <summary>

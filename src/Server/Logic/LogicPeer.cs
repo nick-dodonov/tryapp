@@ -42,7 +42,12 @@ public sealed class LogicPeer : IDisposable
         var bytes = Encoding.UTF8.GetBytes(msg);
 
         _logger.Info($"[{bytes.Length}] bytes: {msg}");
-        _link.Send(bytes);
+
+        //XXXXXX _link.Send(bytes);
+        _link.Send(static (writer, state) =>
+        {
+            WebSerializer.SerializeToWriter(writer, state);
+        }, serverState);
     }
 
     public void Received(ReadOnlySpan<byte> span)

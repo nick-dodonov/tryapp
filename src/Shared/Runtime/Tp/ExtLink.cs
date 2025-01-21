@@ -34,7 +34,10 @@ namespace Shared.Tp
         public virtual void Dispose() => Close("disposing");
 
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
-        public virtual void Send(byte[] bytes) => InnerLink.Send(bytes);
+
+        public virtual void Send(ReadOnlySpan<byte> span) => InnerLink.Send(span);
+        //public virtual void Send<T>(TpWriteCb<T> writeCb, T state) => InnerLink.Send(writeCb, state);
+
         public virtual void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
             if (_receiver != null)

@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
@@ -19,7 +20,7 @@ namespace Shared.Tp.Rtc
         
         public abstract void Dispose();
         public abstract string GetRemotePeerId();
-        public abstract void Send(byte[] bytes);
+        public abstract void Send(ReadOnlySpan<byte> span);
 
         protected BaseRtcLink(IRtcService service, ITpReceiver receiver)
         {

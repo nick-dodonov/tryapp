@@ -115,11 +115,11 @@ namespace Shared.Tp.Rtc.Unity
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(byte[] bytes)
+        public override void Send(ReadOnlySpan<byte> span)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)
-                _dataChannel.Send(bytes);
+                _dataChannel.Send(span.ToArray()); //TODO: speedup: ask Unity.WebRTC to support spans 
             else
                 _log.Error("no data channel yet (TODO: wait on connect)");
         }

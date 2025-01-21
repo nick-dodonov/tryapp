@@ -46,9 +46,11 @@ namespace Shared.Tp.Rtc.Webgl
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        public override void Send(byte[] bytes)
+        public override void Send(ReadOnlySpan<byte> span)
         {
             //_log.Info($"{bytes.Length} bytes");
+
+            var bytes = span.ToArray(); //TODO: speedup: make try to pass span
             WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
         }
 

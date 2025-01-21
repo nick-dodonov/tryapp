@@ -1,5 +1,6 @@
 #if !UNITY_5_6_OR_NEWER
 using System;
+using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -174,7 +175,7 @@ namespace Shared.Tp.Rtc.Sip
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;
 
-        void ITpLink.Send(byte[] bytes)
+        public void Send(ReadOnlySpan<byte> span)
         {
             if (_dataChannel?.readyState != RTCDataChannelState.open)
             {
@@ -185,14 +186,14 @@ namespace Shared.Tp.Rtc.Sip
             var connectionState = _peerConnection?.connectionState;
             if (connectionState != RTCPeerConnectionState.connected)
             {
-                _logger.Info($"skip: connectionState={connectionState}");
+                _logger.Warn($"skip: connectionState={connectionState}");
                 return;
             }
 
             var sctpState = _peerConnection?.sctp.state;
             if (sctpState != RTCSctpTransportState.Connected)
             {
-                _logger.Info($"skip: sctp.state={sctpState}");
+                _logger.Warn($"skip: sctp.state={sctpState}");
                 return;
             }
 
@@ -200,8 +201,24 @@ namespace Shared.Tp.Rtc.Sip
             // var content = Encoding.UTF8.GetString(bytes);
             // _logger.Info($"[{bytes.Length}]: {content}");
 
+            //TODO: speedup: ask/modify SIPSorcery to support ReadOnlySpan 
+            var bytes = span.ToArray();
             _dataChannel?.send(bytes);
         }
+
+        // void Send<T>(TpWriteCb<T> writeCb, T state)
+        // {
+        //     try
+        //     {
+        //         var writer = new ArrayBufferWriter<byte>(); //TODO: speedup: use pooled / cached writer
+        //         writeCb.Invoke(writer, state);
+        //         Send(writer.WrittenSpan);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         _logger.Error($"failed: {e}");
+        //     }
+        // }
 
         private void CallConnected()
         {
