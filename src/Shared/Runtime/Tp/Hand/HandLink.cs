@@ -72,23 +72,15 @@ namespace Shared.Tp.Hand
             var connectState = _connectState!;
             _logger.Info($"send syn and wait ack: {connectState}");
 
-            var stateBytes = _stateProvider.Serialize(connectState);
-            var synBytes = ArrayPool<byte>.Shared.Rent(stateBytes.Length + 1);
             try
             {
-                synBytes[0] = (byte)Flags.Syn;
-                stateBytes.CopyTo(synBytes.AsSpan(1));
-                InnerLink.Send(synBytes.AsSpan(0, stateBytes.Length + 1));
-                // InnerLink.Send<ReadOnlySpan<byte>>(static (writer, span) =>
-                // {
-                //     writer.Write(span);
-                // }, sendSpan);
+                InnerLink.Send(WriteSyn, this);
 
                 _synState = new(_api.HandshakeOptions);
                 while (await _synState.AwaitResend(cancellationToken))
                 {
                     _logger.Info($"resend syn waiting ack ({_synState.Attempts} attempt): {connectState}");
-                    InnerLink.Send(synBytes.AsSpan(0, stateBytes.Length + 1));
+                    InnerLink.Send(WriteSyn, this);
                 }
 
                 _logger.Info("connected");
@@ -102,10 +94,12 @@ namespace Shared.Tp.Hand
                 Close("handshake failed");
                 throw;
             }
-            finally
-            {
-                ArrayPool<byte>.Shared.Return(synBytes);
-            }
+        }
+
+        private static void WriteSyn(IBufferWriter<byte> writer, HandLink link)
+        {
+            writer.Write((byte)Flags.Syn);
+            link._stateProvider.Serialize(writer, link._connectState!);
         }
 
         public sealed override string GetRemotePeerId() =>

@@ -1,5 +1,7 @@
+using System;
 using System.Buffers;
 using System.Runtime.Serialization;
+using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Serialization;
@@ -25,7 +27,7 @@ namespace Shared.Web
             => JsonConvert.SerializeObject(obj, pretty ? PrettyJsonSettings : JsonSettings);
 
         public void SerializeToWriter<T>(IBufferWriter<byte> writer, T obj)
-            => throw new System.NotImplementedException();
+            => throw new NotImplementedException();
 
         public T DeserializeObject<T>(string json)
         {
@@ -33,6 +35,12 @@ namespace Shared.Web
             if (obj == null)
                 throw new SerializationException($"Failed to deserialize {typeof(T).FullName} from json: {json}");
             return obj;
+        }
+
+        public T DeserializeObject<T>(ReadOnlySpan<byte> spans)
+        {
+            var json = Encoding.UTF8.GetString(spans);
+            return DeserializeObject<T>(json);
         }
     }
 }

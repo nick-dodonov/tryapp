@@ -7,7 +7,7 @@ namespace Shared.Web
     /// </summary>
     public static class WebSerializer
     {
-        private static IWebSerializer Default => new SystemWebSerializer();
+        public static readonly IWebSerializer Default = new SystemWebSerializer();
 
         public static string SerializeObject<T>(T obj)
             => Default.SerializeObject(obj);

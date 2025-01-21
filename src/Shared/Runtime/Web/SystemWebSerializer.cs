@@ -1,5 +1,7 @@
+using System;
 using System.Buffers;
 using System.Runtime.Serialization;
+using System.Text;
 using System.Text.Json;
 
 namespace Shared.Web
@@ -29,12 +31,15 @@ namespace Shared.Web
             JsonSerializer.Serialize(jsonWriter, obj, _serializerOptions);
         }
 
-        public T DeserializeObject<T>(string json)
-        {
-            var obj = JsonSerializer.Deserialize<T>(json, _serializerOptions);
-            if (obj == null)
-                throw new SerializationException($"Failed to deserialize {typeof(T).FullName} from json: {json}");
-            return obj;
-        }
+        public T DeserializeObject<T>(string json) =>
+            JsonSerializer.Deserialize<T>(json, _serializerOptions)
+            ?? ThrowDeserializeFailure<T>(json);
+
+        public T DeserializeObject<T>(ReadOnlySpan<byte> spans) =>
+            JsonSerializer.Deserialize<T>(spans, _serializerOptions)
+            ?? ThrowDeserializeFailure<T>(Encoding.UTF8.GetString(spans));
+
+        private static T ThrowDeserializeFailure<T>(string source) =>
+            throw new SerializationException($"Failed to deserialize {typeof(T).FullName}, source: {source}");
     }
 }

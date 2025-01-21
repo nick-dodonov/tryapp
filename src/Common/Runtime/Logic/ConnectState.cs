@@ -1,5 +1,5 @@
 using System;
-using System.Text;
+using System.Buffers;
 using Shared.Tp.Hand;
 using Shared.Web;
 
@@ -12,17 +12,11 @@ namespace Common.Logic
 
         IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState!;
 
-        byte[] IHandStateProvider.Serialize(IHandConnectState connectState)
-        {
-            var str = WebSerializer.SerializeObject(connectState);
-            return Encoding.UTF8.GetBytes(str);
-        }
+        void IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState connectState) 
+            => WebSerializer.SerializeToWriter(writer, connectState);
 
         IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
-        {
-            var str = Encoding.UTF8.GetString(span);
-            return WebSerializer.DeserializeObject<ConnectState>(str);
-        }        
+            => WebSerializer.Default.DeserializeObject<ConnectState>(span);
     }
 
     [Serializable]

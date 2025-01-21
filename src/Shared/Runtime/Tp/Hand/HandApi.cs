@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -14,7 +15,7 @@ namespace Shared.Tp.Hand
     public interface IHandStateProvider
     {
         IHandConnectState ProvideConnectState();
-        byte[] Serialize(IHandConnectState connectState);
+        void Serialize(IBufferWriter<byte> writer, IHandConnectState connectState);
         IHandConnectState Deserialize(ReadOnlySpan<byte> span);
     }
     
