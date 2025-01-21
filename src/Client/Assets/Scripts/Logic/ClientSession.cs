@@ -10,9 +10,6 @@ using Shared.Tp;
 using Shared.Tp.Rtc;
 using Shared.Web;
 using UnityEngine;
-using Microsoft.Extensions.Logging;
-using Shared.Tp.Ext.Hand;
-using Shared.Tp.Ext.Misc;
 
 namespace Client.Logic
 {
@@ -56,15 +53,11 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-
-            var peerId = GetPeerId();
-            _api = new HandApi(
-                new DumpLink.Api(
-                    RtcApiFactory.CreateApi(_meta.RtcService),
-                    Slog.Factory.CreateLogger<DumpLink>()
-                ),
-                new ConnectStateProvider(new(peerId)),
-                Slog.Factory);
+            _api = CommonSession.CreateApi(
+                RtcApiFactory.CreateApi(_meta.RtcService),
+                new(GetPeerId()),
+                Slog.Factory
+            );
 
             _link = await _api.Connect(this, cancellationToken);
             _updateSendFrame = 0;

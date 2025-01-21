@@ -17,7 +17,10 @@ namespace Shared.Tp.Ext.Misc
         public class Api : ExtApi<DumpLink>
         {
             private readonly ILogger _logger;
-            public Api(ITpApi innerApi, ILogger logger) : base(innerApi) => _logger = logger;
+
+            public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi) =>
+                _logger = loggerFactory.CreateLogger<DumpLink>();
+
             protected override DumpLink CreateClientLink(ITpReceiver receiver) => new(_logger) { Receiver = receiver };
             protected override DumpLink CreateServerLink(ITpLink innerLink) => new(_logger) { InnerLink = innerLink };
         }

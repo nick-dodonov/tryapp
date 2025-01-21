@@ -6,8 +6,6 @@ using Server.Meta;
 using Shared.Audit;
 using Shared.Log;
 using Shared.Tp;
-using Shared.Tp.Ext.Hand;
-using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
@@ -23,14 +21,10 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .AddSingleton<ITpApi>(sp => new HandApi(
-        new DumpLink.Api(
-            sp.GetRequiredService<SipRtcService>(), 
-            sp.GetRequiredService<ILogger<DumpLink>>()
-            ), 
-        new ConnectStateProvider(null),
-        sp.GetRequiredService<ILoggerFactory>()
-        ))
+    .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
+        sp.GetRequiredService<SipRtcService>(), 
+        null, 
+        sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<LogicSession>()
     .AddHostedService<LogicSession>(sp => sp.GetRequiredService<LogicSession>())
     ;

@@ -34,23 +34,21 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 
     void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
     {
-        var linkId = link.GetRemotePeerId();
         if (_peers.TryGetValue(link, out var peer))
             peer.Received(span);
         else
-            _logger.Warn($"peer not found: {linkId} ([{span.Length}] bytes)");
+            _logger.Warn($"peer not found: {link} ([{span.Length}] bytes)");
     }
 
     void ITpReceiver.Disconnected(ITpLink link)
     {
-        var linkId = link.GetRemotePeerId();
         if (_peers.TryRemove(link, out var peer))
         {
-            _logger.Info($"peer disconnected: {linkId}");
+            _logger.Info($"peer disconnected: {link}");
             peer.Dispose();
         }
         else 
-            _logger.Warn($"peer not found: {linkId}");
+            _logger.Warn($"peer not found: {link}");
     }
     
     public ServerState GetServerState(int frame)

@@ -1,9 +1,6 @@
 using System;
-using System.Buffers;
-using System.Text;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
-using Shared.Tp.Util;
 
 namespace Shared.Tp.Ext.Misc
 {
@@ -16,7 +13,10 @@ namespace Shared.Tp.Ext.Misc
         public class Api : ExtApi<TimeLink>
         {
             private readonly ILogger _logger;
-            public Api(ITpApi innerApi, ILogger logger) : base(innerApi) => _logger = logger;
+
+            public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi) =>
+                _logger = loggerFactory.CreateLogger<TimeLink>();
+
             protected override TimeLink CreateClientLink(ITpReceiver receiver) => new(_logger) { Receiver = receiver };
             protected override TimeLink CreateServerLink(ITpLink innerLink) => new(_logger) { InnerLink = innerLink };
         }
