@@ -1,3 +1,4 @@
+using System.Buffers;
 using System.Text;
 using Common.Logic;
 using Shared.Log;
@@ -38,14 +39,14 @@ public sealed class LogicPeer : IDisposable
     {
         var serverState = _session.GetServerState(frame);
 
-        //var msg = WebSerializer.SerializeObject(serverState);
+        //var msg = WebSerializer.Serialize(serverState);
         //var bytes = Encoding.UTF8.GetBytes(msg);
         //_logger.Info($"[{bytes.Length}] bytes: {msg}");
         //_link.Send(bytes);
 
         _link.Send(static (writer, state) =>
         {
-            WebSerializer.SerializeToWriter(writer, state);
+            WebSerializer.Default.Serialize(writer, state);
         }, serverState);
     }
 
@@ -55,7 +56,7 @@ public sealed class LogicPeer : IDisposable
         {
             var msg = Encoding.UTF8.GetString(span);
             _logger.Info($"[{span.Length}] bytes: {msg}");
-            _lastClientState = WebSerializer.DeserializeObject<ClientState>(msg);
+            _lastClientState = WebSerializer.Default.Deserialize<ClientState>(msg);
         }
         catch (Exception e)
         {

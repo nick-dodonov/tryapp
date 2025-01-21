@@ -13,10 +13,10 @@ namespace Common.Logic
         IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState!;
 
         void IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState connectState) 
-            => WebSerializer.SerializeToWriter(writer, connectState);
+            => WebSerializer.Default.Serialize(writer, connectState);
 
         IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
-            => WebSerializer.Default.DeserializeObject<ConnectState>(span);
+            => WebSerializer.Default.Deserialize<ConnectState>(span);
     }
 
     [Serializable]

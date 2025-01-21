@@ -19,23 +19,23 @@ namespace Shared.Web
             WriteIndented = true
         };
 
-        public string SerializeObject<T>(T obj)
+        public string Serialize<T>(T obj)
             => JsonSerializer.Serialize(obj, _serializerOptions);
 
-        public string SerializeObject<T>(T obj, bool pretty)
+        public string Serialize<T>(T obj, bool pretty)
             => JsonSerializer.Serialize(obj, pretty ? _prettySerializerOptions : _serializerOptions);
 
-        public void SerializeToWriter<T>(IBufferWriter<byte> writer, T obj)
+        public void Serialize<T>(IBufferWriter<byte> writer, T obj)
         {
             var jsonWriter = new Utf8JsonWriter(writer); //TODO: cache utf8 writer
             JsonSerializer.Serialize(jsonWriter, obj, _serializerOptions);
         }
 
-        public T DeserializeObject<T>(string json) =>
+        public T Deserialize<T>(string json) =>
             JsonSerializer.Deserialize<T>(json, _serializerOptions)
             ?? ThrowDeserializeFailure<T>(json);
 
-        public T DeserializeObject<T>(ReadOnlySpan<byte> spans) =>
+        public T Deserialize<T>(ReadOnlySpan<byte> spans) =>
             JsonSerializer.Deserialize<T>(spans, _serializerOptions)
             ?? ThrowDeserializeFailure<T>(Encoding.UTF8.GetString(spans));
 

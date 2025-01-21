@@ -105,20 +105,6 @@ namespace Shared.Tp.Hand
         public sealed override string GetRemotePeerId() =>
             $"{_connectState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
-        // public override void Send(ReadOnlySpan<byte> span)
-        // {
-        //     var sendBytes = ArrayPool<byte>.Shared.Rent(span.Length + 1);
-        //     try
-        //     {
-        //         sendBytes[0] = (byte)Flags.Ack;
-        //         span.CopyTo(sendBytes.AsSpan(1));
-        //         base.Send(sendBytes.AsSpan(0, span.Length + 1));
-        //     }
-        //     finally
-        //     {
-        //         ArrayPool<byte>.Shared.Return(sendBytes);
-        //     }
-        // }
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
             base.Send(static (writer, s) =>

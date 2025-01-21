@@ -11,7 +11,7 @@ namespace Shared.Tp.Rtc.Sip
         {
             //unfortunately SIP doesn't provide methods for conversion to RTCIceCandidateInit
             var candidateInitJson = candidate.toJSON();
-            var result = WebSerializer.DeserializeObject<RtcIcInit>(candidateInitJson);
+            var result = WebSerializer.Default.Deserialize<RtcIcInit>(candidateInitJson);
             return result;
         }
 

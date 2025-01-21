@@ -33,7 +33,7 @@ namespace Common.Meta
             response.EnsureSuccessStatusCode();
             var content = await response.Content.ReadAsStringAsync();
             _logger.Info($"response: {content}");
-            var result = WebSerializer.DeserializeObject<ServerInfo>(content);
+            var result = WebSerializer.Default.Deserialize<ServerInfo>(content);
             return result;
 
             //TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet)

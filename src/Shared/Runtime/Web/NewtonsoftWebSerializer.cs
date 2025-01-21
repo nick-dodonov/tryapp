@@ -20,16 +20,16 @@ namespace Shared.Web
         private static readonly JsonSerializerSettings PrettyJsonSettings = new(JsonSettings)
             { Formatting = Formatting.Indented };
 
-        public string SerializeObject<T>(T obj)
+        public string Serialize<T>(T obj)
             => JsonConvert.SerializeObject(obj, JsonSettings);
 
-        public string SerializeObject<T>(T obj, bool pretty)
+        public string Serialize<T>(T obj, bool pretty)
             => JsonConvert.SerializeObject(obj, pretty ? PrettyJsonSettings : JsonSettings);
 
-        public void SerializeToWriter<T>(IBufferWriter<byte> writer, T obj)
+        public void Serialize<T>(IBufferWriter<byte> writer, T obj)
             => throw new NotImplementedException();
 
-        public T DeserializeObject<T>(string json)
+        public T Deserialize<T>(string json)
         {
             var obj = JsonConvert.DeserializeObject<T>(json, JsonSettings);
             if (obj == null)
@@ -37,10 +37,10 @@ namespace Shared.Web
             return obj;
         }
 
-        public T DeserializeObject<T>(ReadOnlySpan<byte> spans)
+        public T Deserialize<T>(ReadOnlySpan<byte> spans)
         {
             var json = Encoding.UTF8.GetString(spans);
-            return DeserializeObject<T>(json);
+            return Deserialize<T>(json);
         }
     }
 }

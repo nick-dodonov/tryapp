@@ -128,7 +128,7 @@ namespace Client.UI
                     var webClient = ServerWebClient;
                     using var meta = new MetaClient(webClient, Slog.Factory);
                     var result = await meta.GetInfo(destroyCancellationToken);
-                    text($"Response: {WebSerializer.SerializeObject(result, true)}");
+                    text($"Response: {WebSerializer.Default.Serialize(result, true)}");
                 },
                 (text, ex) => { text($"ERROR:\n{ex.Message}"); });
     }
