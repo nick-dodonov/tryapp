@@ -26,14 +26,14 @@ namespace Shared.Tp.Rtc.Unity
         public async Task Connect(CancellationToken cancellationToken)
         {
             var sharedOffer = await ObtainOffer(cancellationToken);
-            _log.Info($"request: {sharedOffer}");
+            Log.Info($"request: {sharedOffer}");
             var offer = sharedOffer.FromShared();
 
             _peerConnection = new();
             _peerConnection.OnIceCandidate = candidate =>
             {
                 var sharedCandidate = candidate.ToShared();
-                _log.Info($"OnIceCandidate: {sharedCandidate}");
+                Log.Info($"OnIceCandidate: {sharedCandidate}");
                 _iceCandidates.Add(sharedCandidate);
             };
             // ReSharper disable once AsyncVoidLambda
@@ -41,20 +41,20 @@ namespace Shared.Tp.Rtc.Unity
             {
                 try
                 {
-                    _log.Info($"OnIceGatheringStateChange: {state}");
+                    Log.Info($"OnIceGatheringStateChange: {state}");
                     if (state == RTCIceGatheringState.Complete)
                         await ReportIceCandidates(_iceCandidates.ToArray(), cancellationToken);
                 }
                 catch (Exception ex)
                 {
-                    _log.Error($"OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
+                    Log.Error($"OnIceGatheringStateChange: ReportIceCandidates: failed: {ex}");
                 }
             };
             _peerConnection.OnIceConnectionChange = state =>
-                _log.Info($"OnIceConnectionChange: {state}");
+                Log.Info($"OnIceConnectionChange: {state}");
             _peerConnection.OnConnectionStateChange = state =>
             {
-                _log.Info($"OnConnectionStateChange: {state}");
+                Log.Info($"OnConnectionStateChange: {state}");
                 if (_dataChannel == null)
                     return;
                 switch (state)
@@ -69,23 +69,23 @@ namespace Shared.Tp.Rtc.Unity
             };
             _peerConnection.OnDataChannel = channel =>
             {
-                _log.Info($"OnDataChannel: {Describe(channel)}");
+                Log.Info($"OnDataChannel: {Describe(channel)}");
                 _dataChannel = channel;
                 _dataChannelTcs.TrySetResult(channel);
                 channel.OnMessage = CallReceived;
-                channel.OnOpen = () => _log.Info($"OnDataChannel: OnOpen: {channel}");
-                channel.OnClose = () => _log.Info($"OnDataChannel: OnClose: {channel}");
-                channel.OnError = error => _log.Info($"OnDataChannel: OnError: {error}");
+                channel.OnOpen = () => Log.Info($"OnDataChannel: OnOpen: {channel}");
+                channel.OnClose = () => Log.Info($"OnDataChannel: OnClose: {channel}");
+                channel.OnError = error => Log.Info($"OnDataChannel: OnError: {error}");
             };
 
             await _peerConnection.SetRemoteDescription(ref offer);
 
-            _log.Info("creating answer");
+            Log.Info("creating answer");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
             var sharedAnswer = answer.ToShared();
-            _log.Info($"created answer: {sharedAnswer}");
+            Log.Info($"created answer: {sharedAnswer}");
             await _peerConnection.SetLocalDescription(ref answer);
 
             // send answer to remote side and obtain remote ice candidates
@@ -94,22 +94,22 @@ namespace Shared.Tp.Rtc.Unity
             // add remote ICE candidates
             foreach (var candidate in candidates)
             {
-                _log.Info($"adding ice candidate: {candidate}");
+                Log.Info($"adding ice candidate: {candidate}");
                 var unityCandidateInit = candidate.FromShared();
                 var unityCandidate = new RTCIceCandidate(unityCandidateInit);
                 var rc = _peerConnection.AddIceCandidate(unityCandidate);
                 if (!rc)
-                    _log.Error("FAILED to add ice candidate");
+                    Log.Error("FAILED to add ice candidate");
             }
 
-            _log.Info("awaiting data channel is opened");
+            Log.Info("awaiting data channel is opened");
             await _dataChannelTcs.Task.WaitAsync(cancellationToken);
-            _log.Info("connection established");
+            Log.Info("connection established");
         }
 
         public override void Dispose()
         {
-            _log.Info("Dispose");
+            Log.Info("Dispose");
             _dataChannelTcs.TrySetCanceled();
             _peerConnection?.Dispose();
             _peerConnection = null;
@@ -124,7 +124,7 @@ namespace Shared.Tp.Rtc.Unity
             if (_dataChannel != null)
                 _dataChannel.Send(span.ToArray()); //TODO: speedup: ask Unity.WebRTC to support spans 
             else
-                _log.Error("no data channel yet (TODO: wait on connect)");
+                Log.Error("no data channel yet (TODO: wait on connect)");
         }
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)

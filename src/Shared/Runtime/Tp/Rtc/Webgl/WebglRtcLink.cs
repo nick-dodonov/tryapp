@@ -27,7 +27,7 @@ namespace Shared.Tp.Rtc.Webgl
             _managedHandle = GCHandle.Alloc(this);
             _managedPtr = GCHandle.ToIntPtr(_managedHandle);
 
-            _log.Info($"managedPtr={_managedPtr}");
+            Log.Info($"managedPtr={_managedPtr}");
         }
 
         public override string ToString() => $"{nameof(WebglRtcLink)}<{_nativeHandle}/{LinkId}>"; //only for diagnostics
@@ -35,7 +35,7 @@ namespace Shared.Tp.Rtc.Webgl
         public override void Dispose()
         {
             var allocated = _managedHandle.IsAllocated;
-            _log.Info($"managedPtr={_managedPtr} allocated={allocated}");
+            Log.Info($"managedPtr={_managedPtr} allocated={allocated}");
             if (!allocated)
                 return;
 
@@ -52,7 +52,7 @@ namespace Shared.Tp.Rtc.Webgl
 
         private void Send(ReadOnlySpan<byte> span)
         {
-            //_log.Info($"{bytes.Length} bytes");
+            //Log.Info($"{bytes.Length} bytes");
             var bytes = span.ToArray(); //TODO: speedup: make try to pass span
             WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
         }
@@ -66,14 +66,14 @@ namespace Shared.Tp.Rtc.Webgl
 
         public async Task Connect(CancellationToken cancellationToken)
         {
-            _log.Info(".");
+            Log.Info(".");
             var offer = await ObtainOffer(cancellationToken);
             _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offer.ToJson());
 
-            _log.Info($"result nativeHandle={_nativeHandle}, awaiting opened channel");
+            Log.Info($"result nativeHandle={_nativeHandle}, awaiting opened channel");
             await _connectTcs.Task;
 
-            _log.Info("connection established");
+            Log.Info("connection established");
         }
 
         private static WebglRtcLink? GetLink(IntPtr managedPtr, [CallerMemberName] string member = "")
@@ -94,21 +94,21 @@ namespace Shared.Tp.Rtc.Webgl
         {
             try
             {
-                _log.Info(answerJson);
+                Log.Info(answerJson);
                 var answerSdp = RtcSdpInit.FromJson(answerJson);
                 ReportAnswer(answerSdp, CancellationToken.None).ContinueWith(t =>
                 {
                     //TODO: handle connection error
                     var candidates = t.Result;
 
-                    _log.Info($"ReportAnswer: [{candidates.Length}] candidates");
+                    Log.Info($"ReportAnswer: [{candidates.Length}] candidates");
                     foreach (var candidate in candidates)
                         WebglRtcNative.RtcAddIceCandidate(_nativeHandle, candidate.ToJson());
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             catch (Exception e)
             {
-                _log.Error($"{e}");
+                Log.Error($"{e}");
             }
         }
 
@@ -120,19 +120,19 @@ namespace Shared.Tp.Rtc.Webgl
         {
             try
             {
-                _log.Info(candidatesJson);
+                Log.Info(candidatesJson);
                 var candidates = WebSerializer.Default.Deserialize<RtcIcInit[]>(candidatesJson);
-                _log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
+                Log.Info($"ReportIceCandidates: [{candidates.Length}] candidates");
                 ReportIceCandidates(candidates, CancellationToken.None).ContinueWith(t =>
                 {
                     //TODO: handle connection error
                     var status = t.Status;
-                    _log.Info($"ReportIceCandidates: status: {status}");
+                    Log.Info($"ReportIceCandidates: status: {status}");
                 }, TaskScheduler.FromCurrentSynchronizationContext());
             }
             catch (Exception e)
             {
-                _log.Error($"{e}");
+                Log.Error($"{e}");
             }
         }
 
@@ -144,12 +144,12 @@ namespace Shared.Tp.Rtc.Webgl
         {
             if (error == null)
             {
-                _log.Info("success");
+                Log.Info("success");
                 _connectTcs.SetResult(null);
             }
             else
             {
-                _log.Error(error);
+                Log.Error(error);
                 _connectTcs.SetException(new Exception(error));
             }
         }
