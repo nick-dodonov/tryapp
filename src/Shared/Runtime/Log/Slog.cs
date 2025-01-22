@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using Cysharp.Text;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
+
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace Shared.Log

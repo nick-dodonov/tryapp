@@ -1,7 +1,7 @@
 #if !UNITY_5_6_OR_NEWER
+#nullable disable
 using System;
 
-#nullable disable
 // ReSharper disable once CheckNamespace
 namespace UnityEngine
 {
