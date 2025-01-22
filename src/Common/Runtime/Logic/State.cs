@@ -28,7 +28,7 @@ namespace Common.Logic
     public struct ServerState
     {
         public int Frame;
-        public long UtcMs;
+        public long SesMs;
 
         public PeerState[] Peers;
     }

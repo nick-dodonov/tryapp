@@ -21,6 +21,7 @@ namespace Shared.Tp.Ext.Misc
         {
             // run-tick is current time measure //TODO: decide to make in ns instead of ms
             private const long TicksPerRt = TimeSpan.TicksPerMillisecond;
+            private const long RtPerMs = 1;
 
             private readonly ILogger _logger;
             private readonly long _start; //rt
@@ -32,7 +33,8 @@ namespace Shared.Tp.Ext.Misc
                 _logger.Info($"start: {_start}");
             }
 
-            public long LocalRt => DateTime.UtcNow.Ticks / TicksPerRt - _start;
+            internal long LocalRt => DateTime.UtcNow.Ticks / TicksPerRt - _start;
+            public int LocalMs => (int)(LocalRt / RtPerMs);
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) => 
                 new(this, _logger) { Receiver = receiver };

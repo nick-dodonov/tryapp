@@ -44,9 +44,19 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpLink : IDisposable
     {
+        //TODO: replace by LinkId { get; } and
+        //  think to replace to abstract type (maybe EndPoint) type instead allowing to keep extended info
         string GetRemotePeerId();
 
-        //void Send(ReadOnlySpan<byte> span);
+        /// <summary>
+        /// Helper for user logic to obtain wrapped link layers (efficiently can be used once on Connected event)
+        /// </summary>
+        T? Find<T>() where T : ITpLink => this is T link ? link : default;
+
+        /// <summary>
+        /// Send via callback allows to write directly to implementation buffer even with using wrappers
+        /// Note: don't forget to get rid of unnecessary closure allocation bypassing static delegate and state
+        /// </summary>
         void Send<T>(TpWriteCb<T> writeCb, in T state);
     }
 
@@ -55,6 +65,11 @@ namespace Shared.Tp
     /// </summary>
     public interface ITpApi
     {
+        /// <summary>
+        /// Helper for user logic to obtain wrapped link layers (efficiently can be used once on constructor)
+        /// </summary>
+        T? Find<T>() where T : ITpApi => this is T api ? api : default;
+        
         /// <summary>
         /// Client side
         /// TODO: replace localPeerId with IPeerIdProvider passed to *Api impl

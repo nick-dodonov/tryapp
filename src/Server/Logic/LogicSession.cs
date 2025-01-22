@@ -3,6 +3,7 @@ using Common.Logic;
 using Shared.Log;
 using Shared.Log.Asp;
 using Shared.Tp;
+using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
@@ -11,6 +12,7 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<LogicSession>();
 
+    private readonly TimeLink.Api _timeApi = tpApi.Find<TimeLink.Api>() ?? throw new("TimeLink.Api not found");
     private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
@@ -53,14 +55,14 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     
     public ServerState GetServerState(int frame)
     {
-        var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var utcMs = _timeApi.LocalMs;
         var peerStates = _peers
             .Select(x => x.Value.GetPeerState())
             .ToArray();
         return new()
         {
             Frame = frame,
-            UtcMs = utcMs,
+            SesMs = utcMs,
             Peers = peerStates
         };
     }
