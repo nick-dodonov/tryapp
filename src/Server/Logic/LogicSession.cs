@@ -55,14 +55,14 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     
     public ServerState GetServerState(int frame)
     {
-        var utcMs = _timeApi.LocalMs;
+        var sessionMs = _timeApi.LocalMs;
         var peerStates = _peers
             .Select(x => x.Value.GetPeerState())
             .ToArray();
         return new()
         {
             Frame = frame,
-            SesMs = utcMs,
+            Ms = sessionMs,
             Peers = peerStates
         };
     }

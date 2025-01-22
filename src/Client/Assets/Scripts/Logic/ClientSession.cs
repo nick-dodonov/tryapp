@@ -3,10 +3,12 @@ using System.Buffers;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Web;
 using UnityEngine;
@@ -25,12 +27,15 @@ namespace Client.Logic
     {
         private static readonly Slog.Area _log = new();
 
+        public InfoControl infoControl;
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
         private IMeta _meta;
         private ITpApi _api;
+
         private ITpLink _link;
+        private TimeLink _timeLink; //cached
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -60,6 +65,8 @@ namespace Client.Logic
             );
 
             _link = await _api.Connect(this, cancellationToken);
+            _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
+
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
@@ -75,6 +82,7 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
+            _timeLink = null;
             _link?.Dispose();
             _link = null;
             _api = null;
@@ -99,15 +107,20 @@ namespace Client.Logic
                 var clientState = GetClientState(_updateSendFrame++);
                 Send(clientState);
             }
+            
+            var sessionMs = _timeLink.RemoteMs;
+            infoControl.SetText($"session: {sessionMs / 1000.0f:F1}sec ({_timeLink.RttMs}ms rtt)");
+            foreach (var kv in _peerTaps)
+                kv.Value.UpdateSessionMs(sessionMs);
         }
 
         private ClientState GetClientState(int frame)
         {
-            var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState
             {
                 Frame = frame,
-                UtcMs = utcMs
+                Ms = sessionMs
             };
             clientTap.Fill(ref clientState);
             return clientState;
