@@ -58,12 +58,35 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
         var sessionMs = _timeApi.LocalMs;
         var peerStates = _peers
             .Select(x => x.Value.GetPeerState())
+            .Append(GetVirtualPeerState(frame, sessionMs))
             .ToArray();
         return new()
         {
             Frame = frame,
             Ms = sessionMs,
             Peers = peerStates
+        };
+    }
+
+    private PeerState GetVirtualPeerState(int frame, int sessionMs)
+    {
+        const float radius = 0.8f;
+        const int circleTimeMs = 60_000;
+
+        var angle = (float)(2 * Math.PI * (sessionMs % circleTimeMs) / circleTimeMs);
+        var x = -radius * MathF.Cos(angle);
+        var y = radius * MathF.Sin(angle);
+        return new()
+        {
+            Id = "virtual",
+            ClientState = new()
+            {
+                Frame = frame,
+                Ms = sessionMs,
+                X = x,
+                Y = y,
+                Color = 0x7F7F7F
+            }
         };
     }
 }
