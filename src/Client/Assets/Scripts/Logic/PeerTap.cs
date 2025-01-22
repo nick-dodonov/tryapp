@@ -17,7 +17,7 @@ namespace Client.Logic
         public void Apply(in ClientState state)
         {
             _applySessionMs = state.Ms;
-            transform.position = new(state.X, state.Y);
+            state.AssignPosition(transform);
 
             // Convert back from uint to Color32 and assign it to image.color
             var color = state.Color;
