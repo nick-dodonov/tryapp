@@ -7,13 +7,13 @@ using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
-public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
+public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     : IHostedService, ITpListener, ITpReceiver
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<LogicSession>();
+    private readonly ILogger _logger = loggerFactory.CreateLogger<ServerSession>();
 
     private readonly TimeLink.Api _timeApi = tpApi.Find<TimeLink.Api>() ?? throw new("TimeLink.Api not found");
-    private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
+    private readonly ConcurrentDictionary<ITpLink, ServerPeer> _peers = new();
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
@@ -27,8 +27,8 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
-        var peer = new LogicPeer(
-            new IdLogger(loggerFactory.CreateLogger<LogicPeer>(), link.GetRemotePeerId()),
+        var peer = new ServerPeer(
+            new IdLogger(loggerFactory.CreateLogger<ServerPeer>(), link.GetRemotePeerId()),
             this, link);
         _peers.TryAdd(link, peer);
         return this;

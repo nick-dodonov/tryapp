@@ -5,17 +5,17 @@ using Shared.Web;
 
 namespace Server.Logic;
 
-public sealed class LogicPeer : IDisposable
+public sealed class ServerPeer : IDisposable
 {
     private readonly ILogger _logger;
-    private readonly LogicSession _session;
+    private readonly ServerSession _session;
     private readonly ITpLink _link;
 
     private readonly System.Timers.Timer _timer;
 
     private ClientState _lastClientState;
 
-    public LogicPeer(ILogger logger, LogicSession session, ITpLink link)
+    public ServerPeer(ILogger logger, ServerSession session, ITpLink link)
     {
         _logger = logger;
         _session = session;

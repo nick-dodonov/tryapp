@@ -25,8 +25,8 @@ builder.Services
         sp.GetRequiredService<SipRtcService>(), 
         null, 
         sp.GetRequiredService<ILoggerFactory>()))
-    .AddSingleton<LogicSession>()
-    .AddHostedService<LogicSession>(sp => sp.GetRequiredService<LogicSession>())
+    .AddSingleton<ServerSession>()
+    .AddHostedService<ServerSession>(sp => sp.GetRequiredService<ServerSession>())
     ;
 builder.Services
     .AddControllers()
