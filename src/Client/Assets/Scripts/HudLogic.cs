@@ -50,6 +50,9 @@ namespace Client
             StopSession("closing");
         }
 
+        private void OnApplicationPause(bool pauseStatus) => 
+            _log.Info($"{pauseStatus}");
+
         Task ISessionController.StartSession(CancellationToken cancellationToken) =>
             infoControl.ExecuteTextThrobber(async text =>
             {
