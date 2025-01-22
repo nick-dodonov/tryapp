@@ -17,33 +17,35 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
+        // run-tick is current time measure //TODO: decide to make in ns instead of ms
+        private const long TicksPerRt = TimeSpan.TicksPerMillisecond;
+        private const long RtPerMs = 1;
+
         public class Api : ExtApi<TimeLink>
         {
-            // run-tick is current time measure //TODO: decide to make in ns instead of ms
-            private const long TicksPerRt = TimeSpan.TicksPerMillisecond;
-            private const long RtPerMs = 1;
-
             private readonly ILogger _logger;
-            private readonly long _start; //rt
+            private readonly long _startTicks; //rt
 
             public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi)
             {
                 _logger = loggerFactory.CreateLogger<TimeLink>();
-                _start = DateTime.UtcNow.Ticks / TicksPerRt;
-                _logger.Info($"start: {_start}");
+                _startTicks = DateTime.UtcNow.Ticks;
+                _logger.Info($"start ticks: {_startTicks}");
             }
 
-            internal long LocalRt => DateTime.UtcNow.Ticks / TicksPerRt - _start;
+            private long LocalRt => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
             public int LocalMs => (int)(LocalRt / RtPerMs);
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) => 
-                new(this, _logger) { Receiver = receiver };
+                new(_startTicks, _logger) { Receiver = receiver };
             protected override TimeLink CreateServerLink(ITpLink innerLink) => 
-                new(this, _logger) { InnerLink = innerLink };
+                new(_startTicks, _logger) { InnerLink = innerLink };
         }
 
         private readonly ILogger _logger = null!;
-        private readonly Api _api = null!;
+
+        private readonly long _startTicks; //rt
+        private long LocalRt => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
 
         private long _receivedRemote; //rt
         private long _receivedLocal; //rt
@@ -51,7 +53,8 @@ namespace Shared.Tp.Ext.Misc
         private int _rtt; //rt
         
         public TimeLink() { }
-        private TimeLink(Api api, ILogger logger) => (_api, _logger) = (api, logger);
+        private TimeLink(long startTicks, ILogger logger) => 
+            (_startTicks, _logger) = (startTicks, logger);
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
@@ -70,7 +73,7 @@ namespace Shared.Tp.Ext.Misc
         
         private void WriteTime(IBufferWriter<byte> writer)
         {
-            var local = _api.LocalRt;
+            var local = LocalRt;
 
             var passedLocal = _receivedLocal != 0 ? local - _receivedLocal: 0;
             writer.Write(local);
@@ -85,7 +88,7 @@ namespace Shared.Tp.Ext.Misc
 
         private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
         {
-            var local = _api.LocalRt;
+            var local = LocalRt;
 
             const int length = sizeof(long)*2;
             var timeSpan = span[^length..];
