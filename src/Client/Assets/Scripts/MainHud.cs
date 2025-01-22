@@ -11,7 +11,7 @@ using Utilities.Async;
 
 namespace Client
 {
-    public class HudLogic : MonoBehaviour, ISessionController, ISessionWorkflowOperator
+    public class MainHud : MonoBehaviour, ISessionController, ISessionWorkflowOperator
     {
         private static readonly Slog.Area _log = new();
 
@@ -26,7 +26,7 @@ namespace Client
         private static async void Initialize()
         {
             _log.Info(">>>> starting client");
-            // var logger = Slog.Factory.CreateLogger<HudLogic>();
+            // var logger = Slog.Factory.CreateLogger<MainHud>();
             // logger.Info("==== starting client (logger) ====");
             StartupInfo.Print();
             
@@ -49,6 +49,9 @@ namespace Client
         {
             StopSession("closing");
         }
+
+        private void OnApplicationPause(bool pauseStatus) => 
+            _log.Info($"{pauseStatus}");
 
         Task ISessionController.StartSession(CancellationToken cancellationToken) =>
             infoControl.ExecuteTextThrobber(async text =>

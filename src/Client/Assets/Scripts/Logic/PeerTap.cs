@@ -2,7 +2,7 @@ using Common.Logic;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Client
+namespace Client.Logic
 {
     public class PeerTap : MonoBehaviour
     {

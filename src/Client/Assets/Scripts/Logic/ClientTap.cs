@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
 
-namespace Client
+namespace Client.Logic
 {
     public class ClientTap : MonoBehaviour
     {
