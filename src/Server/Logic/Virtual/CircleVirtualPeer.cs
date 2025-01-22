@@ -1,12 +1,13 @@
 using Common.Logic;
 
-namespace Server.Logic;
+namespace Server.Logic.Virtual;
 
 public class CircleVirtualPeer(
-    string id, float initRadians, float radius, int circleTimeMs, int direction, uint color) 
+    string id, uint color,
+    float initRadians, float radius, int circleTimeMs, int direction) 
     : IVirtualPeer
 {
-    public PeerState GetPeerState(int frame, int sessionMs)
+    PeerState IVirtualPeer.GetPeerState(int frame, int sessionMs)
     {
         var angle = (float)(2 * Math.PI * (sessionMs % circleTimeMs) / circleTimeMs) * direction;
         angle += initRadians;
@@ -25,4 +26,6 @@ public class CircleVirtualPeer(
             }
         };
     }
+
+    void IVirtualPeer.Update(float deltaTime) { }
 }

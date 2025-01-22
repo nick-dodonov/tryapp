@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Common.Logic;
 using Cysharp.Threading;
+using Server.Logic.Virtual;
 using Shared.Log;
 using Shared.Log.Asp;
 using Shared.Tp;
@@ -18,15 +19,16 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi, ILogicLoo
 
     private readonly IVirtualPeer[] _virtualPeers =
     [
-        new CircleVirtualPeer("VirtualC0", 0.0f, 0.8f, 60_000, 1, 0x7F7F7F),
-        new CircleVirtualPeer("VirtualC1", 0.5f, 0.6f, 20_000, -1, 0x8F7F7F)
+        new CircleVirtualPeer("VirtualC0", 0x8F7F7F, 0.0f, 0.8f, 60_000, 1),
+        //new CircleVirtualPeer("VirtualC1", 0x9F7F7F, 0.5f, 0.6f, 20_000, -1),
+        new LinearVirtualPeer("VirtualL0", 0x7F7F8F, new(0.5f, 0.6f), new(0.1f, -0.1f)),
     ];
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
         _logger.Info("start listening");
         tpApi.Listen(this);
-        
+
         // https://github.com/Cysharp/LogicLooper/blob/master/samples/LoopHostingApp/LoopHostedService.cs
         _ = logicLooper.RegisterActionAsync(Update, cancellationToken);
         return Task.CompletedTask;
@@ -36,7 +38,7 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi, ILogicLoo
     {
         await logicLooper.ShutdownAsync(TimeSpan.FromSeconds(5));
         var remainedActions = logicLooper.ApproximatelyRunningActions;
-        if (remainedActions > 0) 
+        if (remainedActions > 0)
             _logger.Warn($"{remainedActions} actions are remained in loop");
     }
 
@@ -48,7 +50,9 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi, ILogicLoo
             return false;
         }
 
-        //_logger.Info($"TODO: FRAME-LOGIC: {ctx.CurrentFrame}");
+        //_logger.Info($"{ctx.CurrentFrame}");
+        foreach (var virtualPeer in _virtualPeers)
+            virtualPeer.Update((float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds);
         return true;
     }
 
@@ -77,10 +81,10 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi, ILogicLoo
             _logger.Info($"peer disconnected: {link}");
             peer.Dispose();
         }
-        else 
+        else
             _logger.Warn($"peer not found: {link}");
     }
-    
+
     public ServerState GetServerState(int frame)
     {
         var sessionMs = _timeApi.LocalMs;
