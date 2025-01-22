@@ -967,6 +967,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8062624bdcb463887fada8a0a93ec06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  infoControl: {fileID: 1726573594}
   clientTap: {fileID: 1914052456}
   peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
 --- !u!1 &2072558016

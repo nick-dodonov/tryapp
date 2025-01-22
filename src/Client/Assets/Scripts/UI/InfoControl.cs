@@ -18,7 +18,7 @@ namespace Client.UI
             infoText.text = string.Empty;
         }
 
-        private void SetText(string text) => infoText.text = text;
+        public void SetText(string text) => infoText.text = text;
 
         public async Task ExecuteTextThrobber(
             Func<Action<string>, Task> action,

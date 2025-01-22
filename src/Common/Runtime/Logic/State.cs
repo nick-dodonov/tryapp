@@ -12,7 +12,7 @@ namespace Common.Logic
     public struct ClientState
     {
         public int Frame;
-        public long UtcMs;
+        public int Ms;
 
         public float X;
         public float Y;
@@ -28,7 +28,7 @@ namespace Common.Logic
     public struct ServerState
     {
         public int Frame;
-        public long UtcMs;
+        public int Ms;
 
         public PeerState[] Peers;
     }

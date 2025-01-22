@@ -3,6 +3,7 @@ using Common.Logic;
 using Shared.Log;
 using Shared.Log.Asp;
 using Shared.Tp;
+using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
@@ -11,6 +12,7 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<LogicSession>();
 
+    private readonly TimeLink.Api _timeApi = tpApi.Find<TimeLink.Api>() ?? throw new("TimeLink.Api not found");
     private readonly ConcurrentDictionary<ITpLink, LogicPeer> _peers = new();
 
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
@@ -34,35 +36,33 @@ public class LogicSession(ILoggerFactory loggerFactory, ITpApi tpApi)
 
     void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
     {
-        var linkId = link.GetRemotePeerId();
         if (_peers.TryGetValue(link, out var peer))
             peer.Received(span);
         else
-            _logger.Warn($"peer not found: {linkId} ([{span.Length}] bytes)");
+            _logger.Warn($"peer not found: {link} ([{span.Length}] bytes)");
     }
 
     void ITpReceiver.Disconnected(ITpLink link)
     {
-        var linkId = link.GetRemotePeerId();
         if (_peers.TryRemove(link, out var peer))
         {
-            _logger.Info($"peer disconnected: {linkId}");
+            _logger.Info($"peer disconnected: {link}");
             peer.Dispose();
         }
         else 
-            _logger.Warn($"peer not found: {linkId}");
+            _logger.Warn($"peer not found: {link}");
     }
     
     public ServerState GetServerState(int frame)
     {
-        var utcMs = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var sessionMs = _timeApi.LocalMs;
         var peerStates = _peers
             .Select(x => x.Value.GetPeerState())
             .ToArray();
         return new()
         {
             Frame = frame,
-            UtcMs = utcMs,
+            Ms = sessionMs,
             Peers = peerStates
         };
     }

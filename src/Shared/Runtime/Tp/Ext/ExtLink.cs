@@ -36,7 +36,9 @@ namespace Shared.Tp.Ext
 
         public virtual string GetRemotePeerId() => InnerLink.GetRemotePeerId();
 
-        //public virtual void Send(ReadOnlySpan<byte> span) => InnerLink.Send(span);
+        public virtual T? Find<T>() where T : ITpLink => 
+            this is T link ? link : InnerLink.Find<T>();
+
         public virtual void Send<T>(TpWriteCb<T> writeCb, in T state) 
             => InnerLink.Send(writeCb, state);
 

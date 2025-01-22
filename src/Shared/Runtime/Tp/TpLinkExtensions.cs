@@ -1,8 +1,5 @@
 using System;
 using System.Buffers;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
 
 namespace Shared.Tp
 {
@@ -28,34 +25,5 @@ namespace Shared.Tp
                 }, new RawSpan { Ptr = ptr, Length = span.Length });
             }
         }
-
-        /// <summary>
-        /// TODO: CommunityToolkit.HighPerformance IBufferWriter can be used instead
-        /// </summary>
-        public static void Write(this IBufferWriter<byte> writer, byte value)
-        {
-            var span = writer.GetSpan(1);
-            // if (span.Length < 1)
-            //     ThrowArgumentExceptionForEndOfBuffer(span.Length, length);
-            span[0] = value;
-            writer.Advance(1);
-        }
-
-        public static unsafe void Write<T>(this IBufferWriter<byte> writer, T value)
-            where T : unmanaged
-        {
-            var length = sizeof(T);
-            var span = writer.GetSpan(length);
-            // if (span.Length < length)
-            //     ThrowArgumentExceptionForEndOfBuffer(span.Length, length);
-            ref var r0 = ref MemoryMarshal.GetReference(span);
-            Unsafe.WriteUnaligned(ref r0, value);
-            writer.Advance(length);
-        }
-
-        // ReSharper disable once UnusedMember.Local
-        private static void ThrowArgumentExceptionForEndOfBuffer(int spanLength, int length)
-            => throw new InternalBufferOverflowException(
-                $"Buffer writer can't contain the requested input data ({spanLength} < {length})");
     }
 }
