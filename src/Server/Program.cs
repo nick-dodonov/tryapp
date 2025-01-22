@@ -1,5 +1,6 @@
 using Common.Logic;
 using Common.Meta;
+using Cysharp.Threading;
 using Server;
 using Server.Logic;
 using Server.Meta;
@@ -25,6 +26,8 @@ builder.Services
         sp.GetRequiredService<SipRtcService>(), 
         null, 
         sp.GetRequiredService<ILoggerFactory>()))
+    // https://github.com/Cysharp/LogicLooper?tab=readme-ov-file#usage
+    .AddSingleton<ILogicLooper>(_ => new LogicLooper(10)) //TODO: appsettings.json option
     .AddSingleton<ServerSession>()
     .AddHostedService<ServerSession>(sp => sp.GetRequiredService<ServerSession>())
     ;

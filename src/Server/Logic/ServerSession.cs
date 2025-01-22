@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Common.Logic;
+using Cysharp.Threading;
 using Shared.Log;
 using Shared.Log.Asp;
 using Shared.Tp;
@@ -7,7 +8,7 @@ using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
-public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
+public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi, ILogicLooper logicLooper)
     : IHostedService, ITpListener, ITpReceiver
 {
     private readonly ILogger _logger = loggerFactory.CreateLogger<ServerSession>();
@@ -19,10 +20,31 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     {
         _logger.Info("start listening");
         tpApi.Listen(this);
+        
+        // https://github.com/Cysharp/LogicLooper/blob/master/samples/LoopHostingApp/LoopHostedService.cs
+        _ = logicLooper.RegisterActionAsync(Update, cancellationToken);
         return Task.CompletedTask;
     }
 
-    Task IHostedService.StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+    async Task IHostedService.StopAsync(CancellationToken cancellationToken)
+    {
+        await logicLooper.ShutdownAsync(TimeSpan.FromSeconds(5));
+        var remainedActions = logicLooper.ApproximatelyRunningActions;
+        if (remainedActions > 0) 
+            _logger.Warn($"{remainedActions} actions are remained in loop");
+    }
+
+    private bool Update(in LogicLooperActionContext ctx, CancellationToken state)
+    {
+        if (ctx.CancellationToken.IsCancellationRequested)
+        {
+            _logger.Info("shutdown");
+            return false;
+        }
+
+        //_logger.Info($"TODO: FRAME-LOGIC: {ctx.CurrentFrame}");
+        return true;
+    }
 
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
