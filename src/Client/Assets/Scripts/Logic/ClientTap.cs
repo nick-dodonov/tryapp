@@ -63,9 +63,7 @@ namespace Client.Logic
 
         public void Fill(ref ClientState state)
         {
-            var position = transform.position;
-            state.X = position.x;
-            state.Y = position.y;
+            state.UpdatePosition(transform);
             state.Color = _clientColor;
         }
     }

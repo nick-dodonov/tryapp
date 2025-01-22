@@ -1,4 +1,5 @@
 using Common.Logic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -7,6 +8,7 @@ namespace Client.Logic
     public class PeerTap : MonoBehaviour
     {
         public Image image;
+        public TMP_Text idText;
 
         private bool _changed;
         public bool Changed => _changed;
@@ -14,10 +16,11 @@ namespace Client.Logic
 
         private float _applySessionMs;
 
-        public void Apply(in ClientState state)
+        public void Apply(in PeerState peerState)
         {
+            var state = peerState.ClientState;
             _applySessionMs = state.Ms;
-            transform.position = new(state.X, state.Y);
+            state.AssignPosition(transform);
 
             // Convert back from uint to Color32 and assign it to image.color
             var color = state.Color;
@@ -27,6 +30,8 @@ namespace Client.Logic
                 (byte)(color & 0xFF),
                 0xFF);
 
+            idText.text = peerState.Id;
+            
             _changed = true;
         }
 

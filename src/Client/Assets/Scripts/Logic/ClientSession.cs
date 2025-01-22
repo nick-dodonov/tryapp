@@ -158,7 +158,7 @@ namespace Client.Logic
                             _peerTaps.Add(peerId, peerTap);
                         }
 
-                        peerTap.Apply(peerState.ClientState);
+                        peerTap.Apply(peerState);
                     }
 
                     //remove peer taps that don't exist anymore
