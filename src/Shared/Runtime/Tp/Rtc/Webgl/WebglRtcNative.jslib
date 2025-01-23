@@ -10,7 +10,7 @@ const RtcApi = {
     CallConnectCandidates: function (managedPtr, candidates) {
         console.log("RtcApi: CallConnectCandidates:", managedPtr, candidates);
         const candidateJson = JSON.stringify(candidates)
-        const ptr = stringToNewUTF8(candidateJson)
+        const ptr = stringToNewUTF8(candidateJson);
         {{{ makeDynCall('vii', 'RtcApi.connectCandidatesCallback') }}}(managedPtr, ptr)
         _free(ptr)
     },
