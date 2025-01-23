@@ -39,7 +39,7 @@ jobs:
           targetPlatform: WebGL
           buildName: client
       
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
           name: client-${{ env.GITHUB_REF_NAME_SLUG }}
           path: build/WebGL # keep client directory in archive
