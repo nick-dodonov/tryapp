@@ -1,30 +1,35 @@
 using Common.Logic;
 using Common.Meta;
 using Cysharp.Threading;
+using Microsoft.Extensions.Options;
 using Server;
 using Server.Logic;
 using Server.Meta;
 using Shared.Audit;
 using Shared.Log;
 using Shared.Tp;
+using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
 Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
 var builder = WebApplication.CreateBuilder(args);
 
+//TODO: add custom console formatter with category recolor to simplify debug
+//  https://learn.microsoft.com/en-us/dotnet/core/extensions/console-log-formatter
 builder.AddPrettyConsoleLoggerProvider();
 
 // Add services to the container.
-//TODO: add custom console formatter with category recolor to simplify debug
-//  https://learn.microsoft.com/en-us/dotnet/core/extensions/console-log-formatter
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
+    .Configure<DumpLink.Options>(
+        builder.Configuration.GetSection("DumpLink:Options"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
         sp.GetRequiredService<SipRtcService>(), 
-        null, 
+        null,
+        sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()
     .AddHostedService<ServerSession>(sp => sp.GetRequiredService<ServerSession>())
