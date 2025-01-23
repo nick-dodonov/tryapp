@@ -2,7 +2,7 @@ using System;
 using System.Buffers;
 using System.Text;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
+//using Microsoft.Extensions.Options;
 using Shared.Log;
 using Shared.Tp.Util;
 
@@ -26,14 +26,21 @@ namespace Shared.Tp.Ext.Misc
         public class Api : ExtApi<DumpLink>
         {
             private readonly ILogger _logger;
-            private readonly IOptionsMonitor<Options> _optionsMonitor;
+            //private readonly IOptionsMonitor<Options> _optionsMonitor;
 
-            public Api(ITpApi innerApi, IOptionsMonitor<Options> optionsMonitor, ILoggerFactory loggerFactory) 
+            public Api(
+                ITpApi innerApi, 
+                //IOptionsMonitor<Options> optionsMonitor, 
+                ILoggerFactory loggerFactory) 
                 : base(innerApi)
             {
                 _logger = loggerFactory.CreateLogger<DumpLink>();
-                _optionsMonitor = optionsMonitor;
-                _logger.Info($"options.Enabled: {_optionsMonitor.CurrentValue.Enabled}");
+                // _optionsMonitor = optionsMonitor;
+                // _logger.Info($"options.Enabled: {_optionsMonitor.CurrentValue.Enabled}");
+                // _optionsMonitor.OnChange((o, _) =>
+                // {
+                //     _logger.Info($"OnChange: options.Enabled: {o.Enabled}");
+                // });
             }
 
             protected override DumpLink CreateClientLink(ITpReceiver receiver) => new(_logger) { Receiver = receiver };

@@ -29,7 +29,7 @@ builder.Services
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
         sp.GetRequiredService<SipRtcService>(), 
         null,
-        sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
+        //sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()
     .AddHostedService<ServerSession>(sp => sp.GetRequiredService<ServerSession>())
