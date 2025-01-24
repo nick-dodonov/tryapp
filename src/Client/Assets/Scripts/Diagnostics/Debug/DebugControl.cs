@@ -16,8 +16,11 @@ namespace Diagnostics.Debug
     {
         private static readonly Slog.Area _log = new();
 
-        public TMP_Dropdown actionDropdown;
-        public Button actionButton;
+        public Button tryActionButton;
+        public TMP_Dropdown tryActionDropdown;
+
+        public Button runtimeButton;
+        public GameObject runtimePanel;
 
         private readonly List<(string Text, Action Action)> _options = new();
 
@@ -26,12 +29,16 @@ namespace Diagnostics.Debug
             _options.Clear();
             CollectOptions(Assembly.GetExecutingAssembly()); //TODO: package and another assemblies
             
-            actionDropdown.options.Clear();
-            actionDropdown.options.AddRange(_options.Select(x => new TMP_Dropdown.OptionData(x.Text)));
-            actionDropdown.RefreshShownValue();
+            tryActionDropdown.options.Clear();
+            tryActionDropdown.options.AddRange(_options.Select(x => new TMP_Dropdown.OptionData(x.Text)));
+            tryActionDropdown.RefreshShownValue();
             
-            actionButton.onClick.RemoveAllListeners();
-            actionButton.onClick.AddListener(DoAction);
+            tryActionButton.onClick.RemoveAllListeners();
+            tryActionButton.onClick.AddListener(DoAction);
+
+            runtimePanel.SetActive(false);
+            runtimeButton.onClick.RemoveAllListeners();
+            runtimeButton.onClick.AddListener(() => runtimePanel.SetActive(!runtimePanel.activeSelf));
         }
 
         private void CollectOptions(Assembly assembly)
@@ -63,7 +70,7 @@ namespace Diagnostics.Debug
 
         private void DoAction()
         {
-            var optionIdx = actionDropdown.value;
+            var optionIdx = tryActionDropdown.value;
             var option = _options[optionIdx];
             _log.Info(option.Text);
             option.Action();

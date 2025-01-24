@@ -94,6 +94,13 @@
         "com.unity.nuget.mono-cecil": "1.11.4"
       }
     },
+    "com.yasirkula.runtimeinspector": {
+      "version": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "b0980bb9a554d8d429cec645593b5c207c49163a"
+    },
     "common": {
       "version": "file:../../Common",
       "depth": 0,
