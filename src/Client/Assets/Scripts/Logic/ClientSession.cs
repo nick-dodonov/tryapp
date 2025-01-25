@@ -34,13 +34,14 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         public DumpLink.Options dumpLinkOptions;
-        public DumpLink.Stats dumpLinkStats;
+        public DumpLink.StatsInfo dumpLinkStats;
 
         private IMeta _meta;
         private ITpApi _api;
 
         private ITpLink _link;
         private TimeLink _timeLink; //cached
+        private DumpLink _dumpLink; //cached
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -72,6 +73,8 @@ namespace Client.Logic
 
             _link = await _api.Connect(this, cancellationToken);
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
+            _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
+            dumpLinkStats = _dumpLink.Stats;
 
             _updateSendFrame = 0;
 
@@ -88,6 +91,7 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
+            _dumpLink = null;
             _timeLink = null;
             _link?.Dispose();
             _link = null;
@@ -113,7 +117,7 @@ namespace Client.Logic
                 var clientState = GetClientState(_updateSendFrame++);
                 Send(clientState);
             }
-            
+
             var sessionMs = _timeLink.RemoteMs;
             infoControl.SetText($"session: {sessionMs / 1000.0f:F1}sec ({_timeLink.RttMs}ms rtt)");
             foreach (var kv in _peerTaps)

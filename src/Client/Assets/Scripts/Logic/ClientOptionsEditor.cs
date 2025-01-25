@@ -9,7 +9,7 @@ namespace Client.Logic
     /// <summary>
     /// Sample of readonly runtime editor for specific type
     /// </summary>
-    [Preserve, RuntimeInspectorCustomEditor(typeof(DumpLink.Stats), false)]
+    [Preserve, RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo), false)]
     public class ColliderEditor : IRuntimeInspectorCustomEditor
     {
         public void GenerateElements(ObjectField parent)

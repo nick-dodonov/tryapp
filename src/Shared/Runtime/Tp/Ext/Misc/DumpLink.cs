@@ -26,20 +26,29 @@ namespace Shared.Tp.Ext.Misc
         {
             [field: SerializeField]
             [RequiredMember]
-            public bool Enabled { get; set; }
-
-            // public bool enabled;
-            // public bool Enabled { get => enabled; set => enabled = value; }
+            public bool LogEnabled { get; set; }
         }
 
         [Serializable]
-        public struct Stats
+        public class StatsInfo
         {
-            public int InCount;
-            public int InBytes;
-            public int OutCount;
-            public int OutBytes;
+            [Serializable]
+            public struct Dir
+            {
+                public int Count;
+                public int Bytes;
+
+                public void Add(int bytes)
+                {
+                    Bytes += bytes;
+                    Count++;
+                }
+            }
+            public Dir In;
+            public Dir Out;
         }
+        private readonly StatsInfo _stats = new();
+        public StatsInfo Stats => _stats;
 
         public class Api : ExtApi<DumpLink>
         {
@@ -72,27 +81,39 @@ namespace Shared.Tp.Ext.Misc
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            if (!_api.Options.Enabled)
-            {
-                base.Send(writeCb, state);
-                return;
-            }
-
             base.Send(static (writer, s) =>
             {
-                s.writeCb(writer, s.state);
-                if (writer is ArrayBufferWriter<byte> arrayWriter)
-                    Log(s._logger, arrayWriter.WrittenSpan, "out", s.member);
-                else if (writer is PooledBufferWriter pooledWriter)
-                    Log(s._logger, pooledWriter.WrittenSpan, "out", s.member);
-                else
-                    s._logger.Error($"unsupported buffer writer: {writer.GetType()}");
-            }, (_logger: _api.Logger, member: InnerLink.ToString(), writeCb, state));
+                s.@this.Send(writer, s.writeCb, s.state);
+            }, (@this: this, writeCb, state));
+        }
+
+        private void Send<T>(IBufferWriter<byte> writer, TpWriteCb<T> writeCb, in T state)
+        {
+            writeCb(writer, state);
+
+            ReadOnlySpan<byte> span;
+            switch (writer)
+            {
+                case ArrayBufferWriter<byte> arrayWriter:
+                    span = arrayWriter.WrittenSpan;
+                    break;
+                case PooledBufferWriter pooledWriter:
+                    span = pooledWriter.WrittenSpan;
+                    break;
+                default:
+                    _api.Logger.Error($"unsupported buffer writer: {writer.GetType()}");
+                    return;
+            }
+
+            _stats.Out.Add(span.Length);
+            if (_api.Options.LogEnabled)
+                Log(_api.Logger, span, "out", InnerLink.ToString());
         }
 
         public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            if (_api.Options.Enabled)
+            _stats.In.Add(span.Length);
+            if (_api.Options.LogEnabled)
                 Log(_api.Logger, span, "in", link.ToString());
 
             base.Received(link, span);
