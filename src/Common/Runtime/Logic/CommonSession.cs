@@ -1,4 +1,5 @@
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
@@ -10,12 +11,14 @@ namespace Common.Logic
         public static ITpApi CreateApi(
             ITpApi rtcApi,
             ConnectState? connectState,
+            IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
             return new HandApi(
                 new TimeLink.Api(
                     new DumpLink.Api(
                         rtcApi,
+                        dumpLinkOptions,
                         loggerFactory
                     ),
                     loggerFactory

@@ -2,6 +2,7 @@
     "name": "Client.Diagnostics",
     "rootNamespace": "",
     "references": [
+        "RuntimeInspector.Runtime",
         "Shared",
         "Unity.TextMeshPro"
     ],

@@ -9,7 +9,8 @@
     "shared": "file:../../Shared",
     "shared.unity": "file:../../Shared.Unity",
     "com.unity.modules.audio": "1.0.0",
-    "com.unity.modules.physics": "1.0.0"
+    "com.unity.modules.physics": "1.0.0",
+    "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2"
   },
   "testables": [
     "shared"

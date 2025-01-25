@@ -9,29 +9,38 @@ using UnityEngine.UI;
 
 namespace Diagnostics.Debug
 {
-    /// <summary>
-    /// TODO: possibly replace with thirdparty
-    /// </summary>
     public class DebugControl : MonoBehaviour
     {
         private static readonly Slog.Area _log = new();
 
-        public TMP_Dropdown actionDropdown;
-        public Button actionButton;
+        public TMP_Text debugText;
+
+        //TODO: possibly replace with thirdparty console commands (IngameDebugControl)
+        public Button tryActionButton;
+        public TMP_Dropdown tryActionDropdown;
+
+        public Button runtimeButton;
+        public RuntimePanel runtimePanel;
 
         private readonly List<(string Text, Action Action)> _options = new();
 
         private void OnEnable()
         {
+            debugText.text = $"version: {Application.version}";
+
             _options.Clear();
             CollectOptions(Assembly.GetExecutingAssembly()); //TODO: package and another assemblies
+
+            tryActionDropdown.options.Clear();
+            tryActionDropdown.options.AddRange(_options.Select(x => new TMP_Dropdown.OptionData(x.Text)));
+            tryActionDropdown.RefreshShownValue();
+
+            tryActionButton.onClick.RemoveAllListeners();
+            tryActionButton.onClick.AddListener(DoAction);
             
-            actionDropdown.options.Clear();
-            actionDropdown.options.AddRange(_options.Select(x => new TMP_Dropdown.OptionData(x.Text)));
-            actionDropdown.RefreshShownValue();
-            
-            actionButton.onClick.RemoveAllListeners();
-            actionButton.onClick.AddListener(DoAction);
+            runtimeButton.onClick.RemoveAllListeners();
+            runtimeButton.onClick.AddListener(() =>
+                runtimePanel.gameObject.SetActive(!runtimePanel.gameObject.activeSelf));
         }
 
         private void CollectOptions(Assembly assembly)
@@ -41,7 +50,8 @@ namespace Diagnostics.Debug
                 var exportedTypes = assembly.GetExportedTypes();
                 foreach (var type in exportedTypes)
                 {
-                    const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly;
+                    const BindingFlags bindingFlags =
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly;
                     var methods = type.GetMethods(bindingFlags);
                     foreach (var method in methods)
                     {
@@ -49,9 +59,9 @@ namespace Diagnostics.Debug
                         if (attribute == null)
                             continue;
                         _options.Add((
-                            $"{type.Name}.{method.Name}", 
+                            $"{type.Name}.{method.Name}",
                             () => method.Invoke(null, Array.Empty<object>())
-                            ));
+                        ));
                     }
                 }
             }
@@ -63,7 +73,7 @@ namespace Diagnostics.Debug
 
         private void DoAction()
         {
-            var optionIdx = actionDropdown.value;
+            var optionIdx = tryActionDropdown.value;
             var option = _options[optionIdx];
             _log.Info(option.Text);
             option.Action();

@@ -6,7 +6,10 @@ using System.Threading.Tasks;
 using Client.UI;
 using Common.Logic;
 using Common.Meta;
+using Diagnostics.Debug;
+using RuntimeInspectorNamespace;
 using Shared.Log;
+using Shared.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
@@ -31,20 +34,24 @@ namespace Client.Logic
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
+        public ClientContext context;
+
         private IMeta _meta;
         private ITpApi _api;
 
         private ITpLink _link;
         private TimeLink _timeLink; //cached
+        private DumpLink _dumpLink; //cached
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
         private void OnEnable()
         {
             clientTap.SetActive(false);
+            RuntimePanel.SetInspectorContext(context);
         }
 
-        ISessionWorkflowOperator _workflowOperator;
+        private ISessionWorkflowOperator _workflowOperator;
 
         public async Task Begin(
             IWebClient webClient,
@@ -61,11 +68,14 @@ namespace Client.Logic
             _api = CommonSession.CreateApi(
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(GetPeerId()),
+                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 
             _link = await _api.Connect(this, cancellationToken);
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
+            _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
+            context.dumpLinkStats = _dumpLink.Stats;
 
             _updateSendFrame = 0;
 
@@ -82,6 +92,7 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
+            _dumpLink = null;
             _timeLink = null;
             _link?.Dispose();
             _link = null;
@@ -107,7 +118,7 @@ namespace Client.Logic
                 var clientState = GetClientState(_updateSendFrame++);
                 Send(clientState);
             }
-            
+
             var sessionMs = _timeLink.RemoteMs;
             infoControl.SetText($"session: {sessionMs / 1000.0f:F1}sec ({_timeLink.RttMs}ms rtt)");
             foreach (var kv in _peerTaps)

@@ -19,6 +19,9 @@
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1" />
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1" />
 
+        <!-- Tp impls deps -->
+        <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.1" />
+        
         <!-- Tp.Rtc impls deps -->
         <PackageReference Include="SIPSorcery" Version="8.0.7" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1" />
