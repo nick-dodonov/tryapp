@@ -1,8 +1,7 @@
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
 using RuntimeInspectorNamespace;
-using Shared.Log;
 using Shared.Tp.Ext.Misc;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -19,39 +18,45 @@ namespace Client.Logic
         public void GenerateElements(ObjectField parent)
         {
             parent.CreateDrawersForVariablesExcluding(nameof(ClientContext.name));
-            // add NonSerialized just for view
+
+            //TODO: maybe create helper to add all NonSerialized fields/properies for readonly inspection
             parent.CreateDrawerForVariable(typeof(ClientContext).GetField(nameof(ClientContext.dumpLinkStats),
                 BindingFlags.Public | BindingFlags.Instance));
+
+            parent.ExpandExpandableControls();
         }
+
         public void Refresh() { }
         public void Cleanup() { }
     }
 
     /// <summary>
-    /// Sample of readonly runtime editor for specific type
+    /// Readonly runtime editor for specific types
     /// </summary>
-    [Preserve, RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo.Dir))]
-    public class DumpLinkStatsInfoDirEditor : IRuntimeInspectorCustomEditor
+    [Preserve]
+    [RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo))]
+    [RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo.Dir))]
+    public class ReadOnlyExpandedEditor : IRuntimeInspectorCustomEditor
     {
         public void GenerateElements(ObjectField parent)
         {
             parent.CreateDrawersForVariables(null);
-
-            var inputFields = FindInChildrenDeep<InputField>(parent.transform);
-            foreach (var inputField in inputFields)
-                inputField.interactable = false;
+            parent.DisableInteractableControls();
+            parent.ExpandExpandableControls();
         }
 
         public void Refresh() { }
         public void Cleanup() { }
+    }
 
-        private static IEnumerable<T> FindInChildrenDeep<T>(Transform parent)
+    public static class TransformExtensions
+    {
+        public static IEnumerable<T> FindInChildrenDeep<T>(this Transform transform)
         {
             var queue = new Queue<Transform>();
-            queue.Enqueue(parent);
-            while (queue.TryDequeue(out var transform))
+            queue.Enqueue(transform);
+            while (queue.TryDequeue(out transform))
             {
-                Slog.Info($"transform: {transform.name}");
                 foreach (var found in transform.GetComponents<T>())
                     yield return found;
 
@@ -59,5 +64,23 @@ namespace Client.Logic
                     queue.Enqueue(transform.GetChild(i));
             }
         }
+
+        public static void ForEachChildrenDeep<T>(this Transform transform, Action<T> action)
+        {
+            var fields = transform.FindInChildrenDeep<T>();
+            foreach (var field in fields)
+                action(field);
+        }
+    }
+
+    public static class ObjectFieldExtensions
+    {
+        public static void DisableInteractableControls(this ObjectField parent) =>
+            parent.transform.ForEachChildrenDeep<Selectable>(
+                static x => x.interactable = false);
+
+        public static void ExpandExpandableControls(this ObjectField parent) =>
+            parent.transform.ForEachChildrenDeep<ExpandableInspectorField>(
+                static x => x.IsExpanded = true);
     }
 }
