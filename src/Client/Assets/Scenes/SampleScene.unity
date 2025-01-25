@@ -755,7 +755,14 @@ MonoBehaviour:
   clientTap: {fileID: 1914052456}
   peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
   dumpLinkOptions:
-    <Enabled>k__BackingField: 1
+    <LogEnabled>k__BackingField: 0
+  dumpLinkStats:
+    In:
+      Count: 0
+      Bytes: 0
+    Out:
+      Count: 0
+      Bytes: 0
 --- !u!224 &2044501385 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1466373044635588950, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
@@ -1335,7 +1342,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4174049494337692578, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_fontColor32.rgba
-      value: 4278238920
+      value: 4278255560
       objectReference: {fileID: 0}
     - target: {fileID: 5780822707783327733, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_IsActive
@@ -1347,7 +1354,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5883166150115120311, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_Value
-      value: -22.750698
+      value: -39.715485
       objectReference: {fileID: 0}
     - target: {fileID: 5989886781313739213, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.y

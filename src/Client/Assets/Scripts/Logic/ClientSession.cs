@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Client.UI;
 using Common.Logic;
 using Common.Meta;
+using RuntimeInspectorNamespace;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
@@ -14,6 +15,7 @@ using Shared.Tp.Rtc;
 using Shared.Web;
 using Unity.Collections;
 using UnityEngine;
+using Object = UnityEngine.Object;
 
 namespace Client.Logic
 {
@@ -79,6 +81,18 @@ namespace Client.Logic
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
+
+            //TODO: customize RuntimePanel with extensions
+            {
+                var runtimeHierarchy = FindFirstObjectByType<RuntimeHierarchy>();
+                runtimeHierarchy.gameObject.SetActive(false);
+                var runtimeInspector = FindFirstObjectByType<RuntimeInspector>();
+                runtimeInspector.Inspect(this);
+
+                runtimeInspector.ShowInspectReferenceButton = false;
+                runtimeInspector.ShowAddComponentButton = false;
+                runtimeInspector.ShowRemoveComponentButton = false;
+            }
         }
 
         public void Finish(string reason)
