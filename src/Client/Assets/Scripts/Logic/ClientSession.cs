@@ -12,6 +12,7 @@ using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Web;
+using Unity.Collections;
 using UnityEngine;
 
 namespace Client.Logic
@@ -33,6 +34,7 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         public DumpLink.Options dumpLinkOptions;
+        public DumpLink.Stats dumpLinkStats;
 
         private IMeta _meta;
         private ITpApi _api;

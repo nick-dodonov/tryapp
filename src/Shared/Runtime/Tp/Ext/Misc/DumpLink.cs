@@ -32,6 +32,15 @@ namespace Shared.Tp.Ext.Misc
             // public bool Enabled { get => enabled; set => enabled = value; }
         }
 
+        [Serializable]
+        public struct Stats
+        {
+            public int InCount;
+            public int InBytes;
+            public int OutCount;
+            public int OutBytes;
+        }
+
         public class Api : ExtApi<DumpLink>
         {
             private readonly ILogger _logger;
