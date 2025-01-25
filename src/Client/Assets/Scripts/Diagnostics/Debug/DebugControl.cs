@@ -20,7 +20,7 @@ namespace Diagnostics.Debug
         public TMP_Dropdown tryActionDropdown;
 
         public Button runtimeButton;
-        public GameObject runtimePanel;
+        public RuntimePanel runtimePanel;
 
         private readonly List<(string Text, Action Action)> _options = new();
 
@@ -37,10 +37,10 @@ namespace Diagnostics.Debug
 
             tryActionButton.onClick.RemoveAllListeners();
             tryActionButton.onClick.AddListener(DoAction);
-
-            runtimePanel.SetActive(false);
+            
             runtimeButton.onClick.RemoveAllListeners();
-            runtimeButton.onClick.AddListener(() => runtimePanel.SetActive(!runtimePanel.activeSelf));
+            runtimeButton.onClick.AddListener(() =>
+                runtimePanel.gameObject.SetActive(!runtimePanel.gameObject.activeSelf));
         }
 
         private void CollectOptions(Assembly assembly)
