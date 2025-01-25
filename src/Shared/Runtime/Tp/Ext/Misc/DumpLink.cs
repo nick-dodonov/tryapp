@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Shared.Log;
 using Shared.Tp.Util;
 using UnityEngine;
+using UnityEngine.Scripting;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Shared.Tp.Ext.Misc
@@ -24,7 +25,11 @@ namespace Shared.Tp.Ext.Misc
         public class Options
         {
             [field: SerializeField]
+            [RequiredMember]
             public bool Enabled { get; set; }
+
+            // public bool enabled;
+            // public bool Enabled { get => enabled; set => enabled = value; }
         }
 
         public class Api : ExtApi<DumpLink>
