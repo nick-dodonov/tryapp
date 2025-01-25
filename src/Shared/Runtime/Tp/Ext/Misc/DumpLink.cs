@@ -2,9 +2,11 @@ using System;
 using System.Buffers;
 using System.Text;
 using Microsoft.Extensions.Logging;
-//using Microsoft.Extensions.Options;
+using Microsoft.Extensions.Options;
 using Shared.Log;
 using Shared.Tp.Util;
+using UnityEngine;
+using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Shared.Tp.Ext.Misc
 {
@@ -15,43 +17,53 @@ namespace Shared.Tp.Ext.Misc
         private const int StartBytes = 100;
         private const int EndBytes = 20;
 
-        private readonly ILogger _logger = null!;
+        private readonly Api _api = null!;
         private static readonly UTF8Encoding _utf8Encoding = new(false, false);
 
+        [Serializable]
         public class Options
         {
+            [field: SerializeField]
             public bool Enabled { get; set; }
         }
 
         public class Api : ExtApi<DumpLink>
         {
             private readonly ILogger _logger;
-            //private readonly IOptionsMonitor<Options> _optionsMonitor;
+            internal ILogger Logger => _logger;
+
+            private Options _options;
+            internal Options Options => _options;
 
             public Api(
                 ITpApi innerApi, 
-                //IOptionsMonitor<Options> optionsMonitor, 
+                IOptionsMonitor<Options> options, 
                 ILoggerFactory loggerFactory) 
                 : base(innerApi)
             {
                 _logger = loggerFactory.CreateLogger<DumpLink>();
-                // _optionsMonitor = optionsMonitor;
-                // _logger.Info($"options.Enabled: {_optionsMonitor.CurrentValue.Enabled}");
-                // _optionsMonitor.OnChange((o, _) =>
-                // {
-                //     _logger.Info($"OnChange: options.Enabled: {o.Enabled}");
-                // });
+                _options = options.CurrentValue;
+                //TODO: dispose change tracking
+                options.OnChange((o, _) => _options = o);
             }
 
-            protected override DumpLink CreateClientLink(ITpReceiver receiver) => new(_logger) { Receiver = receiver };
-            protected override DumpLink CreateServerLink(ITpLink innerLink) => new(_logger) { InnerLink = innerLink };
+            protected override DumpLink CreateClientLink(ITpReceiver receiver) 
+                => new(this) { Receiver = receiver };
+            protected override DumpLink CreateServerLink(ITpLink innerLink) 
+                => new(this) { InnerLink = innerLink };
         }
 
         public DumpLink() { }
-        private DumpLink(ILogger logger) => _logger = logger;
+        private DumpLink(Api api) => _api = api;
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
+            if (!_api.Options.Enabled)
+            {
+                base.Send(writeCb, state);
+                return;
+            }
+
             base.Send(static (writer, s) =>
             {
                 s.writeCb(writer, s.state);
@@ -61,12 +73,14 @@ namespace Shared.Tp.Ext.Misc
                     Log(s._logger, pooledWriter.WrittenSpan, "out", s.member);
                 else
                     s._logger.Error($"unsupported buffer writer: {writer.GetType()}");
-            }, (_logger, member: InnerLink.ToString(), writeCb, state));
+            }, (_logger: _api.Logger, member: InnerLink.ToString(), writeCb, state));
         }
 
         public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
-            Log(_logger, span, "in", link.ToString());
+            if (_api.Options.Enabled)
+                Log(_api.Logger, span, "in", link.ToString());
+
             base.Received(link, span);
         }
 

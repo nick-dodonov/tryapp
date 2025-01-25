@@ -7,6 +7,7 @@ using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Shared.Log;
+using Shared.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
@@ -31,6 +32,8 @@ namespace Client.Logic
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
+        public DumpLink.Options dumpLinkOptions;
+
         private IMeta _meta;
         private ITpApi _api;
 
@@ -44,7 +47,7 @@ namespace Client.Logic
             clientTap.SetActive(false);
         }
 
-        ISessionWorkflowOperator _workflowOperator;
+        private ISessionWorkflowOperator _workflowOperator;
 
         public async Task Begin(
             IWebClient webClient,
@@ -61,6 +64,7 @@ namespace Client.Logic
             _api = CommonSession.CreateApi(
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(GetPeerId()),
+                new StaticOptionsMonitor<DumpLink.Options>(dumpLinkOptions),
                 Slog.Factory
             );
 
