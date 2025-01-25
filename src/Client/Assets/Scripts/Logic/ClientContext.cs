@@ -1,4 +1,4 @@
-using System;
+using Common.Editor;
 using Shared.Tp.Ext.Misc;
 using UnityEngine;
 
@@ -9,7 +9,8 @@ namespace Client.Logic
     {
          public DumpLink.Options dumpLinkOptions;
          
-         [NonSerialized]
+         //[System.NonSerialized]
+         [ReadOnly]
          public DumpLink.StatsInfo dumpLinkStats;
     }
 }

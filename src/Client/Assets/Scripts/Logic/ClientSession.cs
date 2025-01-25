@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Client.UI;
 using Common.Logic;
 using Common.Meta;
+using Diagnostics.Debug;
 using RuntimeInspectorNamespace;
 using Shared.Log;
 using Shared.Options;
@@ -47,18 +48,7 @@ namespace Client.Logic
         private void OnEnable()
         {
             clientTap.SetActive(false);
-            
-            //TODO: customize RuntimePanel with extensions
-            {
-                var runtimeHierarchy = FindFirstObjectByType<RuntimeHierarchy>(FindObjectsInactive.Include);
-                runtimeHierarchy.gameObject.SetActive(false);
-                var runtimeInspector = FindFirstObjectByType<RuntimeInspector>(FindObjectsInactive.Include);
-                runtimeInspector.Inspect(context);
-
-                runtimeInspector.ShowInspectReferenceButton = false;
-                runtimeInspector.ShowAddComponentButton = false;
-                runtimeInspector.ShowRemoveComponentButton = false;
-            }
+            RuntimePanel.SetInspectorContext(context);
         }
 
         private ISessionWorkflowOperator _workflowOperator;

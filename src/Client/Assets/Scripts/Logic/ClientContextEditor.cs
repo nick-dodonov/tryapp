@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using RuntimeInspectorNamespace;
 using Shared.Tp.Ext.Misc;
 using UnityEngine;
@@ -19,9 +18,9 @@ namespace Client.Logic
         {
             parent.CreateDrawersForVariablesExcluding(nameof(ClientContext.name));
 
-            //TODO: maybe create helper to add all NonSerialized fields/properies for readonly inspection
-            parent.CreateDrawerForVariable(typeof(ClientContext).GetField(nameof(ClientContext.dumpLinkStats),
-                BindingFlags.Public | BindingFlags.Instance));
+            // //TODO: maybe create helper to add all NonSerialized fields/properies for readonly inspection
+            // parent.CreateDrawerForVariable(typeof(ClientContext).GetField(nameof(ClientContext.dumpLinkStats),
+            //     BindingFlags.Public | BindingFlags.Instance));
 
             parent.ExpandExpandableControls();
         }

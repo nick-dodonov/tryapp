@@ -755,15 +755,6 @@ MonoBehaviour:
   clientTap: {fileID: 1914052456}
   peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
   context: {fileID: 11400000, guid: 001f744c9ee894ffa9a3e7b9fed24330, type: 2}
-  dumpLinkOptions:
-    <LogEnabled>k__BackingField: 0
-  dumpLinkStats:
-    In:
-      Count: 0
-      Bytes: 0
-    Out:
-      Count: 0
-      Bytes: 0
 --- !u!224 &2044501385 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 1466373044635588950, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}

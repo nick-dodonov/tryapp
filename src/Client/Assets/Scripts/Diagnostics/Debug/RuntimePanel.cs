@@ -20,5 +20,22 @@ namespace Diagnostics.Debug
         {
             _log.Info(".");
         }
+
+        /// <summary>
+        /// TODO: customize RuntimePanel with extensions for context
+        /// </summary>
+        public static void SetInspectorContext(object context)
+        {
+            var runtimePanel = FindFirstObjectByType<RuntimePanel>(FindObjectsInactive.Include);
+            runtimePanel.Inspect(context);
+        }
+        private void Inspect(object context)
+        {
+            hierarchy.gameObject.SetActive(false);
+            inspector.ShowInspectReferenceButton = false;
+            inspector.ShowAddComponentButton = false;
+            inspector.ShowRemoveComponentButton = false;
+            inspector.Inspect(context);
+        }
     }
 }
