@@ -9,13 +9,13 @@ using UnityEngine.UI;
 
 namespace Diagnostics.Debug
 {
-    /// <summary>
-    /// TODO: possibly replace with thirdparty
-    /// </summary>
     public class DebugControl : MonoBehaviour
     {
         private static readonly Slog.Area _log = new();
 
+        public TMP_Text debugText;
+
+        //TODO: possibly replace with thirdparty console commands (IngameDebugControl)
         public Button tryActionButton;
         public TMP_Dropdown tryActionDropdown;
 
@@ -26,13 +26,15 @@ namespace Diagnostics.Debug
 
         private void OnEnable()
         {
+            debugText.text = $"version: {Application.version}";
+
             _options.Clear();
             CollectOptions(Assembly.GetExecutingAssembly()); //TODO: package and another assemblies
-            
+
             tryActionDropdown.options.Clear();
             tryActionDropdown.options.AddRange(_options.Select(x => new TMP_Dropdown.OptionData(x.Text)));
             tryActionDropdown.RefreshShownValue();
-            
+
             tryActionButton.onClick.RemoveAllListeners();
             tryActionButton.onClick.AddListener(DoAction);
 
@@ -48,7 +50,8 @@ namespace Diagnostics.Debug
                 var exportedTypes = assembly.GetExportedTypes();
                 foreach (var type in exportedTypes)
                 {
-                    const BindingFlags bindingFlags = BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly;
+                    const BindingFlags bindingFlags =
+                        BindingFlags.Static | BindingFlags.Public | BindingFlags.DeclaredOnly;
                     var methods = type.GetMethods(bindingFlags);
                     foreach (var method in methods)
                     {
@@ -56,9 +59,9 @@ namespace Diagnostics.Debug
                         if (attribute == null)
                             continue;
                         _options.Add((
-                            $"{type.Name}.{method.Name}", 
+                            $"{type.Name}.{method.Name}",
                             () => method.Invoke(null, Array.Empty<object>())
-                            ));
+                        ));
                     }
                 }
             }

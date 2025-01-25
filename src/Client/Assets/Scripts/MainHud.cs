@@ -5,7 +5,6 @@ using Client.Logic;
 using Client.UI;
 using Shared.Audit;
 using Shared.Log;
-using TMPro;
 using UnityEngine;
 using Utilities.Async;
 
@@ -14,8 +13,6 @@ namespace Client
     public class MainHud : MonoBehaviour, ISessionController, ISessionWorkflowOperator
     {
         private static readonly Slog.Area _log = new();
-
-        public TMP_Text versionText;
 
         public InfoControl infoControl;
         public ServerControl serverControl;
@@ -41,7 +38,6 @@ namespace Client
         
         private void OnEnable()
         {
-            versionText.text = $"Version: {Application.version}";
             sessionControl.Controller = this;
         }
 

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: ClientOptions
   m_EditorClassIdentifier: 
   dumpLinkOptions:
-    <Enabled>k__BackingField: 0
+    <Enabled>k__BackingField: 1
