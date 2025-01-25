@@ -13,9 +13,7 @@ using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Web;
-using Unity.Collections;
 using UnityEngine;
-using Object = UnityEngine.Object;
 
 namespace Client.Logic
 {
@@ -35,8 +33,7 @@ namespace Client.Logic
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
-        public DumpLink.Options dumpLinkOptions;
-        public DumpLink.StatsInfo dumpLinkStats;
+        public ClientContext context;
 
         private IMeta _meta;
         private ITpApi _api;
@@ -50,6 +47,18 @@ namespace Client.Logic
         private void OnEnable()
         {
             clientTap.SetActive(false);
+            
+            //TODO: customize RuntimePanel with extensions
+            {
+                var runtimeHierarchy = FindFirstObjectByType<RuntimeHierarchy>(FindObjectsInactive.Include);
+                runtimeHierarchy.gameObject.SetActive(false);
+                var runtimeInspector = FindFirstObjectByType<RuntimeInspector>(FindObjectsInactive.Include);
+                runtimeInspector.Inspect(context);
+
+                runtimeInspector.ShowInspectReferenceButton = false;
+                runtimeInspector.ShowAddComponentButton = false;
+                runtimeInspector.ShowRemoveComponentButton = false;
+            }
         }
 
         private ISessionWorkflowOperator _workflowOperator;
@@ -69,30 +78,18 @@ namespace Client.Logic
             _api = CommonSession.CreateApi(
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(GetPeerId()),
-                new StaticOptionsMonitor<DumpLink.Options>(dumpLinkOptions),
+                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 
             _link = await _api.Connect(this, cancellationToken);
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
-            dumpLinkStats = _dumpLink.Stats;
+            context.dumpLinkStats = _dumpLink.Stats;
 
             _updateSendFrame = 0;
 
             clientTap.SetActive(true);
-
-            //TODO: customize RuntimePanel with extensions
-            {
-                var runtimeHierarchy = FindFirstObjectByType<RuntimeHierarchy>();
-                runtimeHierarchy.gameObject.SetActive(false);
-                var runtimeInspector = FindFirstObjectByType<RuntimeInspector>();
-                runtimeInspector.Inspect(this);
-
-                runtimeInspector.ShowInspectReferenceButton = false;
-                runtimeInspector.ShowAddComponentButton = false;
-                runtimeInspector.ShowRemoveComponentButton = false;
-            }
         }
 
         public void Finish(string reason)

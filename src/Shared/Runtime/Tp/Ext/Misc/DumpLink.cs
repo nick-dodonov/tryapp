@@ -15,18 +15,20 @@ namespace Shared.Tp.Ext.Misc
     //  possibly introduce separate LayerLink with custom processors list
     public class DumpLink : ExtLink
     {
-        private const int StartBytes = 100;
-        private const int EndBytes = 20;
-
         private readonly Api _api = null!;
         private static readonly UTF8Encoding _utf8Encoding = new(false, false);
 
         [Serializable]
         public class Options
         {
-            [field: SerializeField]
-            [RequiredMember]
+            [field: SerializeField] [RequiredMember]
             public bool LogEnabled { get; set; }
+            
+            [field: SerializeField] [RequiredMember]
+            public int LogStartBytes  { get; set; } = 100;
+            
+            [field: SerializeField] [RequiredMember]
+            public int LogEndBytes  { get; set; } = 20;
         }
 
         [Serializable]
@@ -107,22 +109,24 @@ namespace Shared.Tp.Ext.Misc
 
             _stats.Out.Add(span.Length);
             if (_api.Options.LogEnabled)
-                Log(_api.Logger, span, "out", InnerLink.ToString());
+                Log(_api.Logger, _api.Options, span, "out", InnerLink.ToString());
         }
 
         public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
             _stats.In.Add(span.Length);
             if (_api.Options.LogEnabled)
-                Log(_api.Logger, span, "in", link.ToString());
+                Log(_api.Logger, _api.Options, span, "in", link.ToString());
 
             base.Received(link, span);
         }
 
         private static readonly char[] _midEllipsis = { ' ', '…', ' ' }; // '⋯' '…' Unicode Ellipsis
-        private static void Log(ILogger logger, ReadOnlySpan<byte> span, string prefix, string member)
+        private static void Log(ILogger logger, Options options, ReadOnlySpan<byte> span, string prefix, string member)
         {
-            const int maxBytes = StartBytes + EndBytes;
+            var startBytes = options.LogStartBytes;
+            var endBytes = options.LogEndBytes;
+            var maxBytes = startBytes + endBytes;
             Span<char> chars = stackalloc char[maxBytes + _midEllipsis.Length];
             int written;
             if (span.Length <= maxBytes)
@@ -131,10 +135,10 @@ namespace Shared.Tp.Ext.Misc
             }
             else
             {
-                written = Convert(span[..StartBytes], chars);
+                written = Convert(span[..startBytes], chars);
                 _midEllipsis.CopyTo(chars[written..]);
                 written += _midEllipsis.Length;
-                written += Convert(span[^EndBytes..], chars[written..]);
+                written += Convert(span[^endBytes..], chars[written..]);
             }
 
             var charsStr = new string(chars[..written]);

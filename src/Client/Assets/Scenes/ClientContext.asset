@@ -9,8 +9,17 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa9bfa57f3d941288c14c3d710651ac8, type: 3}
-  m_Name: ClientOptions
+  m_Script: {fileID: 11500000, guid: ea05eb3290bb4e2d85f7498761444bf8, type: 3}
+  m_Name: ClientContext
   m_EditorClassIdentifier: 
   dumpLinkOptions:
-    <Enabled>k__BackingField: 1
+    <LogEnabled>k__BackingField: 0
+    <LogStartBytes>k__BackingField: 100
+    <LogEndBytes>k__BackingField: 20
+  dumpLinkStats:
+    In:
+      Count: 0
+      Bytes: 0
+    Out:
+      Count: 0
+      Bytes: 0
