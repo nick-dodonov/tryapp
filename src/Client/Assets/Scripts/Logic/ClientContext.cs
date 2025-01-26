@@ -13,6 +13,7 @@ namespace Client.Logic
         public DumpLink.Options dumpLinkOptions;
 
         //[System.NonSerialized]
-        [ReadOnly] public DumpLink.StatsInfo dumpLinkStats;
+        [ReadOnly]
+        public DumpStats dumpLinkStats;
     }
 }

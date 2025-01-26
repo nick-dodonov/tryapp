@@ -33,8 +33,8 @@ namespace Client.Logic
     /// Readonly runtime editor for specific types
     /// </summary>
     [Preserve]
-    [RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo))]
-    [RuntimeInspectorCustomEditor(typeof(DumpLink.StatsInfo.Dir))]
+    [RuntimeInspectorCustomEditor(typeof(DumpStats))]
+    [RuntimeInspectorCustomEditor(typeof(DumpStats.Dir))]
     public class ReadOnlyExpandedEditor : IRuntimeInspectorCustomEditor
     {
         public void GenerateElements(ObjectField parent)

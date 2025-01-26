@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea05eb3290bb4e2d85f7498761444bf8, type: 3}
   m_Name: ClientContext
   m_EditorClassIdentifier: 
+  syncOptions:
+    <BasicSendRate>k__BackingField: 5
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
     <LogStartBytes>k__BackingField: 100
@@ -20,6 +22,8 @@ MonoBehaviour:
     In:
       Count: 0
       Bytes: 0
+      Rate: 0
     Out:
       Count: 0
       Bytes: 0
+      Rate: 0
