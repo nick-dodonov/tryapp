@@ -1,32 +1,34 @@
 using System;
 using Shared.Tp;
 using Shared.Web;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 namespace Common.Logic
 {
     [Serializable]
     public class SyncOptions
     {
-        public int basicSendRate = 1;
+        [field: SerializeField] [RequiredMember]
+        public int BasicSendRate { get; set; } = 1;
     }
 
     public interface ISyncHandler<out TState>
     {
+        SyncOptions Options { get; }
         TState MakeState(int sendIndex);
     }
 
     public class StateSyncer<TState> : IDisposable
     {
-        private readonly SyncOptions _options;
         private readonly ISyncHandler<TState> _handler;
         private readonly ITpLink _link;
 
         private int _updateSendFrame;
         private float _updateElapsedTime;
 
-        public StateSyncer(SyncOptions options, ISyncHandler<TState> handler, ITpLink link)
+        public StateSyncer(ISyncHandler<TState> handler, ITpLink link)
         {
-            _options = options;
             _handler = handler;
             _link = link;
         }
@@ -45,7 +47,8 @@ namespace Common.Logic
 
         private bool CanSend(float deltaTime)
         {
-            var basicSendRate = _options.basicSendRate;
+            var options = _handler.Options;
+            var basicSendRate = options.BasicSendRate;
             if (basicSendRate <= 0)
                 return true;
 

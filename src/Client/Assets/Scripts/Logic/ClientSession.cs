@@ -78,7 +78,7 @@ namespace Client.Logic
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            _clientStateSyncer = new StateSyncer<ClientState>(context.syncOptions, this, _link);
+            _clientStateSyncer = new(this, _link);
 
             clientTap.SetActive(true);
         }
@@ -119,6 +119,8 @@ namespace Client.Logic
             foreach (var kv in _peerTaps)
                 kv.Value.UpdateSessionMs(sessionMs);
         }
+
+        SyncOptions ISyncHandler<ClientState>.Options => context.syncOptions;
 
         ClientState ISyncHandler<ClientState>.MakeState(int sendIndex)
         {
