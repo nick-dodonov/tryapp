@@ -112,7 +112,14 @@ namespace Client.Logic
                 return;
 
             var sessionMs = _timeLink.RemoteMs;
-            infoControl.SetText($"session: {sessionMs / 1000.0f:F1}sec ({_timeLink.RttMs}ms rtt)");
+            {
+                var stats = _dumpLink.Stats;
+                stats.UpdateRates();
+                infoControl.SetText(@$"session: 
+time: {sessionMs / 1000.0f:F1}sec 
+rtt: {_timeLink.RttMs}ms 
+in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
+            }
 
             _clientStateSyncer.LocalUpdate(Time.deltaTime);
 
