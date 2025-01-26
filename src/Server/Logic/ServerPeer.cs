@@ -4,11 +4,13 @@ using Shared.Tp;
 
 namespace Server.Logic;
 
-public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientState>
+public sealed class ServerPeer : IDisposable, ITpReceiver, ISyncHandler<ServerState, ClientState>
 {
     //private readonly ILogger _logger;
     private readonly ServerSession _session;
+
     private readonly ITpLink _link;
+    public ITpLink Link => _link;
 
     private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
@@ -40,8 +42,11 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     public void Update(float deltaTime) => 
         _stateSyncer.LocalUpdate(deltaTime);
 
-    public void Received(ReadOnlySpan<byte> span) => 
+    void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span) => 
         _stateSyncer.RemoteUpdate(span);
+
+    void ITpReceiver.Disconnected(ITpLink link) => 
+        _session.PeerDisconnected(this);
 
     SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
 

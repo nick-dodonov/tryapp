@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Web;
 using SIPSorcery.Net;
 using SIPSorcery.Sys;
 
@@ -58,6 +59,9 @@ namespace Shared.Tp.Rtc.Sip
                 //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
                 //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
                 //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
+                
+                //X_BindAddress = IPAddress.Loopback
+                //X_ICEIncludeAllInterfaceAddresses = true
             };
             var sdpInit = await link.Init(configuration, _portRange);
 
@@ -80,7 +84,10 @@ namespace Shared.Tp.Rtc.Sip
                 .Select(x => x.ToShared())
                 .ToArray();
 
-            _logger.Info($"result for id={link.LinkId}: [{candidates.Length}] candidates");
+            //TODO: verbose flag
+            var candidatesJson = WebSerializer.Default.Serialize(candidates);
+            _logger.Info($"result for id={link.LinkId}: [{candidates.Length}] candidates: {candidatesJson}");
+
             return candidates;
         }
 

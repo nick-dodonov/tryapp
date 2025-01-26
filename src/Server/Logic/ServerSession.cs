@@ -9,7 +9,7 @@ using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
-public sealed class ServerSession : IDisposable, IHostedService, ITpListener, ITpReceiver
+public sealed class ServerSession : IDisposable, IHostedService, ITpListener
 {
     private readonly ILogger _logger;
     private readonly ILoggerFactory _loggerFactory;
@@ -85,19 +85,12 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener, IT
         _peers.TryAdd(link, peer);
         if (Interlocked.Increment(ref _peerCount) == 1)
             StartUpdates();
-        return this;
+        return peer;
     }
 
-    void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
+    public void PeerDisconnected(ServerPeer serverPeer)
     {
-        if (_peers.TryGetValue(link, out var peer))
-            peer.Received(span);
-        else
-            _logger.Warn($"peer not found: {link} ([{span.Length}] bytes)");
-    }
-
-    void ITpReceiver.Disconnected(ITpLink link)
-    {
+        var link = serverPeer.Link;
         if (_peers.TryRemove(link, out var peer))
         {
             _logger.Info($"peer disconnected: {link}");
@@ -167,9 +160,8 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener, IT
             return false;
         }
 
-        //_logger.Info($"{ctx.CurrentFrame}");
-
         var deltaTime = (float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds;
+        //_logger.Info($"{ctx.CurrentFrame} - {deltaTime}");
 
         //TODO: share virtual/server peer interfaces
         foreach (var peer in _peers.Values)
