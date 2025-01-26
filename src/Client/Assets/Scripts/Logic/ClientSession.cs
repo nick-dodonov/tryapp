@@ -7,6 +7,7 @@ using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
+using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
@@ -25,7 +26,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientSession : MonoBehaviour, ITpReceiver, ISyncHandler<ClientState>
+    public class ClientSession : MonoBehaviour, ITpReceiver, ISyncHandler<ClientState, ServerState>
     {
         private static readonly Slog.Area _log = new();
 
@@ -78,7 +79,8 @@ namespace Client.Logic
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            _stateSyncer = new(this, _link);
+            var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
+            _stateSyncer = new(this, _link, logger);
 
             clientTap.SetActive(true);
         }
@@ -127,9 +129,9 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
                 kv.Value.UpdateSessionMs(sessionMs);
         }
 
-        SyncOptions ISyncHandler<ClientState>.Options => context.syncOptions;
+        SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
 
-        ClientState ISyncHandler<ClientState>.MakeLocalState(int sendIndex)
+        ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
         {
             var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState
@@ -141,55 +143,49 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             return clientState;
         }
 
-        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
+        void ISyncHandler<ClientState, ServerState>.ReceivedRemoteState(ServerState serverState)
         {
+            var count = 0;
+            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
+            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
             try
             {
-                var serverState = _stateSyncer.RemoteUpdate(span);
-
-                var count = 0;
-                var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
-                var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
-                try
+                foreach (var kv in _peerTaps)
                 {
-                    foreach (var kv in _peerTaps)
-                    {
-                        peerKvs[count++] = kv;
-                        kv.Value.SetChanged(false);
-                    }
-
-                    foreach (var peerState in serverState.Peers)
-                    {
-                        var peerId = peerState.Id;
-                        if (!_peerTaps.TryGetValue(peerId, out var peerTap))
-                        {
-                            var peerGameObject = Instantiate(peerPrefab, transform);
-                            peerTap = peerGameObject.GetComponent<PeerTap>();
-                            _peerTaps.Add(peerId, peerTap);
-                        }
-
-                        peerTap.Apply(peerState);
-                    }
-
-                    //remove peer taps that don't exist anymore
-                    foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
-                    {
-                        if (peerTap.Changed)
-                            continue;
-                        _peerTaps.Remove(id);
-                        Destroy(peerTap.gameObject);
-                    }
+                    peerKvs[count++] = kv;
+                    kv.Value.SetChanged(false);
                 }
-                finally
+
+                foreach (var peerState in serverState.Peers)
                 {
-                    peerKvsPool.Return(peerKvs);
+                    var peerId = peerState.Id;
+                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                    {
+                        var peerGameObject = Instantiate(peerPrefab, transform);
+                        peerTap = peerGameObject.GetComponent<PeerTap>();
+                        _peerTaps.Add(peerId, peerTap);
+                    }
+
+                    peerTap.Apply(peerState);
+                }
+
+                //remove peer taps that don't exist anymore
+                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
+                {
+                    if (peerTap.Changed)
+                        continue;
+                    _peerTaps.Remove(id);
+                    Destroy(peerTap.gameObject);
                 }
             }
-            catch (Exception e)
+            finally
             {
-                _log.Error($"{e}");
+                peerKvsPool.Return(peerKvs);
             }
         }
+
+        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span) => 
+            _stateSyncer.RemoteUpdate(span);
 
         void ITpReceiver.Disconnected(ITpLink link)
         {

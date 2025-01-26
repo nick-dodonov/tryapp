@@ -4,7 +4,6 @@ using Cysharp.Threading;
 using Microsoft.Extensions.Options;
 using Server.Logic.Virtual;
 using Shared.Log;
-using Shared.Log.Asp;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 
@@ -82,8 +81,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener, IT
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
-        var peerLogger = new IdLogger(_loggerFactory.CreateLogger<ServerPeer>(), link.GetRemotePeerId());
-        var peer = new ServerPeer(this, link, peerLogger);
+        var peer = new ServerPeer(this, link, _loggerFactory);
         _peers.TryAdd(link, peer);
         if (Interlocked.Increment(ref _peerCount) == 1)
             StartUpdates();
