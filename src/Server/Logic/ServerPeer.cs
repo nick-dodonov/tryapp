@@ -11,7 +11,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
     private readonly ServerSession _session;
     private readonly ITpLink _link;
 
-    private readonly StateSyncer<ServerState> _serverStateSyncer;
+    private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
     private ClientState _lastClientState;
 
@@ -21,12 +21,12 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
         _session = session;
         _link = link;
 
-        _serverStateSyncer = new(this, _link);
+        _stateSyncer = new(this, _link);
     }
 
     public void Dispose()
     {
-        _serverStateSyncer.Dispose();
+        _stateSyncer.Dispose();
         _link.Dispose();
     }
 
@@ -51,11 +51,11 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
 
     public void Update(float deltaTime)
     {
-        _serverStateSyncer.LocalUpdate(deltaTime);
+        _stateSyncer.LocalUpdate(deltaTime);
     }
 
     SyncOptions ISyncHandler<ServerState>.Options => _session.SyncOptions;
 
-    ServerState ISyncHandler<ServerState>.MakeState(int sendIndex) => 
+    ServerState ISyncHandler<ServerState>.MakeLocalState(int sendIndex) => 
         _session.GetServerState(sendIndex);
 }

@@ -42,7 +42,7 @@ namespace Client.Logic
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
         
-        private StateSyncer<ClientState> _clientStateSyncer;
+        private StateSyncer<ClientState, ServerState> _stateSyncer;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -78,7 +78,7 @@ namespace Client.Logic
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            _clientStateSyncer = new(this, _link);
+            _stateSyncer = new(this, _link);
 
             clientTap.SetActive(true);
         }
@@ -93,8 +93,8 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
-            _clientStateSyncer?.Dispose();
-            _clientStateSyncer = null;
+            _stateSyncer?.Dispose();
+            _stateSyncer = null;
             
             _dumpLink = null;
             _timeLink = null;
@@ -121,7 +121,7 @@ rtt: {_timeLink.RttMs}ms
 in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             }
 
-            _clientStateSyncer.LocalUpdate(Time.deltaTime);
+            _stateSyncer.LocalUpdate(Time.deltaTime);
 
             foreach (var kv in _peerTaps)
                 kv.Value.UpdateSessionMs(sessionMs);
@@ -129,7 +129,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
 
         SyncOptions ISyncHandler<ClientState>.Options => context.syncOptions;
 
-        ClientState ISyncHandler<ClientState>.MakeState(int sendIndex)
+        ClientState ISyncHandler<ClientState>.MakeLocalState(int sendIndex)
         {
             var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState

@@ -13,21 +13,21 @@ namespace Common.Logic
         public int BasicSendRate { get; set; } = 1;
     }
 
-    public interface ISyncHandler<out TState>
+    public interface ISyncHandler<out TLocal>
     {
         SyncOptions Options { get; }
-        TState MakeState(int sendIndex);
+        TLocal MakeLocalState(int sendIndex);
     }
 
-    public class StateSyncer<TState> : IDisposable
+    public class StateSyncer<TLocal, TRemote> : IDisposable
     {
-        private readonly ISyncHandler<TState> _handler;
+        private readonly ISyncHandler<TLocal> _handler;
         private readonly ITpLink _link;
 
         private int _updateSendFrame;
         private float _updateElapsedTime;
 
-        public StateSyncer(ISyncHandler<TState> handler, ITpLink link)
+        public StateSyncer(ISyncHandler<TLocal> handler, ITpLink link)
         {
             _handler = handler;
             _link = link;
@@ -40,9 +40,9 @@ namespace Common.Logic
             if (!CanSend(deltaTime))
                 return;
 
-            var state = _handler.MakeState(_updateSendFrame++);
+            var localState = _handler.MakeLocalState(_updateSendFrame++);
 
-            _link.Send(WebSerializer.Default.Serialize, in state);
+            _link.Send(WebSerializer.Default.Serialize, in localState);
         }
 
         private bool CanSend(float deltaTime)
