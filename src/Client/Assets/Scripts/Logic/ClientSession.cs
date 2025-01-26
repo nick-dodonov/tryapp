@@ -7,7 +7,6 @@ using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
-using RuntimeInspectorNamespace;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
@@ -26,7 +25,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientSession : MonoBehaviour, ITpReceiver
+    public class ClientSession : MonoBehaviour, ITpReceiver, ISyncHandler<ClientState>
     {
         private static readonly Slog.Area _log = new();
 
@@ -42,6 +41,8 @@ namespace Client.Logic
         private ITpLink _link;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
+        
+        private StateSyncer<ClientState> _clientStateSyncer;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -77,7 +78,7 @@ namespace Client.Logic
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            _updateSendFrame = 0;
+            _clientStateSyncer = new StateSyncer<ClientState>(context.syncOptions, this, _link);
 
             clientTap.SetActive(true);
         }
@@ -92,54 +93,43 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
+            _clientStateSyncer?.Dispose();
+            _clientStateSyncer = null;
+            
             _dumpLink = null;
             _timeLink = null;
             _link?.Dispose();
             _link = null;
-            _api = null;
 
+            _api = null;
             _meta?.Dispose();
             _meta = null;
         }
-
-        private const float UpdateSendSeconds = 1.0f;
-        private float _updateElapsedTime;
-        private int _updateSendFrame;
 
         private void Update()
         {
             if (_link == null)
                 return;
 
-            _updateElapsedTime += Time.deltaTime;
-            if (_updateElapsedTime > UpdateSendSeconds)
-            {
-                _updateElapsedTime = 0;
-                var clientState = GetClientState(_updateSendFrame++);
-                Send(clientState);
-            }
-
             var sessionMs = _timeLink.RemoteMs;
             infoControl.SetText($"session: {sessionMs / 1000.0f:F1}sec ({_timeLink.RttMs}ms rtt)");
+
+            _clientStateSyncer.LocalUpdate(Time.deltaTime);
+
             foreach (var kv in _peerTaps)
                 kv.Value.UpdateSessionMs(sessionMs);
         }
 
-        private ClientState GetClientState(int frame)
+        ClientState ISyncHandler<ClientState>.MakeState(int sendIndex)
         {
             var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState
             {
-                Frame = frame,
+                Frame = sendIndex,
                 Ms = sessionMs
             };
             clientTap.Fill(ref clientState);
             return clientState;
-        }
-
-        private void Send(in ClientState clientState)
-        {
-            _link.Send(WebSerializer.Default.Serialize, in clientState);
         }
 
         void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
@@ -192,7 +182,7 @@ namespace Client.Logic
             }
         }
 
-        public void Disconnected(ITpLink link)
+        void ITpReceiver.Disconnected(ITpLink link)
         {
             _log.Info("notifying handler");
             _workflowOperator.Disconnected();
