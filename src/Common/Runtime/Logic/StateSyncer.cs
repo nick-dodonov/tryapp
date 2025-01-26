@@ -27,6 +27,10 @@ namespace Common.Logic
         private int _updateSendFrame;
         private float _updateElapsedTime;
 
+        private TRemote? _remoteState;
+        public TRemote RemoteState =>
+            _remoteState ?? throw new InvalidOperationException("remote state is not received yet");
+
         public StateSyncer(ISyncHandler<TLocal> handler, ITpLink link)
         {
             _handler = handler;
@@ -62,5 +66,8 @@ namespace Common.Logic
 
             return false;
         }
+
+        public TRemote RemoteUpdate(ReadOnlySpan<byte> span) => 
+            _remoteState = WebSerializer.Default.Deserialize<TRemote>(span);
     }
 }

@@ -1,7 +1,6 @@
 using Common.Logic;
 using Shared.Log;
 using Shared.Tp;
-using Shared.Web;
 
 namespace Server.Logic;
 
@@ -12,8 +11,6 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
     private readonly ITpLink _link;
 
     private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
-
-    private ClientState _lastClientState;
 
     public ServerPeer(ServerSession session, ITpLink link, ILogger logger)
     {
@@ -34,7 +31,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
     {
         try
         {
-            _lastClientState = WebSerializer.Default.Deserialize<ClientState>(span);
+            _stateSyncer.RemoteUpdate(span);
         }
         catch (Exception e)
         {
@@ -46,7 +43,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
         new()
         {
             Id = _link.GetRemotePeerId(),
-            ClientState = _lastClientState
+            ClientState = _stateSyncer.RemoteState
         };
 
     public void Update(float deltaTime)

@@ -145,7 +145,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
         {
             try
             {
-                var serverState = WebSerializer.Default.Deserialize<ServerState>(span);
+                var serverState = _stateSyncer.RemoteUpdate(span);
 
                 var count = 0;
                 var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
