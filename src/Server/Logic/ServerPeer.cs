@@ -5,14 +5,14 @@ using Shared.Web;
 
 namespace Server.Logic;
 
-public sealed class ServerPeer : IDisposable
+public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState>
 {
     private readonly ILogger _logger;
     private readonly ServerSession _session;
     private readonly ITpLink _link;
 
-    private readonly System.Timers.Timer _timer;
-
+    private readonly StateSyncer<ServerState> _serverStateSyncer;
+    
     private ClientState _lastClientState;
 
     public ServerPeer(ILogger logger, ServerSession session, ITpLink link)
@@ -21,22 +21,16 @@ public sealed class ServerPeer : IDisposable
         _session = session;
         _link = link;
 
-        var frame = 0;
-        _timer = new(1000);
-        _timer.Elapsed += (_, _) => { Send(frame++); };
-        _timer.Start();
+        _serverStateSyncer = new(
+            new() { basicSendRate = 1 }, //TODO: options customize
+            this,
+            _link);
     }
 
     public void Dispose()
     {
-        _timer.Dispose();
+        _serverStateSyncer.Dispose();
         _link.Dispose();
-    }
-
-    private void Send(int frame)
-    {
-        var serverState = _session.GetServerState(frame);
-        _link.Send(WebSerializer.Default.Serialize, serverState);
     }
 
     public void Received(ReadOnlySpan<byte> span)
@@ -57,4 +51,12 @@ public sealed class ServerPeer : IDisposable
             Id = _link.GetRemotePeerId(),
             ClientState = _lastClientState
         };
+
+    public void Update(float deltaTime)
+    {
+        _serverStateSyncer.LocalUpdate(deltaTime);
+    }
+
+    ServerState ISyncHandler<ServerState>.MakeState(int sendIndex) => 
+        _session.GetServerState(sendIndex);
 }

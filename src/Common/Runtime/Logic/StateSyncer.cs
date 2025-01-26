@@ -35,15 +35,29 @@ namespace Common.Logic
 
         public void LocalUpdate(float deltaTime)
         {
-            var sendInterval = 1.0f / _options.basicSendRate;
+            if (!CanSend(deltaTime))
+                return;
+
+            var state = _handler.MakeState(_updateSendFrame++);
+
+            _link.Send(WebSerializer.Default.Serialize, in state);
+        }
+
+        private bool CanSend(float deltaTime)
+        {
+            var basicSendRate = _options.basicSendRate;
+            if (basicSendRate <= 0)
+                return true;
+
+            var sendInterval = 1.0f / basicSendRate;
             _updateElapsedTime += deltaTime;
             if (_updateElapsedTime > sendInterval)
             {
                 _updateElapsedTime = 0;
-                var state = _handler.MakeState(_updateSendFrame++);
-
-                _link.Send(WebSerializer.Default.Serialize, in state);
+                return true;
             }
+
+            return false;
         }
     }
 }

@@ -1,7 +1,6 @@
 using System.Collections.Concurrent;
 using Common.Logic;
 using Cysharp.Threading;
-using Microsoft.Extensions.Options;
 using Server.Logic.Virtual;
 using Shared.Log;
 using Shared.Log.Asp;
@@ -146,8 +145,15 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
         }
 
         //_logger.Info($"{ctx.CurrentFrame}");
+
+        var deltaTime = (float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds;
+
+        //TODO: share virtual/server peer interfaces
+        foreach (var peer in _peers.Values)
+            peer.Update(deltaTime);
         foreach (var virtualPeer in _virtualPeers)
-            virtualPeer.Update((float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds);
+            virtualPeer.Update(deltaTime);
+
         return true;
     }
     
