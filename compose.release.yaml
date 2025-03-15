@@ -38,6 +38,8 @@ services:
       - |
         set -ex
         echo ">>>> certbot request" 
+        echo "test multiline\n" \
+          "second line"
         certbot \ 
           certonly \
           --webroot \
@@ -51,4 +53,5 @@ services:
         chown -R 101 \ 
           /etc/letsencrypt/archive \
           /etc/letsencrypt/live
-        echo "<<<< certbot finished" 
+        echo "<<<< certbot finished"
+        #read -n 1 -s -r -p "Press any key to exit (debugging)..."
