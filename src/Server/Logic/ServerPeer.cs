@@ -1,60 +1,57 @@
 using Common.Logic;
-using Shared.Log;
+using Shared.Log.Asp;
 using Shared.Tp;
-using Shared.Web;
 
 namespace Server.Logic;
 
-public sealed class ServerPeer : IDisposable
+public sealed class ServerPeer : IDisposable, ITpReceiver, ISyncHandler<ServerState, ClientState>
 {
-    private readonly ILogger _logger;
+    //private readonly ILogger _logger;
     private readonly ServerSession _session;
+
     private readonly ITpLink _link;
+    public ITpLink Link => _link;
 
-    private readonly System.Timers.Timer _timer;
+    private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
-    private ClientState _lastClientState;
-
-    public ServerPeer(ILogger logger, ServerSession session, ITpLink link)
+    public ServerPeer(ServerSession session, ITpLink link, ILoggerFactory loggerFactory)
     {
-        _logger = logger;
+        //_logger = new IdLogger(loggerFactory.CreateLogger<ServerPeer>(), link.GetRemotePeerId());
         _session = session;
         _link = link;
 
-        var frame = 0;
-        _timer = new(1000);
-        _timer.Elapsed += (_, _) => { Send(frame++); };
-        _timer.Start();
+        var syncerLogger = new IdLogger(
+            loggerFactory.CreateLogger<StateSyncer<ServerState, ClientState>>(),
+            link.GetRemotePeerId());
+        _stateSyncer = new(this, _link, syncerLogger);
     }
 
     public void Dispose()
     {
-        _timer.Dispose();
+        _stateSyncer.Dispose();
         _link.Dispose();
-    }
-
-    private void Send(int frame)
-    {
-        var serverState = _session.GetServerState(frame);
-        _link.Send(WebSerializer.Default.Serialize, serverState);
-    }
-
-    public void Received(ReadOnlySpan<byte> span)
-    {
-        try
-        {
-            _lastClientState = WebSerializer.Default.Deserialize<ClientState>(span);
-        }
-        catch (Exception e)
-        {
-            _logger.Error($"{e}");
-        }
     }
 
     public PeerState GetPeerState() =>
         new()
         {
             Id = _link.GetRemotePeerId(),
-            ClientState = _lastClientState
+            ClientState = _stateSyncer.RemoteState
         };
+
+    public void Update(float deltaTime) => 
+        _stateSyncer.LocalUpdate(deltaTime);
+
+    void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span) => 
+        _stateSyncer.RemoteUpdate(span);
+
+    void ITpReceiver.Disconnected(ITpLink link) => 
+        _session.PeerDisconnected(this);
+
+    SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
+
+    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex) => 
+        _session.GetServerState(sendIndex);
+
+    void ISyncHandler<ServerState, ClientState>.ReceivedRemoteState(ClientState remoteState) { }
 }

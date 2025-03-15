@@ -4,18 +4,22 @@ using Cysharp.Threading;
 using Microsoft.Extensions.Options;
 using Server.Logic.Virtual;
 using Shared.Log;
-using Shared.Log.Asp;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 
 namespace Server.Logic;
 
-public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
-    : IHostedService, ITpListener, ITpReceiver
+public sealed class ServerSession : IDisposable, IHostedService, ITpListener
 {
-    private readonly ILogger _logger = loggerFactory.CreateLogger<ServerSession>();
+    private readonly ILogger _logger;
+    private readonly ILoggerFactory _loggerFactory;
 
-    private readonly TimeLink.Api _timeApi = tpApi.Find<TimeLink.Api>() ?? throw new("TimeLink.Api not found");
+    private readonly ITpApi _tpApi;
+    private readonly TimeLink.Api _timeApi;
+
+    private SyncOptions _syncOptions;
+    private readonly IDisposable? _syncOptionsDisposable;
+    public SyncOptions SyncOptions => _syncOptions;
 
     /// <summary>
     /// Session updates are switched on/off depending on connected at least one peer.
@@ -36,10 +40,30 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
         new LinearVirtualPeer("VirtualL0", 0x7F7F8F, new(0.5f, 0.6f), new(0.1f, -0.1f)),
     ];
 
+    public ServerSession(
+        IOptionsMonitor<SyncOptions> syncOptionsMonitor, 
+        ITpApi tpApi, 
+        ILoggerFactory loggerFactory)
+    {
+        _loggerFactory = loggerFactory;
+        _logger = loggerFactory.CreateLogger<ServerSession>();
+
+        _tpApi = tpApi;
+        _timeApi = tpApi.Find<TimeLink.Api>() ?? throw new("TimeLink.Api not found");
+        
+        _syncOptions = syncOptionsMonitor.CurrentValue;
+        _syncOptionsDisposable = syncOptionsMonitor.OnChange((o, _) => _syncOptions = o);
+    }
+
+    void IDisposable.Dispose()
+    {
+        _syncOptionsDisposable?.Dispose();
+    }
+    
     Task IHostedService.StartAsync(CancellationToken cancellationToken)
     {
         _logger.Info("start listening");
-        tpApi.Listen(this);
+        _tpApi.Listen(this);
         return Task.CompletedTask;
     }
 
@@ -57,25 +81,16 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
         _logger.Info($"{link}");
-        var peer = new ServerPeer(
-            new IdLogger(loggerFactory.CreateLogger<ServerPeer>(), link.GetRemotePeerId()),
-            this, link);
+        var peer = new ServerPeer(this, link, _loggerFactory);
         _peers.TryAdd(link, peer);
         if (Interlocked.Increment(ref _peerCount) == 1)
             StartUpdates();
-        return this;
+        return peer;
     }
 
-    void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span)
+    public void PeerDisconnected(ServerPeer serverPeer)
     {
-        if (_peers.TryGetValue(link, out var peer))
-            peer.Received(span);
-        else
-            _logger.Warn($"peer not found: {link} ([{span.Length}] bytes)");
-    }
-
-    void ITpReceiver.Disconnected(ITpLink link)
-    {
+        var link = serverPeer.Link;
         if (_peers.TryRemove(link, out var peer))
         {
             _logger.Info($"peer disconnected: {link}");
@@ -145,9 +160,15 @@ public class ServerSession(ILoggerFactory loggerFactory, ITpApi tpApi)
             return false;
         }
 
-        //_logger.Info($"{ctx.CurrentFrame}");
+        var deltaTime = (float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds;
+        //_logger.Info($"{ctx.CurrentFrame} - {deltaTime}");
+
+        //TODO: share virtual/server peer interfaces
+        foreach (var peer in _peers.Values)
+            peer.Update(deltaTime);
         foreach (var virtualPeer in _virtualPeers)
-            virtualPeer.Update((float)ctx.ElapsedTimeFromPreviousFrame.TotalSeconds);
+            virtualPeer.Update(deltaTime);
+
         return true;
     }
     

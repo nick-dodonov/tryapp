@@ -31,26 +31,8 @@ namespace Shared.Tp.Ext.Misc
             public int LogEndBytes  { get; set; } = 20;
         }
 
-        [Serializable]
-        public class StatsInfo
-        {
-            [Serializable]
-            public struct Dir
-            {
-                public int Count;
-                public int Bytes;
-
-                public void Add(int bytes)
-                {
-                    Bytes += bytes;
-                    Count++;
-                }
-            }
-            public Dir In;
-            public Dir Out;
-        }
-        private readonly StatsInfo _stats = new();
-        public StatsInfo Stats => _stats;
+        private readonly DumpStats _stats = new();
+        public DumpStats Stats => _stats;
 
         public class Api : ExtApi<DumpLink>
         {

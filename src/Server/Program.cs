@@ -23,8 +23,8 @@ builder.Services
     .AddSingleton<IMeta, MetaServer>()
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .Configure<DumpLink.Options>(
-        builder.Configuration.GetSection("DumpLink:Options"))
+    .Configure<DumpLink.Options>(builder.Configuration.GetSection(nameof(DumpLink)))
+    .Configure<SyncOptions>(builder.Configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
         sp.GetRequiredService<SipRtcService>(), 
         null,
