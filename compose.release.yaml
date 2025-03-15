@@ -40,7 +40,7 @@ services:
         echo ">>>> certbot request" 
         echo "test multiline\n" \
           "second line"
-        certbot \ 
+        certbot \
           certonly \
           --webroot \
           --webroot-path=/var/www/certbot \
