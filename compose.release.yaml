@@ -48,7 +48,7 @@ services:
           --no-eff-email \
           --domain ${SERVER_NAME} \
           --keep-until-expiring
-        chown -R 101 \ 
+        chown -R 101 \
           /etc/letsencrypt/archive \
           /etc/letsencrypt/live
         echo "<<<< certbot finished"

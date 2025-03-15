@@ -10,7 +10,8 @@ server {
     absolute_redirect off;
 
     #access_log  /var/log/nginx/host.access.log  main;
-    
+
+    # NOTE: port 80 must be opened to renew cert (check it first)
     location /.well-known/acme-challenge/ {
         root /var/www/certbot;
     }
