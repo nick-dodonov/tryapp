@@ -38,8 +38,6 @@ services:
       - |
         set -ex
         echo ">>>> certbot request" 
-        echo "test multiline\n" \
-          "second line"
         certbot \
           certonly \
           --webroot \
