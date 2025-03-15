@@ -32,20 +32,23 @@ services:
       #   --test-cert - Obtain a test certificate from a staging server
       #   --dry-run - Perform a test run against the Let's Encrypt staging server, obtaining test (invalid) certificates but not saving them to disk
       # chown - workaround for rootless nginx container (101 is UID of nginx user)
-      #TODO: rm chown after switch to secrets 
-      /bin/sh -c '
-      certbot 
-      certonly
-      --webroot
-      --webroot-path=/var/www/certbot
-      --non-interactive
-      --agree-tos
-      --email ${DOMAIN_EMAIL}
-      --no-eff-email
-      --domain ${SERVER_NAME}
-      --keep-until-expiring
-      &&
-      chown -R 101 
-      /etc/letsencrypt/archive
-      /etc/letsencrypt/live
-      '
+      #TODO: rm chown after switch to secrets
+      - sh
+      - -c
+      - |
+        set -ex
+        echo ">>>> certbot request" 
+        certbot \ 
+          certonly \
+          --webroot \
+          --webroot-path=/var/www/certbot \
+          --non-interactive \
+          --agree-tos \
+          --email ${DOMAIN_EMAIL} \
+          --no-eff-email \
+          --domain ${SERVER_NAME} \
+          --keep-until-expiring
+        chown -R 101 \ 
+          /etc/letsencrypt/archive \
+          /etc/letsencrypt/live
+        echo "<<<< certbot finished" 
