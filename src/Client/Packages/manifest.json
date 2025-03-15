@@ -5,12 +5,12 @@
     "com.unity.inputsystem": "1.11.2",
     "com.unity.ugui": "2.0.0",
     "com.unity.webrtc": "3.0.0-pre.8",
+    "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2",
     "common": "file:../../Common",
     "shared": "file:../../Shared",
     "shared.unity": "file:../../Shared.Unity",
     "com.unity.modules.audio": "1.0.0",
-    "com.unity.modules.physics": "1.0.0",
-    "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2"
+    "com.unity.modules.physics": "1.0.0"
   },
   "testables": [
     "shared"
@@ -18,7 +18,7 @@
   "scopedRegistries": [
     {
       "name": "Unity NuGet",
-      "url": "https://unitynuget-registry.azurewebsites.net",
+      "url": "https://unitynuget-registry.openupm.com",
       "scopes": [
         "org.nuget"
       ]
