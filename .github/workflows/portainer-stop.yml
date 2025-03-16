@@ -1,12 +1,16 @@
 name: Portainer Stop
 on:
-  workflow_dispatch:
-    inputs:
-      environment:
-        description: 'Environment to stop'
-        required: true
-        type: string
-        default: infra-portainer
+  # workflow_dispatch:
+  #   inputs:
+  #     environment:
+  #       description: 'Environment to stop'
+  #       required: true
+  #       type: string
+  #       default: infra-portainer
+  workflow_run:
+    workflows: ["Portainer Deploy"]
+    types:
+      - completed
 
 jobs:
   stop:
@@ -16,10 +20,13 @@ jobs:
 
       - name: Stop Deployment
         run: |
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-              "state": "inactive",
-              "environment": "${{ github.event.inputs.environment }}"
-              "description": "Deployment stopped manually"
-            }' \
-            https://api.github.com/repos/${{ github.repository }}/deployments
+          echo "TODO: Stop Deployment"
+          
+          # curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          #   -d '{
+          #     "state": "inactive",
+          #     "environment": "infra-portainer"
+          #     "description": "Deployment stopped manually"
+          #   }' \
+          #   https://api.github.com/repos/${{ github.repository }}/deployments
+          # #${{ github.event.inputs.environment }}
