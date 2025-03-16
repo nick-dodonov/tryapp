@@ -18,9 +18,9 @@ runs:
     - name: ${{ inputs.step_name }}
       uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ fromJSON(ssh_data)[0] }}
-        ssh_host: ${{ fromJSON(ssh_data)[1] }}
-        ssh_private_key: ${{ fromJSON(ssh_data)[2] }}
+        ssh_user: ${{ fromJSON(ssh_data).user }}
+        ssh_host: ${{ fromJSON(ssh_data).host }}
+        ssh_private_key: ${{ fromJSON(ssh_data).key }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}
