@@ -30,7 +30,7 @@ runs:
     - name: Setup SSH Client
       shell: bash
       run: |
-        #### Setup SSH Client
+        #### remote-ssh: Setup SSH Client
         # setup known_hosts: allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
         ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ inputs.ssh_host }} 2> /dev/null >> ~/.ssh/known_hosts
 
@@ -56,7 +56,7 @@ runs:
     - name: ${{ inputs.step_name }}
       shell: bash
       run: |
-        #### ${{ inputs.step_name }}
+        #### remote-ssh: ${{ inputs.step_name }}
         ${{ inputs.step_run }}
 
     #TODO: use Post Run for cleanup (instead of always function)
@@ -64,7 +64,7 @@ runs:
       if: always()
       shell: bash
       run: |
-        #### Cleanup SSH Client: $SSH_TARGET
+        #### remote-ssh: Cleanup SSH Client
         # force close ssh master connection
         ssh -O exit $SSH_TARGET || true
 

@@ -70,12 +70,12 @@ jobs:
       # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
         run: |
-          echo "==== update deployment status: ${{ env.DEPLOYMENT_ID }}, $DEPLOYMENT_ID",
+          echo "==== update deployment status: $DEPLOYMENT_ID",
           ACTION_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "success",
-              "log_url": "$ACTION_URL"
+              "log_url": "$ACTION_URL",
               "description": "Deployed successfully"
             }' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
+            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses

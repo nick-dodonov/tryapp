@@ -29,9 +29,7 @@ runs:
         ssh_private_key: ${{ inputs.ssh_private_key }}
         step_name: ${{ inputs.step_name }}
         step_run: |
-          #### ${{ inputs.step_name }}
-          # cleanup sensitive variable before run
-          sed -i '/^SSH_PKEY=/d' $GITHUB_ENV
+          #### remote-deploy: ${{ inputs.step_name }}
 
           # export variable for implicit docker usage in run
           export DOCKER_HOST="ssh://${SSH_TARGET}"
