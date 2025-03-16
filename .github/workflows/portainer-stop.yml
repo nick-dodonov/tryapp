@@ -1,4 +1,4 @@
-name: Stop Deployment
+name: Portainer Stop
 on:
   workflow_dispatch:
     inputs:
