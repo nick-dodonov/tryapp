@@ -1,7 +1,7 @@
 name: Portainer Deploy
 
 on:
-  workflow_dispatch: # This allows the workflow to be triggered manually
+  workflow_dispatch: # allows the workflow to be triggered manually
 
 env:
   DOCKER_STACK_NAME: portainer
@@ -10,19 +10,26 @@ jobs:
   deploy:
     name: Update Deployment
     runs-on: ubuntu-latest
-    
+
+    # required to create deployment
+    #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
+    permissions:
+      deployments: write
+
     steps:
       - uses: actions/checkout@v3
 
+      # https://docs.github.com/en/rest/deployments/deployments
       - name: Register Deployment
         run: |
-          DEPLOYMENT_ID=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+          DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "ref": "'${{ github.sha }}'",
               "environment": "infra-portainer"
             }' \
-            https://api.github.com/repos/${{ github.repository }}/deployments | jq -r .id)
-          #TODO: "transient_environment": true
+            https://api.github.com/repos/${{ github.repository }}/deployments)
+          echo "created deployment:\n$DEPLOYMENT_REGISTER"
+          DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
@@ -43,7 +50,7 @@ jobs:
 
       - name: Update Deployment Status
         run: |
-          # TODO: "environment_url": "'"$PREVIEW_URL"'",
+          echo "==== update deployment status: ${{ env.DEPLOYMENT_ID }}",
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "success",
@@ -51,25 +58,19 @@ jobs:
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
 
-      - name: Register Deployment
-        run: |
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"ref": "'${{ github.ref }}'", "environment": "infra-portainer"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments
-
-  stop:
-    name: Stop Deployment
-    runs-on: ubuntu-latest
-    needs: deploy
-
-    steps:
-      - uses: ./.github/composites/ssh-remote-host
-        with:
-          ssh_user: ${{ secrets.REMOTE_USER }}
-          ssh_host: ${{ secrets.REMOTE_HOST }}
-          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Docker Stack Deploy
-          step_run: |
-            echo "==== docker stack rm: ${DOCKER_STACK_NAME} (${{ github.event.action }})"
-            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
-            docker stack rm ${DOCKER_STACK_NAME}
+  # stop:
+  #   name: Stop Deployment
+  #   runs-on: ubuntu-latest
+  #   needs: deploy
+  #
+  #   steps:
+  #     - uses: ./.github/composites/ssh-remote-host
+  #       with:
+  #         ssh_user: ${{ secrets.REMOTE_USER }}
+  #         ssh_host: ${{ secrets.REMOTE_HOST }}
+  #         ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+  #         step_name: Docker Stack Deploy
+  #         step_run: |
+  #           echo "==== docker stack rm: ${DOCKER_STACK_NAME} (${{ github.event.action }})"
+  #           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+  #           docker stack rm ${DOCKER_STACK_NAME}
