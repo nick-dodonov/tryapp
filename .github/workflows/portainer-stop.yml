@@ -30,12 +30,14 @@ jobs:
       - name: Load DEPLOYMENT_ID in Env
         run: |
           gh variable get DEPLOYMENT_ID --env infra-portainer 
-          DEPLOYMENT_ID=${{ env.DEPLOYMENT_ID }}
+          DEPLOYMENT_ID=`gh variable get DEPLOYMENT_ID --env infra-portainer`
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop Deployment
         run: |
+          echo "==== deactivate deployment:$DEPLOYMENT_ID=$DEPLOYMENT_ID"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "inactive",
