@@ -1,17 +1,11 @@
 name: Portainer Stop
 on:
   workflow_dispatch:
-    # inputs:
-    #   environment: # ${{ github.event.inputs.environment }}
-    #     description: 'Environment to stop'
-    #     required: true
-    #     type: string
-    #     default: infra-portainer
 
 jobs:
   stop:
     permissions:
-      deployments: write  # to update deployment
+      deployments: write
 
     runs-on: ubuntu-latest
     steps:

@@ -54,15 +54,11 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ./.github/composites/remote-ssh
+      - uses: ./.github/composites/remote-deploy
         with:
-          ssh_user: ${{ secrets.REMOTE_USER }}
-          ssh_host: ${{ secrets.REMOTE_HOST }}
-          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Docker Stack Deploy
           step_run: |
             echo "==== docker stack deploy: ${DOCKER_STACK_NAME}"
-            export DOCKER_HOST="ssh://${SSH_TARGET}"
             docker stack deploy \
               --with-registry-auth \
               --resolve-image always \
@@ -81,20 +77,3 @@ jobs:
               "description": "Deployed successfully"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
-
-  # stop:
-  #   name: Stop Deployment
-  #   runs-on: ubuntu-latest
-  #   needs: deploy
-  #
-  #   steps:
-  #     - uses: ./.github/composites/remote-ssh
-  #       with:
-  #         ssh_user: ${{ secrets.REMOTE_USER }}
-  #         ssh_host: ${{ secrets.REMOTE_HOST }}
-  #         ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-  #         step_name: Docker Stack Deploy
-  #         step_run: |
-  #           echo "==== docker stack rm: ${DOCKER_STACK_NAME} (${{ github.event.action }})"
-  #           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
-  #           docker stack rm ${DOCKER_STACK_NAME}

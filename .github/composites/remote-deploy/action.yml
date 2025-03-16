@@ -1,0 +1,24 @@
+name: Remote Deploy Commands
+description: Helper to run remote ssh/docker commands
+inputs:
+  step_run:
+    required: true
+    description: commands script
+  step_name:
+    required: false
+    description: step name
+    default: Run Deploy Commands
+
+runs:
+  using: "composite"
+  steps:
+    - uses: ./.github/composites/remote-ssh
+      with:
+        ssh_user: ${{ secrets.REMOTE_USER }}
+        ssh_host: ${{ secrets.REMOTE_HOST }}
+        ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+        step_name: ${{ inputs.step_name }}
+        step_run: |
+          #### ${{ inputs.step_name }}
+          export DOCKER_HOST="ssh://${SSH_TARGET}"
+          ${{ inputs.step_run }}
