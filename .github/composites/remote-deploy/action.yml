@@ -12,13 +12,35 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - uses: ./.github/composites/remote-ssh
+    - name: Setup Deploy Variables
+      shell: bash
+      run: |
+        #### Export useful variables
+        # workaround secrets usage in composite action
+        echo "SSH_USER=${{ secrets.REMOTE_USER }}" >> $GITHUB_ENV
+        echo "SSH_HOST=${{ secrets.REMOTE_HOST }}" >> $GITHUB_ENV
+        echo "SSH_PRIVATE_KEY=${{ secrets.REMOTE_PRIVATE_KEY }}" >> $GITHUB_ENV
+
+    - name: Setup SSH and Docker
+      uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ secrets.REMOTE_USER }}
-        ssh_host: ${{ secrets.REMOTE_HOST }}
-        ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+        ssh_user: ${{ env.SSH_USER }}
+        ssh_host: ${{ env.SSH_HOST }}
+        ssh_private_key: ${{ env.SSH_PRIVATE_KEY }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}
           export DOCKER_HOST="ssh://${SSH_TARGET}"
+
+          # cleanup sensitive variable before run
+          sed -i '/^SSH_PRIVATE_KEY=/d' $GITHUB_ENV
+
           ${{ inputs.step_run }}
+
+    - name: Cleanup Deploy Variables
+      if: always()
+      shell: bash
+      run: |
+        #### Cleanup exported variables
+        sed -i '/^SSH_USER=/d' $GITHUB_ENV
+        sed -i '/^SSH_HOST=/d' $GITHUB_ENV

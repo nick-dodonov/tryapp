@@ -25,34 +25,32 @@ runs:
       uses: webfactory/ssh-agent@v0.9.0 # https://github.com/webfactory/ssh-agent
       with:
         ssh-private-key: ${{ inputs.ssh_private_key }}
-        log-public-key: false # To simplify debugging and since it contains public key information only, this is turned on by defaultTo simplify debugging and since it contains public key information only, this is turned on by default
+        log-public-key: false # To simplify debugging and since it contains public key information only, this is turned on by default
 
     - name: Setup SSH Client
       shell: bash
       run: |
         #### Setup SSH Client
-        # allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
-        echo "==== setup known_hosts"
+        # setup known_hosts: allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
         ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ inputs.ssh_host }} 2> /dev/null >> ~/.ssh/known_hosts
 
-        # speedup connections and workaround firewall limits issue
-        echo "==== setup ssh_config" 
+        # setup ssh_config: speedup connections and workaround firewall limits issue 
         echo "Host ${{ inputs.ssh_host }}" >> ~/.ssh/config
         echo "  ControlMaster auto" >> ~/.ssh/config
         echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
         echo "  ControlPersist 5s" >> ~/.ssh/config
 
-        #### Export useful variables
+        # export useful variables (for run and clean steps)
         SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
         echo "SSH_TARGET=$SSH_TARGET" >> $GITHUB_ENV
   
-#        echo "==== check result ssh_config"
+#        # check result ssh_config
 #        cat ~/.ssh/config || true
-#        echo "==== check key is added"
+#        # check key is added
 #        ssh-add -L
-#        echo "==== check host available"
+#        # check host available
 #        nc -vz ${{ inputs.ssh_host }} 22
-#        echo "==== check ssh available (w/o host check)"
+#        # check ssh available (w/o host check)
 #        ssh -o StrictHostKeyChecking=no $SSH_TARGET whoami
 
     - name: ${{ inputs.step_name }}
@@ -67,7 +65,11 @@ runs:
       shell: bash
       run: |
         #### Cleanup SSH Client
-        echo "==== force close ssh master connection"
+        # force close ssh master connection
         ssh -O exit $SSH_TARGET || true
-        echo "==== rm generated configs"
+
+        # cleanup generated configs
         rm -f ~/.ssh/known_hosts ~/.ssh/config
+
+        # cleanup exported variables
+        sed -i '/^SSH_TARGET=/d' $GITHUB_ENV
