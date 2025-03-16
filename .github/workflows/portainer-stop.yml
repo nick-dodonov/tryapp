@@ -6,6 +6,7 @@ on:
         description: 'Environment to stop'
         required: true
         type: string
+        default: infra-portainer
 
 jobs:
   stop:
@@ -13,11 +14,12 @@ jobs:
     steps:
       # TODO: docker stack deploy (after sharing some vars: ssh_user ssh_host ssh_private_key DOCKER_HOST)
 
-      - name: Stop Seployment
+      - name: Stop Deployment
         run: |
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "inactive",
+              "environment": "${{ github.event.inputs.environment }}"
               "description": "Deployment stopped manually"
             }' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/${{ github.event.inputs.environment }}/statuses
+            https://api.github.com/repos/${{ github.repository }}/deployments
