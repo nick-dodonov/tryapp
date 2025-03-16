@@ -1,9 +1,15 @@
 name: Remote Deploy Commands
 description: Helper to run remote ssh/docker commands
 inputs:
-  ssh_data:
+  ssh_user:
     required: true
-    description: "SSH credentials in format user@host|private_key"
+    description: ssh user
+  ssh_host:
+    required: true
+    description: ssh host
+  ssh_private_key:
+    required: true
+    description: ssh private key
   step_run:
     required: true
     description: commands script
@@ -18,9 +24,9 @@ runs:
     - name: ${{ inputs.step_name }}
       uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ fromJSON(inputs.ssh_data).user }}
-        ssh_host: ${{ fromJSON(inputs.ssh_data).host }}
-        ssh_private_key: ${{ fromJSON(inputs.ssh_data).key }}
+        ssh_user: ${{ inputs.ssh_user }}
+        ssh_host: ${{ inputs.ssh_host }}
+        ssh_private_key: ${{ inputs.ssh_private_key }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}

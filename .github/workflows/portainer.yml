@@ -56,7 +56,9 @@ jobs:
 
       - uses: ./.github/composites/remote-deploy
         with:
-          ssh_data: '{"user":"${{secrets.SSH_USER}}","host":"${{secrets.SSH_HOST}}","key":"${{secrets.SSH_PRIVATE_KEY}}"}'
+          ssh_user: ${{ secrets.SSH_USER }}
+          ssh_host: ${{ secrets.SSH_HOST }}
+          ssh_private_key: ${{ secrets.SSH_PRIVATE_KEY }}
           step_run: |
             echo "==== docker stack deploy: ${DOCKER_STACK_NAME}"
             docker stack deploy \
