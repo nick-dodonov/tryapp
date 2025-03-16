@@ -15,24 +15,12 @@ inputs:
 runs:
   using: "composite"
   steps:
-    - name: Parse SSH Credentials
-      shell: bash
-      run: |
-        #### Export useful variables
-        SSH_USER=$(echo "${{ inputs.ssh_data }}" | cut -d '@' -f1)
-        SSH_HOST=$(echo "${{ inputs.ssh_data }}" | cut -d '@' -f2 | cut -d '|' -f1)
-        SSH_PKEY=$(echo "${{ inputs.ssh_data }}" | cut -d '|' -f2)
-
-        echo "SSH_USER=$SSH_USER" >> $GITHUB_ENV
-        echo "SSH_HOST=$SSH_HOST" >> $GITHUB_ENV
-        echo "SSH_PKEY=$SSH_PKEY" >> $GITHUB_ENV
-
     - name: ${{ inputs.step_name }}
       uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ env.SSH_USER }}
-        ssh_host: ${{ env.SSH_HOST }}
-        ssh_private_key: ${{ env.SSH_PKEY }}
+        ssh_user: ${{ fromJSON(ssh_data).REMOTE_USER }}
+        ssh_host: ${{ fromJSON(ssh_data).REMOTE_HOST }}
+        ssh_private_key: ${{ fromJSON(ssh_data).REMOTE_PRIVATE_KEY }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}
