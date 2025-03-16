@@ -10,6 +10,7 @@ jobs:
   deploy:
     name: Update Deployment
     runs-on: ubuntu-latest
+    if: ${{ github.run_attempt == 1 }}
 
     # required to create deployment
     #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
@@ -35,6 +36,7 @@ jobs:
 
           # to be used in steps
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          echo "github.run_attempt=${{ github.run_attempt }}"
 
       # DOESN'T work because cannot get artifact between workflows
       # - name: Register Deployment
@@ -70,7 +72,7 @@ jobs:
       # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
         env:
-          ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}
         run: |
           echo "==== update deployment status: $DEPLOYMENT_ID",
           set -x # debug
@@ -81,3 +83,14 @@ jobs:
               "description": "Deployed successfully"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+
+  stop:
+    name: Stop Deployment
+    runs-on: ubuntu-latest
+    if: ${{ github.run_attempt > 1 }}
+
+    steps:
+      - name: Stop Deployment
+        run: |
+          echo "TODO: Stopping Deployment"
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
