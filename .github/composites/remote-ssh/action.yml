@@ -64,7 +64,7 @@ runs:
       if: always()
       shell: bash
       run: |
-        #### Cleanup SSH Client
+        #### Cleanup SSH Client: $SSH_TARGET
         # force close ssh master connection
         ssh -O exit $SSH_TARGET || true
 
