@@ -1,32 +1,39 @@
 name: Portainer Stop
 on:
-  # workflow_dispatch:
-  #   inputs:
-  #     environment:
-  #       description: 'Environment to stop'
-  #       required: true
-  #       type: string
-  #       default: infra-portainer
-  workflow_run:
-    workflows: ["Portainer Deploy"]
-    types:
-      - completed
+  workflow_dispatch:
+    # inputs:
+    #   environment: # ${{ github.event.inputs.environment }}
+    #     description: 'Environment to stop'
+    #     required: true
+    #     type: string
+    #     default: infra-portainer
 
 jobs:
   stop:
+    permissions:
+      deployments: write
+
     runs-on: ubuntu-latest
     steps:
       # TODO: docker stack deploy (after sharing some vars: ssh_user ssh_host ssh_private_key DOCKER_HOST)
 
+      - name: Download Deployment ID
+        uses: actions/download-artifact@v4
+        with:
+          name: portainer_deployment_id
+
+      - name: Read Deployment ID
+        run: |
+
+
       - name: Stop Deployment
         run: |
-          echo "TODO: Stop Deployment"
+          DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
+          echo "TODO: Stopping Deployment DEPLOYMENT_ID=$DEPLOYMENT_ID"
           
-          # curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          #   -d '{
-          #     "state": "inactive",
-          #     "environment": "infra-portainer"
-          #     "description": "Deployment stopped manually"
-          #   }' \
-          #   https://api.github.com/repos/${{ github.repository }}/deployments
-          # #${{ github.event.inputs.environment }}
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "state": "inactive",
+              "description": "Deployment stopped manually"
+            }' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses

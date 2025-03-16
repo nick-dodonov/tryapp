@@ -25,13 +25,24 @@ jobs:
           DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "ref": "'${{ github.sha }}'",
-              "environment": "infra-portainer"
+              "environment": "infra-portainer",
+              "payload": "{ \"state\": \"deploy-state\" }",
+              "description": "Deploy request"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments)
           echo "created deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
-          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+          
+          # to be used in steps
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          # to be used in stop action
+          echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
+          
+      - name: Upload Deployment ID
+        uses: actions/upload-artifact@v4
+        with:
+          name: portainer_deployment_id
+          path: portainer_deployment_id.txt
 
       - uses: ./.github/composites/ssh-remote-host
         with:
@@ -40,7 +51,7 @@ jobs:
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Docker Stack Deploy
           step_run: |
-            echo "==== docker stack deploy: ${DOCKER_STACK_NAME} (${{ github.event.action }})"
+            echo "==== docker stack deploy: ${DOCKER_STACK_NAME}"
             export DOCKER_HOST="ssh://${SSH_TARGET}"
             docker stack deploy \
               --with-registry-auth \
@@ -48,9 +59,10 @@ jobs:
               -c deploy/portainer/portainer-agent-stack.yml \
               ${DOCKER_STACK_NAME}
 
+      # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
         run: |
-          echo "==== update deployment status: ${{ env.DEPLOYMENT_ID }}",
+          echo "==== update deployment status: ${{ env.DEPLOYMENT_ID }}, $DEPLOYMENT_ID",
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "success",
