@@ -1,15 +1,9 @@
 name: Remote Deploy Commands
 description: Helper to run remote ssh/docker commands
 inputs:
-  ssh_user:
+  ssh_data:
     required: true
-    description: ssh user
-  ssh_host:
-    required: true
-    description: ssh host
-  ssh_private_key:
-    required: true
-    description: ssh private key
+    description: "SSH credentials in format user@host|private_key"
   step_run:
     required: true
     description: commands script
@@ -21,17 +15,39 @@ inputs:
 runs:
   using: "composite"
   steps:
+    - name: Parse SSH Credentials
+      shell: bash
+      run: |
+        #### Export useful variables
+        SSH_USER=$(echo "${{ inputs.ssh_data }}" | cut -d '@' -f1)
+        SSH_HOST=$(echo "${{ inputs.ssh_data }}" | cut -d '@' -f2 | cut -d '|' -f1)
+        SSH_PKEY=$(echo "${{ inputs.ssh_data }}" | cut -d '|' -f2)
+
+        echo "SSH_USER=$SSH_USER" >> $GITHUB_ENV
+        echo "SSH_HOST=$SSH_HOST" >> $GITHUB_ENV
+        echo "SSH_PKEY=$SSH_PKEY" >> $GITHUB_ENV
+
     - name: ${{ inputs.step_name }}
       uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ inputs.ssh_user }}
-        ssh_host: ${{ inputs.ssh_host }}
-        ssh_private_key: ${{ inputs.ssh_private_key }}
+        ssh_user: ${{ env.SSH_USER }}
+        ssh_host: ${{ env.SSH_HOST }}
+        ssh_private_key: ${{ env.SSH_PKEY }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}
+          # cleanup sensitive variable before run
+          sed -i '/^SSH_PKEY=/d' $GITHUB_ENV
 
           # export variable for implicit docker usage in run
           export DOCKER_HOST="ssh://${SSH_TARGET}"
 
           ${{ inputs.step_run }}
+
+    - name: Cleanup Deploy Variables
+      if: always()
+      shell: bash
+      run: |
+        #### Cleanup exported variables
+        sed -i '/^SSH_USER=/d' $GITHUB_ENV
+        sed -i '/^SSH_HOST=/d' $GITHUB_ENV
