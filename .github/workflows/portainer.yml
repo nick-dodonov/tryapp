@@ -36,18 +36,15 @@ jobs:
 
           # to be used in steps
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
-          echo "github.run_attempt=${{ github.run_attempt }}"
+          # to be used in stop action
+          echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
 
       # DOESN'T work because cannot get artifact between workflows
-      # - name: Register Deployment
-      #   run: |
-      #     # to be used in stop action
-      #     echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
-      # - name: Upload Deployment ID
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: portainer_deployment_id
-      #     path: portainer_deployment_id.txt
+      - name: Upload Deployment ID
+        uses: actions/upload-artifact@v4
+        with:
+          name: portainer_deployment_id
+          path: portainer_deployment_id.txt
 
       # DOESN'T work because need PAT (or App) token to work with variables
       # - name: Save DEPLOYMENT_ID in Env
@@ -72,7 +69,7 @@ jobs:
       # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
         env:
-          ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}/job/${{ github.job }}
+          ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
           echo "==== update deployment status: $DEPLOYMENT_ID",
           set -x # debug
@@ -90,7 +87,16 @@ jobs:
     if: ${{ github.run_attempt > 1 }}
 
     steps:
+      - name: Download Deployment ID
+        uses: actions/download-artifact@v4
+        with:
+          name: portainer_deployment_id
+
       - name: Stop Deployment
         run: |
           echo "TODO: Stopping Deployment"
+          set -x
+          ls -la portainer_deployment_id.txt
+          cat portainer_deployment_id.txt
+          DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
