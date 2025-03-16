@@ -1,0 +1,73 @@
+name: Docker Stack Deploy & Update
+
+on:
+  workflow_dispatch: # This allows the workflow to be triggered manually
+
+env:
+  STACK_NAME: my-docker-stack
+
+jobs:
+  deploy:
+    name: Update Deployment
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Register Deployment
+        run: |
+          #TODO: "transient_environment": true
+          DEPLOYMENT_ID=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "ref": "'${{ github.sha }}'",
+              "environment": "infra-portainer"
+            }' \
+            https://api.github.com/repos/${{ github.repository }}/deployments | jq -r .id)
+          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+
+      - uses: ./.github/composites/ssh-remote-host
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Docker Stack Deploy
+          step_run: |
+            echo "==== docker stack deploy: ${STACK_NAME} (${{ github.event.action }})"
+            export DOCKER_HOST="ssh://${SSH_TARGET}"
+            docker stack deploy \
+              --with-registry-auth \
+              --resolve-image always \
+              -c deploy/portainer/portainer-agent-stack.yml \
+              ${STACK_NAME}
+
+      - name: Update Deployment Status
+        run: |
+          # TODO: "environment_url": "'"$PREVIEW_URL"'",
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "state": "success",
+              "description": "Deployed successfully"
+            }' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
+
+      - name: Register Deployment
+        run: |
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"ref": "'${{ github.ref }}'", "environment": "infra-portainer"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments
+
+  stop:
+    name: Stop Deployment
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - uses: ./.github/composites/ssh-remote-host
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Docker Stack Deploy
+          step_run: |
+            echo "==== docker stack rm: ${STACK_NAME} (${{ github.event.action }})"
+            docker stack rm ${STACK_NAME}
