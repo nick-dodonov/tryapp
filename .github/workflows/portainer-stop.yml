@@ -17,20 +17,24 @@ jobs:
     steps:
       # TODO: docker stack deploy (after sharing some vars: ssh_user ssh_host ssh_private_key DOCKER_HOST)
 
-      - name: Download Deployment ID
-        uses: actions/download-artifact@v4
-        with:
-          name: portainer_deployment_id
+      # - name: Download Deployment ID
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: portainer_deployment_id
+      # - name: Stop Deployment
+      #   run: |
+      #     DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
+      #     echo "TODO: Stopping Deployment DEPLOYMENT_ID=$DEPLOYMENT_ID"
 
-      - name: Read Deployment ID
+      - name: Load DEPLOYMENT_ID in Env
         run: |
-
+          gh variable get DEPLOYMENT_ID --env infra-portainer 
+          DEPLOYMENT_ID=${{ env.DEPLOYMENT_ID }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop Deployment
         run: |
-          DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
-          echo "TODO: Stopping Deployment DEPLOYMENT_ID=$DEPLOYMENT_ID"
-          
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "inactive",

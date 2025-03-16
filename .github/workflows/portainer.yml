@@ -38,11 +38,16 @@ jobs:
           # to be used in stop action
           echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
           
-      - name: Upload Deployment ID
-        uses: actions/upload-artifact@v4
-        with:
-          name: portainer_deployment_id
-          path: portainer_deployment_id.txt
+      # - name: Upload Deployment ID
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: portainer_deployment_id
+      #     path: portainer_deployment_id.txt
+      - name: Save DEPLOYMENT_ID in Env
+        run: |
+          gh variable set DEPLOYMENT_ID --env infra-portainer --body "$DEPLOYMENT_ID"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ./.github/composites/ssh-remote-host
         with:
@@ -63,9 +68,11 @@ jobs:
       - name: Update Deployment Status
         run: |
           echo "==== update deployment status: ${{ env.DEPLOYMENT_ID }}, $DEPLOYMENT_ID",
+          ACTION_URL="https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "success",
+              "log_url": "$ACTION_URL"
               "description": "Deployed successfully"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
