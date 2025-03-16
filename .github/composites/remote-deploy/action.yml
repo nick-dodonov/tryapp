@@ -18,9 +18,9 @@ runs:
     - name: ${{ inputs.step_name }}
       uses: ./.github/composites/remote-ssh
       with:
-        ssh_user: ${{ fromJSON(ssh_data).REMOTE_USER }}
-        ssh_host: ${{ fromJSON(ssh_data).REMOTE_HOST }}
-        ssh_private_key: ${{ fromJSON(ssh_data).REMOTE_PRIVATE_KEY }}
+        ssh_user: ${{ fromJSON(ssh_data)[0] }}
+        ssh_host: ${{ fromJSON(ssh_data)[1] }}
+        ssh_private_key: ${{ fromJSON(ssh_data)[2] }}
         step_name: ${{ inputs.step_name }}
         step_run: |
           #### ${{ inputs.step_name }}
@@ -31,11 +31,3 @@ runs:
           export DOCKER_HOST="ssh://${SSH_TARGET}"
 
           ${{ inputs.step_run }}
-
-    - name: Cleanup Deploy Variables
-      if: always()
-      shell: bash
-      run: |
-        #### Cleanup exported variables
-        sed -i '/^SSH_USER=/d' $GITHUB_ENV
-        sed -i '/^SSH_HOST=/d' $GITHUB_ENV
