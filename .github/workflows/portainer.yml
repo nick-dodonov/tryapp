@@ -13,10 +13,11 @@ jobs:
 
     # required to create deployment
     #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
-    permissions:
-      deployments: write  # to create/update deployment
-      contents: write     # for gh variable set
-
+    # permissions:
+    #   deployments: write  # to create/update deployment
+    #   contents: write     # for gh variable set
+    permissions: write-all
+  
     steps:
       - uses: actions/checkout@v4
 
