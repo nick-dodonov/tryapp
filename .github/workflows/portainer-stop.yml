@@ -11,12 +11,11 @@ on:
 jobs:
   stop:
     permissions:
-      deployments: write
-      contents: read
+      deployments: write  # to update deployment
 
     runs-on: ubuntu-latest
     steps:
-      # TODO: docker stack deploy (after sharing some vars: ssh_user ssh_host ssh_private_key DOCKER_HOST)
+      # TODO: docker stack rm (after sharing some vars: ssh_user ssh_host ssh_private_key DOCKER_HOST)
 
       # - name: Download Deployment ID
       #   uses: actions/download-artifact@v4
@@ -25,19 +24,32 @@ jobs:
       # - name: Stop Deployment
       #   run: |
       #     DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
-      #     echo "TODO: Stopping Deployment DEPLOYMENT_ID=$DEPLOYMENT_ID"
-
-      - name: Load DEPLOYMENT_ID in Env
-        run: |
-          gh variable get DEPLOYMENT_ID --env infra-portainer 
-          DEPLOYMENT_ID=`gh variable get DEPLOYMENT_ID --env infra-portainer`
-          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #     echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+      
+      # - name: Load DEPLOYMENT_ID in Env
+      #   run: |
+      #     gh variable get DEPLOYMENT_ID --env infra-portainer 
+      #     DEPLOYMENT_ID=`gh variable get DEPLOYMENT_ID --env infra-portainer`
+      #     echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Stop Deployment
         run: |
-          echo "==== deactivate deployment:$DEPLOYMENT_ID=$DEPLOYMENT_ID"
+          echo "Stopping Deployment"
+
+          DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{
+              "ref": "'${{ github.sha }}'",
+              "environment": "infra-portainer",
+              "payload": "{ \"state\": \"deploy-state\" }",
+              "description": "Deploy request"
+            }' \
+            https://api.github.com/repos/${{ github.repository }}/deployments)
+          echo "deployment: $DEPLOYMENT_REGISTER"
+
+          DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
+
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "inactive",

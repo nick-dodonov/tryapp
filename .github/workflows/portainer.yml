@@ -13,11 +13,9 @@ jobs:
 
     # required to create deployment
     #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
-    # permissions:
-    #   deployments: write  # to create/update deployment
-    #   contents: write     # for gh variable set
-    permissions: write-all
-  
+    permissions:
+      deployments: write  # to create/update deployment
+
     steps:
       - uses: actions/checkout@v4
 
@@ -32,24 +30,29 @@ jobs:
               "description": "Deploy request"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments)
-          echo "created deployment: $DEPLOYMENT_REGISTER"
+          echo "deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
-          
+
           # to be used in steps
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
-          # to be used in stop action
-          echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
-          
+
+      # DOESN'T work because cannot get artifact between workflows
+      # - name: Register Deployment
+      #   run: |
+      #     # to be used in stop action
+      #     echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
       # - name: Upload Deployment ID
       #   uses: actions/upload-artifact@v4
       #   with:
       #     name: portainer_deployment_id
       #     path: portainer_deployment_id.txt
-      - name: Save DEPLOYMENT_ID in Env
-        run: |
-          gh variable set DEPLOYMENT_ID --env infra-portainer --body "$DEPLOYMENT_ID"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # DOESN'T work because need PAT (or App) token to work with variables
+      # - name: Save DEPLOYMENT_ID in Env
+      #   run: |
+      #     gh variable set DEPLOYMENT_ID --env infra-portainer --body "$DEPLOYMENT_ID"
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ./.github/composites/ssh-remote-host
         with:
