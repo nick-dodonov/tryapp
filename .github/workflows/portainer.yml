@@ -28,7 +28,7 @@ jobs:
               "environment": "infra-portainer"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments)
-          echo "created deployment:\n$DEPLOYMENT_REGISTER"
+          echo "created deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
