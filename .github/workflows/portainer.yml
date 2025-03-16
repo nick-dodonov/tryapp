@@ -2,6 +2,10 @@ name: Portainer Deploy
 
 on:
   workflow_dispatch: # allows the workflow to be triggered manually
+  workflow_run:
+    workflows: ["Portainer Deploy"]
+    types:
+      - requested
 
 env:
   DOCKER_STACK_NAME: portainer
@@ -57,6 +61,13 @@ jobs:
               "description": "Deployed successfully"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/${{ env.DEPLOYMENT_ID }}/statuses
+
+  manual_job:
+    if: github.event_name == 'workflow_run'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Manual job
+        run: echo "Manual job running"
 
   # stop:
   #   name: Stop Deployment
