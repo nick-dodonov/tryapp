@@ -7,7 +7,7 @@ on:
   #   #TMP branches: [ 'main' ]
   #   paths:
   #     - '.github/workflows/stack.yml'
-  #     - '.github/composites/ssh-remote-host/**'
+  #     - '.github/composites/remote-ssh/**'
   #     - 'compose.yaml'
   #     - 'compose.release.yaml'
   #     - 'deploy/nginx/**'
@@ -51,7 +51,7 @@ jobs:
       #TODO: sign the published docker image
 
       # custom docker stack deploy steps (much faster than docker-stack-deploy action)
-      - uses: ./.github/composites/ssh-remote-host
+      - uses: ./.github/composites/remote-ssh
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}

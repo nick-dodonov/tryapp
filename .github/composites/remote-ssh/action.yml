@@ -1,5 +1,5 @@
-name: SSH Remote Host Commands
-description: Helper to run on remote host via ssh
+name: Remote SSH Commands
+description: Helper to run remote ssh commands
 inputs:
   ssh_user:
     required: true
@@ -16,7 +16,7 @@ inputs:
   step_name:
     required: false
     description: step name
-    default: Run Commands
+    default: Run SSH Commands
 
 runs:
   using: "composite"
@@ -30,11 +30,10 @@ runs:
     - name: Setup SSH Client
       shell: bash
       run: |
-        ################ Setup SSH Client
+        #### Setup SSH Client
         # allow implicit ssh commands that cannot disable host key checking (for example docker with ssh:// host)
         echo "==== setup known_hosts"
         ssh-keyscan -t rsa,ecdsa,ed25519 -H ${{ inputs.ssh_host }} 2> /dev/null >> ~/.ssh/known_hosts
-        SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
         # speedup connections and workaround firewall limits issue
         echo "==== setup ssh_config" 
@@ -43,6 +42,10 @@ runs:
         echo "  ControlPath ~/.ssh/control-%C" >> ~/.ssh/config
         echo "  ControlPersist 5s" >> ~/.ssh/config
 
+        #### Export useful variables
+        SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
+        echo "SSH_TARGET=$SSH_TARGET" >> $GITHUB_ENV
+  
 #        echo "==== check result ssh_config"
 #        cat ~/.ssh/config || true
 #        echo "==== check key is added"
@@ -50,24 +53,21 @@ runs:
 #        echo "==== check host available"
 #        nc -vz ${{ inputs.ssh_host }} 22
 #        echo "==== check ssh available (w/o host check)"
-#        ssh -o StrictHostKeyChecking=no ${{ inputs.ssh_user }}@${{ inputs.ssh_host }} whoami
+#        ssh -o StrictHostKeyChecking=no $SSH_TARGET whoami
 
     - name: ${{ inputs.step_name }}
       shell: bash
       run: |
-        ################ ${{ inputs.step_name }}
+        #### ${{ inputs.step_name }}
         ${{ inputs.step_run }}
-      env:
-        SSH_TARGET: "${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
 
     #TODO: use Post Run for cleanup (instead of always function)
     - name: Cleanup SSH Client
       if: always()
       shell: bash
       run: |
-        ################ Cleanup SSH Client
+        #### Cleanup SSH Client
         echo "==== force close ssh master connection"
-        SSH_TARGET="${{ inputs.ssh_user }}@${{ inputs.ssh_host }}"
         ssh -O exit $SSH_TARGET || true
         echo "==== rm generated configs"
         rm -f ~/.ssh/known_hosts ~/.ssh/config

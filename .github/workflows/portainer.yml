@@ -54,7 +54,7 @@ jobs:
       #   env:
       #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - uses: ./.github/composites/ssh-remote-host
+      - uses: ./.github/composites/remote-ssh
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
@@ -88,7 +88,7 @@ jobs:
   #   needs: deploy
   #
   #   steps:
-  #     - uses: ./.github/composites/ssh-remote-host
+  #     - uses: ./.github/composites/remote-ssh
   #       with:
   #         ssh_user: ${{ secrets.REMOTE_USER }}
   #         ssh_host: ${{ secrets.REMOTE_HOST }}
