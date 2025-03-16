@@ -2,10 +2,6 @@ name: Portainer Deploy
 
 on:
   workflow_dispatch: # allows the workflow to be triggered manually
-  workflow_run:
-    workflows: ["Portainer Deploy"]
-    types:
-      - requested
 
 env:
   DOCKER_STACK_NAME: portainer
