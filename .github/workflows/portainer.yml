@@ -26,10 +26,7 @@ jobs:
           DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "ref": "'${{ github.sha }}'",
-              "environment": "infra-portainer",
-              "payload": "{ \"state\": \"deploy-state\" }",
-              "task": "deploy-task",
-              "production_environment": true
+              "environment": "infra-portainer"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments)
           echo "deployment: $DEPLOYMENT_REGISTER"
@@ -66,7 +63,7 @@ jobs:
               ${DOCKER_STACK_NAME}
 
             # store deployment id allowing to make status inactive on stop
-            ssh $SSH_TARGET sh -c "echo $DEPLOYMENT_ID > portainer_deployment_id.txt"
+            ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
 
       # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
@@ -88,6 +85,10 @@ jobs:
     if: ${{ github.run_attempt > 1 }}
 
     steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/ # for composite actions
+
       # - name: Download Deployment ID
       #   uses: actions/download-artifact@v4
       #   with:
@@ -105,6 +106,7 @@ jobs:
           step_run: |
             #### stop deployment
             set -x # debug
+            ls -l # diagnose sparse checkout
 
             # obtain deployment id to make status inactive
             DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
