@@ -20,9 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: 
-            .github/ # composite actions
-            deploy/portainer/ # docker stack deploy
+          sparse-checkout: |
+            .github/
+            deploy/portainer/
 
       # https://docs.github.com/en/rest/deployments/deployments
       - name: Register Deployment
@@ -93,7 +93,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: .github/ # composite actions
+          sparse-checkout: .github/
 
       # - name: Download Deployment ID
       #   uses: actions/download-artifact@v4
