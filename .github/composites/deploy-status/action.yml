@@ -1,0 +1,28 @@
+# https://docs.github.com/en/rest/deployments/statuses
+name: GitHub Deployment Status
+description: Update GitHub deployment status state and additional information
+inputs:
+  token:
+    required: true
+    description: "GitHub token"
+  state:
+    required: true
+    description: "State to set on deployment"
+  deployment_id:
+    required: true
+    description: "Deployment ID for state"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deployment Status (${{ inputs.state }})
+      shell: bash
+      env:
+        ACTION_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      run: |
+        set -x # debug
+        echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" # test env available
+        # initial status with link to action
+        curl -X POST -H "Authorization: token ${{ inputs.token }}" \
+          -d '{"state": "${{ inputs.state }}", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
+          https://api.github.com/repos/${{ github.repository }}/deployments/${{ inputs.deployment_id }}/statuses
