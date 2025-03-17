@@ -26,7 +26,6 @@ jobs:
             deploy/portainer/
 
       # https://docs.github.com/en/rest/deployments/deployments
-      # https://docs.github.com/en/rest/deployments/statuses
       - name: Register Deployment
         run: |
           #### create deployment
@@ -38,33 +37,13 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/deployments)
           echo "deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
- 
-          # # initial status with link to action
-          # curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-          #   -d '{"state": "in_progress", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
-          #   https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
-
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
-      - uses: ./.github/composites/deploy-status
+      - name: Deployment Status (in_progress)
+        uses: ./.github/composites/deploy-status
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           state: in_progress
-
-      # DOESN'T work because cannot get artifact between workflow runs
-      # - run: echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
-      # - name: Upload Deployment ID
-      #   uses: actions/upload-artifact@v4
-      #   with:
-      #     name: portainer_deployment_id
-      #     path: portainer_deployment_id.txt
-
-      # DOESN'T work because need PAT (or App) token to work with variables
-      # - name: Save DEPLOYMENT_ID in Env
-      #   run: |
-      #     gh variable set DEPLOYMENT_ID --env infra-portainer --body "$DEPLOYMENT_ID"
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - uses: ./.github/composites/remote-deploy
         with:
@@ -87,22 +66,18 @@ jobs:
             # store deployment id allowing to make status inactive on stop
             ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
 
-      - name: Success Deployment Status
-        run: |
-          #### update deployment status
-          set -x # debug
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"state": "success", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+      - name: Deployment Status (success)
+        uses: ./.github/composites/deploy-status
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: success
 
-      - name: Failure Deployment Status
+      - name: Deployment Status (failure)
+        uses: ./.github/composites/deploy-status
         if: failure()
-        run: |
-          #### update deployment status
-          set -x # debug
-          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{"state": "failure", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
-            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: failure
 
   stop:
     name: Stop Deployment
@@ -115,15 +90,6 @@ jobs:
       - uses: actions/checkout@v4
         with:
           sparse-checkout: .github/
-
-      # - name: Download Deployment ID
-      #   uses: actions/download-artifact@v4
-      #   with:
-      #     name: portainer_deployment_id
-      #     run-id: ${{ github.event.workflow_run.id }}
-      # - run: |
-      #     DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
-      #     echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
       - uses: ./.github/composites/remote-deploy
         with:
@@ -139,7 +105,8 @@ jobs:
 
             #TODO: docker stack rm
 
-            # inactivate status
-            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -d '{"state": "inactive", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
-              https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+      - name: Deployment Status (inactive)
+        uses: ./.github/composites/deploy-status
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: inactive
