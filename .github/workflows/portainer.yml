@@ -12,13 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.run_attempt == 1 }}
 
-    # required to create deployment
+    # required for deployment
     #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
     permissions:
-      deployments: write  # to create/update deployment
+      deployments: write  # create/update deployment/status
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          sparse-checkout: 
+            .github/ # composite actions
+            deploy/portainer/ # docker stack deploy
 
       # https://docs.github.com/en/rest/deployments/deployments
       - name: Register Deployment
@@ -83,11 +87,13 @@ jobs:
     name: Stop Deployment
     runs-on: ubuntu-latest
     if: ${{ github.run_attempt > 1 }}
+    permissions: 
+      deployments: write # update deployment status
 
     steps:
       - uses: actions/checkout@v4
         with:
-          sparse-checkout: .github/ # for composite actions
+          sparse-checkout: .github/ # composite actions
 
       # - name: Download Deployment ID
       #   uses: actions/download-artifact@v4
@@ -106,7 +112,6 @@ jobs:
           step_run: |
             #### stop deployment
             set -x # debug
-            ls -l # diagnose sparse checkout
 
             # obtain deployment id to make status inactive
             DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
