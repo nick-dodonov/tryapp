@@ -28,23 +28,21 @@ jobs:
               "ref": "'${{ github.sha }}'",
               "environment": "infra-portainer",
               "payload": "{ \"state\": \"deploy-state\" }",
-              "description": "Deploy request"
+              "task": "deploy-task",
+              "production_environment": true
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments)
           echo "deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
-
-          # to be used in steps
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
-          # to be used in stop action
-          echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
 
-      # DOESN'T work because cannot get artifact between workflows
-      - name: Upload Deployment ID
-        uses: actions/upload-artifact@v4
-        with:
-          name: portainer_deployment_id
-          path: portainer_deployment_id.txt
+      # DOESN'T work because cannot get artifact between workflow runs
+      # - run: echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
+      # - name: Upload Deployment ID
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: portainer_deployment_id
+      #     path: portainer_deployment_id.txt
 
       # DOESN'T work because need PAT (or App) token to work with variables
       # - name: Save DEPLOYMENT_ID in Env
@@ -59,25 +57,28 @@ jobs:
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_run: |
-            echo "==== docker stack deploy: ${DOCKER_STACK_NAME}"
+            #### docker stack deploy
+            set -x
             docker stack deploy \
               --with-registry-auth \
               --resolve-image always \
               -c deploy/portainer/portainer-agent-stack.yml \
               ${DOCKER_STACK_NAME}
 
+            # store deployment id allowing to make status inactive on stop
+            ssh $SSH_TARGET sh -c "echo $DEPLOYMENT_ID > portainer_deployment_id.txt"
+
       # https://docs.github.com/en/rest/deployments/statuses
       - name: Update Deployment Status
         env:
           ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
         run: |
-          echo "==== update deployment status: $DEPLOYMENT_ID",
+          echo "#### update deployment status: $DEPLOYMENT_ID"
           set -x # debug
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "state": "success",
-              "log_url": "${{ env.ACTION_URL }}",
-              "description": "Deployed successfully"
+              "log_url": "${{ env.ACTION_URL }}"
             }' \
             https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
 
@@ -87,16 +88,31 @@ jobs:
     if: ${{ github.run_attempt > 1 }}
 
     steps:
-      - name: Download Deployment ID
-        uses: actions/download-artifact@v4
-        with:
-          name: portainer_deployment_id
+      # - name: Download Deployment ID
+      #   uses: actions/download-artifact@v4
+      #   with:
+      #     name: portainer_deployment_id
+      #     run-id: ${{ github.event.workflow_run.id }}
+      # - run: |
+      #     DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
+      #     echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
-      - name: Stop Deployment
-        run: |
-          echo "TODO: Stopping Deployment"
-          set -x
-          ls -la portainer_deployment_id.txt
-          cat portainer_deployment_id.txt
-          DEPLOYMENT_ID=$(cat portainer_deployment_id.txt)
-          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+      - uses: ./.github/composites/remote-deploy
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_run: |
+            #### stop deployment
+            set -x # debug
+
+            # obtain deployment id to make status inactive
+            DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
+            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
+
+            #TODO: docker stack rm
+
+            # inactivate status
+            curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+              -d '{"state": "inactive"}' \
+              https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
