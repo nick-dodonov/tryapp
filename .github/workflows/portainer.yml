@@ -5,6 +5,7 @@ on:
 
 env:
   DOCKER_STACK_NAME: portainer
+  ACTION_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
 
 jobs:
   deploy:
@@ -25,8 +26,10 @@ jobs:
             deploy/portainer/
 
       # https://docs.github.com/en/rest/deployments/deployments
+      # https://docs.github.com/en/rest/deployments/statuses
       - name: Register Deployment
         run: |
+          #### create deployment
           DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
             -d '{
               "ref": "'${{ github.sha }}'",
@@ -35,6 +38,12 @@ jobs:
             https://api.github.com/repos/${{ github.repository }}/deployments)
           echo "deployment: $DEPLOYMENT_REGISTER"
           DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
+ 
+          # initial status with link to action
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"state": "in_progress", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+
           echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
       # DOESN'T work because cannot get artifact between workflow runs
@@ -66,21 +75,26 @@ jobs:
               -c deploy/portainer/portainer-agent-stack.yml \
               ${DOCKER_STACK_NAME}
 
+            false #TODO: rm TEST of FAILURE status 
+
             # store deployment id allowing to make status inactive on stop
             ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
 
-      # https://docs.github.com/en/rest/deployments/statuses
-      - name: Update Deployment Status
-        env:
-          ACTION_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
+      - name: Success Deployment Status
         run: |
-          echo "#### update deployment status: $DEPLOYMENT_ID"
+          #### update deployment status
           set -x # debug
           curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-              "state": "success",
-              "log_url": "${{ env.ACTION_URL }}"
-            }' \
+            -d '{"state": "success", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
+            https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
+
+      - name: Failure Deployment Status
+        if: failure()
+        run: |
+          #### update deployment status
+          set -x # debug
+          curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
+            -d '{"state": "failure", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
             https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
 
   stop:
@@ -115,11 +129,10 @@ jobs:
 
             # obtain deployment id to make status inactive
             DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
-            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID"
 
             #TODO: docker stack rm
 
             # inactivate status
             curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-              -d '{"state": "inactive"}' \
+              -d '{"state": "inactive", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
               https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses
