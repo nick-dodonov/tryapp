@@ -57,6 +57,8 @@ jobs:
             # cleanup previous deployment id (fixes incorrect stop by previous re-run)
             ssh $SSH_TARGET rm -f portainer_deployment_id.txt
 
+            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
+            export SERVER_NAME=${{ secrets.REMOTE_HOST }}
             docker stack deploy \
               --with-registry-auth \
               --resolve-image always \

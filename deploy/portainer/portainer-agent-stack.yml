@@ -1,4 +1,6 @@
-# Modified Portainer install/update version.
+# Modified Portainer install/update version:
+# * disabled unused feature (edge)
+# * use existing certs
 #
 # [Manual install](https://docs.portainer.io/start/install/server/swarm/linux)
 # * curl -L https://downloads.portainer.io/ee-lts/portainer-agent-stack.yml -o portainer-agent-stack.yml
@@ -25,9 +27,16 @@ services:
       placement:
         constraints: [node.platform.os == linux]
 
+  # TODO: use Using your own SSL certificate on Docker Swarm via secrets
+  #   https://docs.portainer.io/advanced/ssl#using-your-own-ssl-certificate-on-docker-swarm
   portainer:
     image: portainer/portainer-ce:lts
-    command: -H tcp://tasks.agent:9001 --tlsskipverify
+    #### existing certs https://docs.portainer.io/advanced/ssl#using-your-own-ssl-certificate-on-docker-standalone
+    #command: -H tcp://tasks.agent:9001 --tlsskipverify
+    command: >
+      -H tcp://tasks.agent:9001
+      --sslcert /certs/live/${SERVER_NAME:-localhost}/fullchain.pem
+      --sslkey /certs/live/${SERVER_NAME:-localhost}/privkey.pem
     ports:
       - "9443:9443"
       #### edge disabled
@@ -35,6 +44,8 @@ services:
       #- "8000:8000"
     volumes:
       - portainer_data:/data
+      #### existing certs
+      - ${DATA_ROOT:-.}/certbot/conf:/certs:ro
     networks:
       - agent_network
     deploy:
