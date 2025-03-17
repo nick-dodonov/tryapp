@@ -61,7 +61,7 @@ jobs:
               --with-registry-auth \
               --resolve-image always \
               -c deploy/portainer/portainer-agent-stack.yml \
-              ${DOCKER_STACK_NAME}
+              ${{ env.DOCKER_STACK_NAME }}
 
             # store deployment id allowing to make status inactive on stop
             ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
@@ -102,8 +102,10 @@ jobs:
 
             # obtain deployment id to make status inactive
             DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
+            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
 
-            #TODO: docker stack rm
+            # undeploy existing stack
+            docker stack rm ${{ env.DOCKER_STACK_NAME }}
 
       - name: Deployment Status (inactive)
         uses: ./.github/composites/deploy-status
