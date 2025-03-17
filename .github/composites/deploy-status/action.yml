@@ -9,7 +9,7 @@ inputs:
     required: true
     description: "State to set on deployment"
   deployment_id:
-    required: true
+    required: false # DEPLOYMENT_ID environment variable otherwise
     description: "Deployment ID for state"
 
 runs:
@@ -20,9 +20,21 @@ runs:
       env:
         ACTION_RUN_URL: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}
       run: |
-        set -x # debug
-        echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" # test env available
+        set -x # 
+
+        echo "DEPLOYMENT_ID=${{ env.DEPLOYMENT_ID }}" # test env.
+
+        # Determine DEPLOYMENT_ID
+        if [[ -n "${{ inputs.deployment_id }}" ]]; then
+          DEPLOYMENT_ID="${{ inputs.deployment_id }}"
+        elif [[ -n "${{ env.DEPLOYMENT_ID }}" ]]; then
+          DEPLOYMENT_ID="${{ env.DEPLOYMENT_ID }}"
+        else
+          echo "Error: Deployment ID is not specified in inputs or environment variables."
+          exit 1
+        fi
+
         # initial status with link to action
         curl -X POST -H "Authorization: token ${{ inputs.token }}" \
           -d '{"state": "${{ inputs.state }}", "log_url": "${{ env.ACTION_RUN_URL }}"}' \
-          https://api.github.com/repos/${{ github.repository }}/deployments/${{ inputs.deployment_id }}/statuses
+          https://api.github.com/repos/${{ github.repository }}/deployments/$DEPLOYMENT_ID/statuses

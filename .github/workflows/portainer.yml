@@ -50,7 +50,6 @@ jobs:
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           state: in_progress
-          deployment_id: ${{ env.DEPLOYMENT_ID }}
 
       # DOESN'T work because cannot get artifact between workflow runs
       # - run: echo "$DEPLOYMENT_ID" > portainer_deployment_id.txt
@@ -75,10 +74,10 @@ jobs:
           step_run: |
             #### docker stack deploy
             set -x
-            
+
             # cleanup previous deployment id (fixes incorrect stop by previous re-run)
-            ssh $SSH_TARGET sh -c "rm -f portainer_deployment_id.txt"
-            
+            ssh $SSH_TARGET rm -f portainer_deployment_id.txt
+
             docker stack deploy \
               --with-registry-auth \
               --resolve-image always \
