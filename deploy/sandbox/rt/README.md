@@ -6,6 +6,6 @@ Required for manual investigations of WebRTC DataChannel connectivity in differe
 And it also helps me to try .go coding a little :smile:. 
 
 * shorter name to simplify testing
-* TODO: more diagnostics for connectivity offer/answer/ice
-* TODO: allowed answer via stdin along with existing http
-* TODO: allowed external stun setup
+* more diagnostics for connectivity offerer/answerer/ice/etc
+* allow answer for offerer via stdin (along with existing http way)
+* allow STUN setup (to try personal coturn as gateway for stands)
