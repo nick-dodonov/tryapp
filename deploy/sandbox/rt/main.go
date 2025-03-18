@@ -34,12 +34,18 @@ func main() {
 	stun := flag.String("stun", "stun:stun.l.google.com:19302", "STUN address for offerer and answerer (must be the same)")
 	flag.Parse()
 
+	fmt.Printf("#### OFFER: %t\n", *isOffer)
+	if *isOffer {
+		fmt.Printf("#### PORT: %d\n", *port)
+	}
+	fmt.Printf("#### STUN: %s\n", *stun)
+
 	// Everything below is the Pion WebRTC (ORTC) API! Thanks for using it ❤️.
 
 	// Prepare ICE gathering options
 	iceOptions := webrtc.ICEGatherOptions{
 		ICEServers: []webrtc.ICEServer{
-			{URLs: []string{stun}},
+			{URLs: []string{*stun}},
 		},
 	}
 
