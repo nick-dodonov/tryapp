@@ -36,6 +36,10 @@ RUN go install github.com/pion/webrtc/v4/examples/pion-to-pion/offer@latest
 # https://github.com/pion/webrtc/tree/master/examples/ortc
 RUN go install github.com/pion/webrtc/v4/examples/ortc@latest
 
+# modified ortc2 version
+COPY rt /src/rt
+RUN go install -C /src/rt
+
 RUN echo "set-option -g mouse on" >> /root/.tmux.conf
 RUN echo "export GOROOT=/usr/local/go" >> /root/.profile
 RUN echo "export GOPATH=\$HOME/go" >> /root/.profile

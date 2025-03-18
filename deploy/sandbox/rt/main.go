@@ -248,8 +248,6 @@ func decode(in string, obj *Signal) {
 
 // httpSDPServer starts a HTTP Server that consumes SDPs.
 func httpSDPServer(port int) chan string {
-	fmt.Printf("Waiting answer (port: %d)\n", port)
-
 	sdpChan := make(chan string)
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		body, _ := io.ReadAll(req.Body)
