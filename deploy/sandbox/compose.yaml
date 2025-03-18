@@ -1,0 +1,18 @@
+networks:
+  host:
+    name: host
+    external: true
+
+services:
+  nginx:
+    image: tmp
+    command: /bin/sh -c "sed -i 's/80;/180;/' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    ports:
+      - "180:180"
+    networks:
+      - host
+  app:
+    image: tmp
+    command: /bin/sh -c "sed -i 's/80;/181;/' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
+    ports:
+      - "181:181"
