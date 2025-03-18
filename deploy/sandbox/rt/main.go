@@ -9,6 +9,8 @@ package main
 
 import (
 	"bufio"
+	"bytes"
+	"compress/zlib"
 	"encoding/base64"
 	"encoding/json"
 	"errors"
@@ -113,16 +115,24 @@ func main() {
 	iceRole := webrtc.ICERoleControlled
 
 	// Exchange the information
+	if *isOffer {
+		printSignal(s, "Offer to send")
+	} else {
+		printSignal(s, "Answer to send")
+	}
 	fmt.Println(encode(s))
 	remoteSignal := Signal{}
 
 	if *isOffer {
 		signalingChan := httpSDPServer(*port)
 		decode(<-signalingChan, &remoteSignal)
+		printSignal(remoteSignal, "Received answer")
 
 		iceRole = webrtc.ICERoleControlling
 	} else {
+		fmt.Printf("#### Awaiting offer\n")
 		decode(readUntilNewline(), &remoteSignal)
+		printSignal(remoteSignal, "Received offer")
 	}
 
 	if err = ice.SetRemoteCandidates(remoteSignal.ICECandidates); err != nil {
@@ -130,23 +140,28 @@ func main() {
 	}
 
 	// Start the ICE transport
+	fmt.Printf("#### Starting ICE transport\n")
 	err = ice.Start(nil, remoteSignal.ICEParameters, &iceRole)
 	if err != nil {
 		panic(err)
 	}
 
 	// Start the DTLS transport
+	fmt.Printf("#### Starting DTLS transport\n")
 	if err = dtls.Start(remoteSignal.DTLSParameters); err != nil {
 		panic(err)
 	}
 
 	// Start the SCTP transport
+	fmt.Printf("#### Starting SCTP transport\n")
 	if err = sctp.Start(remoteSignal.SCTPCapabilities); err != nil {
 		panic(err)
 	}
 
 	// Construct the data channel as the offerer
 	if *isOffer {
+		fmt.Printf("#### Offer creating data channel\n")
+
 		var id uint16 = 1
 
 		dcParams := &webrtc.DataChannelParameters{
@@ -165,6 +180,8 @@ func main() {
 		channel.OnMessage(func(msg webrtc.DataChannelMessage) {
 			fmt.Printf("Message from DataChannel '%s': '%s'\n", channel.Label(), string(msg.Data))
 		})
+	} else {
+		fmt.Printf("#### Answer awaiting data channel\n")
 	}
 
 	select {}
@@ -231,7 +248,24 @@ func encode(obj Signal) string {
 		panic(err)
 	}
 
-	return base64.StdEncoding.EncodeToString(b)
+    //** workaround the issue with long copy/paste on macOS
+	var cb bytes.Buffer
+	w := zlib.NewWriter(&cb)
+	w.Write(b)
+	w.Close()
+
+	return base64.StdEncoding.EncodeToString(cb.Bytes())
+}
+
+func printSignal(obj Signal, logPrefix string) {
+	b, err := json.MarshalIndent(obj, "", "  ")
+	if err != nil {
+		panic(err)
+	}
+
+	fmt.Printf(">>>> %s\n", logPrefix)
+	fmt.Printf("%s\n", b)
+	fmt.Printf("<<<< %s\n", logPrefix)
 }
 
 // Decode a base64 and unmarshal JSON into a SessionDescription.
@@ -241,23 +275,42 @@ func decode(in string, obj *Signal) {
 		panic(err)
 	}
 
-	if err = json.Unmarshal(b, obj); err != nil {
+	br := bytes.NewReader(b)
+	z, err := zlib.NewReader(br)
+    if err != nil {
+        panic(err)
+    }
+	defer z.Close()
+	ub, err := io.ReadAll(z)
+    if err != nil {
+        panic(err)
+    }
+
+	if err = json.Unmarshal(ub, obj); err != nil {
 		panic(err)
 	}
 }
 
 // httpSDPServer starts a HTTP Server that consumes SDPs.
 func httpSDPServer(port int) chan string {
+	fmt.Printf("#### Awaiting answer\n")
 	sdpChan := make(chan string)
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 		body, _ := io.ReadAll(req.Body)
 		fmt.Fprintf(res, "done") //nolint: errcheck
+		fmt.Printf("#### Received answer: http\n")
 		sdpChan <- string(body)
 	})
 
 	go func() {
 		// nolint: gosec
 		panic(http.ListenAndServe(":"+strconv.Itoa(port), nil))
+	}()
+
+	go func() {
+		answer := readUntilNewline()
+		fmt.Printf("#### Received answer: cli\n")
+		sdpChan <- answer
 	}()
 
 	return sdpChan

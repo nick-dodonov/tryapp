@@ -17,7 +17,16 @@
             "request": "launch",
             "mode": "debug",
             "program": "${workspaceFolder}/rt/main.go",
-            "args": ["-offer"]
+            "args": ["-offer"],
+            "console": "integratedTerminal"
+        },
+        {
+            "name": "RT answer",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/rt/main.go",
+            "console": "integratedTerminal"
         }
     ]
 }
