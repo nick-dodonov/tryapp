@@ -44,7 +44,8 @@ RUN echo "set-option -g mouse on" >> /root/.tmux.conf
 RUN echo "export GOROOT=/usr/local/go" >> /root/.profile
 RUN echo "export GOPATH=\$HOME/go" >> /root/.profile
 RUN echo "export PATH=\$GOPATH/bin:\$GOROOT/bin:\$PATH" >> /root/.profile
-RUN echo "alias ta='tmux new -As0'" >> /root/.profile
+
+RUN echo "alias ta='tmux new -As0'" >> /root/.bashrc
 
 EXPOSE 80
 
