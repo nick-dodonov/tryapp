@@ -30,8 +30,8 @@ import (
 // nolint:cyclop
 func main() {
 	isOffer := flag.Bool("offer", false, "Act as the offerer if set")
-	port := flag.Int("port", 8080, "http server port (only for offerer)")
-	stun := flag.String("stun", "stun:stun.l.google.com:19302", "STUN address for offerer and answerer (must be the same)")
+	port := flag.Int("port", 8080, "http port to receive answer (only for offerer), optional as answer from stdin is supported")
+	stun := flag.String("stun", "stun:stun.l.google.com:19302", "STUN/TURN address for offerer and answerer")
 	flag.Parse()
 
 	fmt.Printf("#### OFFER: %t\n", *isOffer)
@@ -45,7 +45,11 @@ func main() {
 	// Prepare ICE gathering options
 	iceOptions := webrtc.ICEGatherOptions{
 		ICEServers: []webrtc.ICEServer{
-			{URLs: []string{*stun}},
+			{
+				URLs: []string{*stun},
+				Username: "user",
+				Credential: "pass",
+			},
 		},
 	}
 

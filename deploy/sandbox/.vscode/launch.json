@@ -16,17 +16,18 @@
             "type": "go",
             "request": "launch",
             "mode": "debug",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/rt/main.go",
             "args": ["-offer"],
-            "console": "integratedTerminal"
         },
         {
             "name": "RT answer",
             "type": "go",
             "request": "launch",
             "mode": "debug",
+            "console": "integratedTerminal",
             "program": "${workspaceFolder}/rt/main.go",
-            "console": "integratedTerminal"
+            "args": ["-stun", "turn:127.0.0.1:3478"],
         }
     ]
 }
