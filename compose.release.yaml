@@ -1,8 +1,9 @@
 services:
   server:
     environment:
-      # TODO: auto-detect instead of hard-code, coturn bound on host "docker_gwbridge" network interface 
-      SipRtcConfig__IceServers__0__Url: turn:172.18.0.1
+      # TODO: auto-detect instead of hard-code, coturn bound on host "docker_gwbridge" network interface
+      # TODO: coturn setup --relay-ip allowing to access via internal network interface only (turn:172.18.0.1 returns 172.18.0.1 as relay now)
+      SipRtcConfig__IceServers__0__Url: turn:${SERVER_NAME:-localhost} 
       SipRtcConfig__IceServers__0__Username: ${TURN_USERNAME:-user}
       SipRtcConfig__IceServers__0__Password: ${TURN_PASSWORD:-pass}
 
