@@ -1,6 +1,7 @@
 #if !UNITY_5_6_OR_NEWER
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -52,7 +53,8 @@ namespace Shared.Tp.Rtc.Sip
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
-            _logger.Info(".");
+            var iceServersStr = string.Join(", ", configuration.iceServers?.Select(x => x.urls) ?? Enumerable.Empty<string>());
+            _logger.Info($"iceServers=[{iceServersStr}]");
 
             _peerConnection = new(configuration
                 //, bindPort: 40000

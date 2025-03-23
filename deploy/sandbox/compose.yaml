@@ -23,12 +23,13 @@ services:
     # --external-ip='$$(detect-external-ip)'
     
     # Docker Desktop compose:
-    #   turnutils_uclient 192.168.65.3 -DgX -u user -w pass -e 192.168.65.3 -n 1 -c -y
     #   rt -stun stun:host.docker.internal:3478
+    #   turnutils_uclient 192.168.65.3 -DgX -u user -w pass -e 192.168.65.3 -n 1 -c -y
     #   rt -stun turn:192.168.65.3
-    #  --relay-ip=10.211.55.4
-    # rt -stun turn:10.211.55.4
-    
+    #   ncat -luk --sh-exec 'read line && echo "${line} - $(date)" && echo ${line} > /dev/stderr' 8888
+    #   tcpdump -i any udp -vv -X
+    #   --relay-ip=10.211.55.4 # --relay-ip=0.0.0.0
+    #   rt -stun turn:10.211.55.4
     command: >
       -n
       --listening-port=3478

@@ -2,9 +2,11 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Shared.Log;
 using Shared.Web;
 using SIPSorcery.Net;
@@ -23,18 +25,24 @@ namespace Shared.Tp.Rtc.Sip
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<SipRtcService> _logger;
 
+        private readonly IOptionsMonitor<SipRtcConfig> _configOptionsMonitor;
+        
         private readonly ConcurrentDictionary<string, SipRtcLink> _links = new(); // token->link
 
         /// <summary>
-        /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation 
+        /// PortRange must be shared otherwise new RTCPeerConnection() fails on MAXIMUM_UDP_PORT_BIND_ATTEMPTS (25) allocation
+        ///     default range by RFC should be [49152, 65535], use rounded values to simplify local debugging diagnostics
+        /// TODO: move to appsettings.json (SipRtcConfig)
         /// </summary>
-        private readonly PortRange _portRange = new(40000, 60000);
+        private readonly PortRange _portRange = new(50000, 60000);
 
         private int _globalLinkCounter;
         private ITpListener? _listener;
 
-        public SipRtcService(ILoggerFactory loggerFactory)
+        public SipRtcService(IOptionsMonitor<SipRtcConfig> configOptionsMonitor, ILoggerFactory loggerFactory)
         {
+            _configOptionsMonitor = configOptionsMonitor;
+
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SipRtcService>();
 
@@ -52,17 +60,27 @@ namespace Shared.Tp.Rtc.Sip
             var link = new SipRtcLink(id, token, this, _loggerFactory);
             _links.TryAdd(token, link);
 
-            //TODO: mv RTCConfiguration to .ctr and appsettings.json
+            var config = _configOptionsMonitor.CurrentValue;
             var configuration = new RTCConfiguration
             {
                 //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
                 //iceServers = [new() { urls = "stun:stun.cloudflare.com:3478" }]
                 //iceServers = [new() { urls = "stun:stun.l.google.com:19302" }]
-                //iceServers = [new() { urls = "stun:stun.l.google.com:3478" }]
                 
                 //X_BindAddress = IPAddress.Loopback
                 //X_ICEIncludeAllInterfaceAddresses = true
+                //X_BindAddress = IPAddress.Parse("10.211.55.1")
+                //X_BindAddress = IPAddress.Any
             };
+            if (config.IceServers != null)
+            {
+                configuration.iceServers = config.IceServers.Select(x => new RTCIceServer
+                {
+                    urls = x.Url,
+                    username = x.Username,
+                    credential = x.Password,
+                }).ToList();
+            }
             var sdpInit = await link.Init(configuration, _portRange);
 
             return new()

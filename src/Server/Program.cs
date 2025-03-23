@@ -19,12 +19,14 @@ var builder = WebApplication.CreateBuilder(args);
 builder.AddPrettyConsoleLoggerProvider();
 
 // Add services to the container.
+var configuration = builder.Configuration;
 builder.Services
     .AddSingleton<IMeta, MetaServer>()
+    .Configure<SipRtcConfig>(configuration.GetSection(nameof(SipRtcConfig)))
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
-    .Configure<DumpLink.Options>(builder.Configuration.GetSection(nameof(DumpLink)))
-    .Configure<SyncOptions>(builder.Configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
+    .Configure<DumpLink.Options>(configuration.GetSection(nameof(DumpLink)))
+    .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
         sp.GetRequiredService<SipRtcService>(), 
         null,
