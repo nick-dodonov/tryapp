@@ -6,10 +6,15 @@
 #   2. "Settings" -> "Privacy & Security" -> "Local Network" enable for "Rider"
 #     allows local server <-> deployed coturn communication 
 #     (otherwise "HostUnreachable", "No route to host" when trying to connect coturn ICE service)
+# TODO: external setup auto-detection for coturn service 10.211.55.4
 services:
   server:
     build:
       dockerfile: src/Server/Dockerfile
+    environment:
+      SipRtcConfig__IceServers__0__Url: turn:10.211.55.4:3478
+      SipRtcConfig__IceServers__0__Username: user
+      SipRtcConfig__IceServers__0__Password: pass
 
   # development: generate fake self-signed certificate with `openssl` for localhost nginx
   cert:

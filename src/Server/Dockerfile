@@ -17,7 +17,7 @@ RUN apt-get install \
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 50000-60000/udp
+# EXPOSE 50000-60000/udp # commented because appear one by one in settings and it's hard to use auto-mapping 
 
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
