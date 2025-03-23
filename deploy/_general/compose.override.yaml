@@ -1,0 +1,3 @@
+services:
+  coturn:
+    network_mode: host

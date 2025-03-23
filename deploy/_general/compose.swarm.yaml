@@ -1,0 +1,8 @@
+services:
+  coturn:
+    networks: [host]
+
+networks:
+  host:
+    name: host
+    external: true

@@ -1,17 +1,9 @@
-# NOTE: macOS Docker Desktop local docker compose deployment requires:
-#   1. "Docker Desktop" -> "Settings" -> "Resources" -> "Network" -> "Use kernel networking for UDP"
-#     enables 'bridge100' network interface allowing UDP communication: 
-#     * local server <-> deployed coturn service (when debugging ICE communication)
-#     * local client <-> deployed coturn service (when debugging within emulated production infra)
-#   2. "Settings" -> "Privacy & Security" -> "Local Network" enable for "Rider"
-#     allows local server <-> deployed coturn communication 
-#     (otherwise "HostUnreachable", "No route to host" when trying to connect coturn ICE service)
-# TODO: external setup auto-detection for coturn service 10.211.55.4
 services:
   server:
     build:
       dockerfile: src/Server/Dockerfile
     environment:
+      # TODO: external setup auto-detection for coturn service 10.211.55.4
       SipRtcConfig__IceServers__0__Url: turn:10.211.55.4:3478
       SipRtcConfig__IceServers__0__Username: user
       SipRtcConfig__IceServers__0__Password: pass
@@ -37,44 +29,3 @@ services:
           -out    $$_PATH/fullchain.pem \
           -subj "/C=ZZ/ST=State/L=City/O=Development/CN=localhost"
         echo "<<<< certbot emulation finished" 
-
-  # Setup pure TURN server (w/o STUN support) allowed in internal network only
-  #   workaround to deploy multiple WebRTC servers in docker swarm infrastructure (host mode cannot be used with minimum of swarm nodes)
-  # TODO: rm service when K8s will be used (different load-balancer service types are available for the same server)
-  coturn:
-    image: coturn/coturn:latest
-    # -n is not used "Do not use configuration file, take all parameters from the command line only." 
-    #   as gives "CONFIGURATION ALERT: Unknown argument: "
-    #   TODO: use config file instead
-    # --listening-port=3478 mentions default value just to recall its value 
-    # --relay-threads=1 to make less socket bindings in develop environments
-    # --no-cli to get rid of "CONFIG ERROR: Empty cli-password, and so telnet cli interface is disabled! Please set a non empty cli-password!"
-    # 
-    # For pure TURN over UDP only:
-    #   --no-stun --no-tcp --no-tls --no-dtls --no-tcp-relay 
-    #   --no-multicast-peers "Disallow peers on well-known broadcast addresses (224.0.0.0 and above, and FFXX:*)."
-    #   TODO: --allowed-peer-ip for internal network only
-    # 
-    # --lt-cred-mech "Use long-term credentials mechanism (this one you need for WebRTC usage)."
-    # --user is required for long-term authentication mechanism (--lt-cred-mech)
-    # --realm is required for current .NET SIPSorcery impl (otherwise it doesn't make correct auth request), 
-    #     it's also mentioned in manual "With -a option (--lt-cred-mech), do not forget to set the default realm (-r option)."
-    # --fingerprint "TURN server will always add fingerprints to the messages in this session, regardless of the per-server setting."
-    #   TODO: research is --fingerprint required increasing traffic
-    command: >
-      --listening-port=3478
-      --relay-threads=1
-      --no-cli
-      --no-stun
-      --no-tcp
-      --no-tls
-      --no-dtls
-      --no-tcp-relay
-      --no-multicast-peers
-      --lt-cred-mech
-      --user user:pass
-      --realm default
-      --fingerprint
-      --log-file=stdout
-      --verbose
-    network_mode: host
