@@ -16,5 +16,5 @@ jobs:
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_run: |
             #### docker stack deploy of generatl services
-            exit 111
+            exit "test action changed in branch"
             # docker stack deploy --with-registry-auth -c compose.yaml -c compose.release.yaml tt
