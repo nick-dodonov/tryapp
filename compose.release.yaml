@@ -1,16 +1,9 @@
-networks:
-  host:
-    name: host
-    external: true
-
 services:
-  # temporary solution to test webrtc udp-connectivity
-  web:
-    networks:
-      - host
   server:
-    networks:
-      - host
+    environment:
+      SipRtcConfig__IceServers__0__Url: turn:${SERVER_NAME:-localhost}
+      SipRtcConfig__IceServers__0__Username: ${TURN_USERNAME:-user}
+      SipRtcConfig__IceServers__0__Password: ${TURN_PASSWORD:-pass}
 
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
   #TODO: add renew part to service

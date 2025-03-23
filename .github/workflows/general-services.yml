@@ -15,6 +15,9 @@ jobs:
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_run: |
-            #### docker stack deploy of generatl services
-            exit "test action changed in branch"
-            # docker stack deploy --with-registry-auth -c compose.yaml -c compose.release.yaml tt
+            #### docker stack deploy general services
+            set -x
+            docker stack deploy \
+              -c ./deploy/_general/compose.yaml \
+              -c ./deploy/_general/compose.swarm.yaml \
+              general
