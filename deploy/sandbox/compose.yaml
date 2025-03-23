@@ -10,45 +10,44 @@ services:
     ports:
       - "181:181"
 
-  # https://github.com/coturn/coturn/blob/master/docker/coturn/README.md
-  coturn:
-    image: tmp:coturn
-    build:
-      dockerfile: Dockerfile
-      args: { base: coturn/coturn:latest }
-    hostname: coturn
-    stop_grace_period: 1s
-    # docker run --rm -ti --network=host coturn/coturn --help
-    # --allowed-peer-ip
-    # --external-ip='$$(detect-external-ip)'
-    
-    # Docker Desktop compose:
-    #   rt -stun stun:host.docker.internal:3478
-    #   turnutils_uclient 192.168.65.3 -DgX -u user -w pass -e 192.168.65.3 -n 1 -c -y
-    #   rt -stun turn:192.168.65.3
-    #   ncat -luk --sh-exec 'read line && echo "${line} - $(date)" && echo ${line} > /dev/stderr' 8888
-    #   tcpdump -i any udp -vv -X
-    #   --relay-ip=10.211.55.4 # --relay-ip=0.0.0.0
-    #   rt -stun turn:10.211.55.4
-    command: >
-      -n
-      --listening-port=3478
-      --relay-threads=1
-      --no-multicast-peers
-      --fingerprint
-      --no-tls
-      --no-dtls
-      --no-tcp-relay
-      --no-stun
-      --user user:pass
-      --lt-cred-mech
-      --log-file=stdout
-      --verbose
-    network_mode: host
-    # networks:
-    #   - host
+  # # https://github.com/coturn/coturn/blob/master/docker/coturn/README.md
+  # coturn:
+  #   image: tmp:coturn
+  #   build:
+  #     dockerfile: Dockerfile
+  #     args: { base: coturn/coturn:latest }
+  #   hostname: coturn
+  #   stop_grace_period: 1s
+  #   # docker run --rm -ti --network=host coturn/coturn --help
+  #   # --allowed-peer-ip
+  #   # --external-ip='$$(detect-external-ip)'
+  #  
+  #   # Docker Desktop compose:
+  #   #   rt -stun stun:host.docker.internal:3478
+  #   #   rt -stun turn:192.168.65.3
+  #   #   rt -stun turn:10.211.55.4
+  #   #   turnutils_uclient 172.21.0.1 -DgX -u user -w pass -e 172.21.0.2 -n 1 -c -y
+  #   #   --relay-ip=10.211.55.4 # --relay-ip=0.0.0.0
+  #   command: >
+  #     -n
+  #     --listening-port=3478
+  #     --relay-threads=1
+  #     --no-multicast-peers
+  #     --fingerprint
+  #     --no-tls
+  #     --no-dtls
+  #     --no-tcp-relay
+  #     --no-stun
+  #     --user user:pass
+  #     --lt-cred-mech
+  #     --log-file=stdout
+  #     --verbose
+  #   network_mode: host
+  #   # networks:
+  #   #   - host
 
-# networks:
-#   host:
-#     name: host
-#     external: true
+# swarm
+networks:
+  host:
+    name: host
+    external: true

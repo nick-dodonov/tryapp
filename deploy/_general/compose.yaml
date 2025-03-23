@@ -1,16 +1,8 @@
-# NOTE: Local macOS Docker Desktop docker compose deployment requires:
-#   1. "Docker Desktop" -> "Settings" -> "Resources" -> "Network" -> "Use kernel networking for UDP"
-#     enables 'bridge100' network interface allowing UDP communication: 
-#     * local server <-> deployed coturn service (when debugging ICE communication)
-#     * local client <-> deployed coturn service (when debugging within emulated production infra)
-#   2. "Settings" -> "Privacy & Security" -> "Local Network" enable for "Rider"
-#     allows local server <-> deployed coturn communication 
-#     (otherwise "HostUnreachable", "No route to host" when trying to connect coturn ICE service)
-
 services:
-  # Pure TURN server (w/o STUN support) allowed only for peers in internal network of server deployments.
-  # This is workaround to deploy multiple WebRTC servers in docker swarm infrastructure 
-  #   (host mode cannot be used with minimum of swarm nodes)
+  # Workaround to deploy multiple WebRTC servers in docker swarm infrastructure. 
+  # Host mode cannot be used for several servers on minimum number of swarm nodes.
+  # So pure daemon TURN server (w/o STUN support) allowed only for peers in internal network of server deployments is introduced.
+  # 
   # NOTE: service will not be required in K8s orchestration 
   #   (different load-balancer service types are available for the same server)
   coturn:

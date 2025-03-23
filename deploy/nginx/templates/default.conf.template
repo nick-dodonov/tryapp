@@ -36,9 +36,16 @@ server {
         #proxy_pass http://host.docker.internal:8080/api;
         #proxy_pass http://localhost:8080/api;
 
-        proxy_pass http://server:8080/api;
+        # using $upstream variable to workaround '[emerg] host not found in upstream ".." in /etc/nginx/conf.d/default.conf'
+        #   https://dev.to/danielkun/nginx-everything-about-proxypass-2ona#let-nginx-start-even-when-not-all-upstream-hosts-are-available
+        #   https://github.com/NginxProxyManager/nginx-proxy-manager/issues/1807
+        #   https://stackoverflow.com/questions/50248522/nginx-will-not-start-with-host-not-found-in-upstream
+        #   https://stackoverflow.com/questions/32845674/nginx-how-to-not-exit-if-host-not-found-in-upstream/32846603#32846603
+        # TODO: setup upstreams with cache to speedup requests
+        set $upstream http://server:8080/api; 
+        proxy_pass $upstream;
     }
-    
+
     location / {
         root   /usr/share/nginx/html;
         index  index.html index.htm;

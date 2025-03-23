@@ -1,8 +1,12 @@
-services:
-  coturn:
-    networks: [host]
+# NOTE: Linux with UFW docker stack deployment requires setup allowing of in/out on 'docker_gwbridge" network interface.
+#   Otherwise deployed server cannot connect to host bounded coturn (can be easily diagnosed with ncat). 
 
 networks:
   host:
     name: host
     external: true
+
+services:
+  coturn:
+    networks: 
+      - host

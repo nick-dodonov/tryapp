@@ -31,7 +31,8 @@ RUN wget https://dl.google.com/go/go1.24.1.linux-amd64.tar.gz \
 
 # coturn - for diagnostics tools turnutils_uclient/turnutils_peer https://gist.github.com/cameronelliott/be1e581cb7b28f748e04bcabc249e6b6
 #   ncat -lk --sh-exec 'read line && echo "${line}-$(date)" && echo ${line} > /dev/stderr' -u 0.0.0.0 8888
-#   tcpdump -i any udp -vv -X -n # -k to show interfaces on macOS
+#   tcpdump -i any -vv -X -n udp # -k to show interfaces on macOS
+#   tcpdump -i any -vv -X -n udp and ip net 172.21.0.0/16
 RUN apt-get install \
     coturn \
     tcpdump \

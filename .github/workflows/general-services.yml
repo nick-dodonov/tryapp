@@ -7,6 +7,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      STACK_NAME: general
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/composites/remote-deploy
@@ -20,4 +22,5 @@ jobs:
             docker stack deploy \
               -c ./deploy/_general/compose.yaml \
               -c ./deploy/_general/compose.swarm.yaml \
-              general
+              ${{ env.STACK_NAME }}
+            docker service update --force ${{ env.STACK_NAME }}_coturn
