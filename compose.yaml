@@ -32,6 +32,5 @@ services:
 
   server:
     image: ${SERVER_IMAGE:-server}
-    ports:
-      - '8080:8080'
-      # UDP ports for WebRTC are internal only because infra TURN is used
+    # WebAPI TCP port 8080 is internal as infra NGINX is used
+    # WebRTC UDP ports [49152, 65535] are internal as infra TURN is used

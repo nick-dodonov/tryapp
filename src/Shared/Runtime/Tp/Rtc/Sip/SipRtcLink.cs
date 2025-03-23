@@ -53,7 +53,7 @@ namespace Shared.Tp.Rtc.Sip
 
         public async Task<RTCSessionDescriptionInit> Init(RTCConfiguration configuration, PortRange portRange)
         {
-            var iceServersStr = string.Join(", ", configuration.iceServers?.Select(x => x.urls) ?? Enumerable.Empty<string>());
+            var iceServersStr = string.Join(", ", configuration.iceServers?.Select(x => $"\"{x.urls}\"") ?? Enumerable.Empty<string>());
             _logger.Info($"iceServers=[{iceServersStr}]");
 
             _peerConnection = new(configuration

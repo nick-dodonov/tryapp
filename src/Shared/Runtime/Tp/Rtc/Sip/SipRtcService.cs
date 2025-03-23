@@ -41,14 +41,16 @@ namespace Shared.Tp.Rtc.Sip
 
         public SipRtcService(IOptionsMonitor<SipRtcConfig> configOptionsMonitor, ILoggerFactory loggerFactory)
         {
-            _configOptionsMonitor = configOptionsMonitor;
-
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SipRtcService>();
 
             var sipVersion = typeof(RTCPeerConnection).Assembly.GetName().Version;
             _logger.Info($"SIPSorcery version {sipVersion}");
             SIPSorcery.LogFactory.Set(loggerFactory);
+
+            _configOptionsMonitor = configOptionsMonitor;
+            var iceStr = string.Join(", ", _configOptionsMonitor.CurrentValue.IceServers?.Select(x => $"\"{x.Url}\"") ?? Enumerable.Empty<string>());
+            _logger.Info($"Initial iceServers=[{iceStr}]");
         }
 
         async ValueTask<RtcOffer> IRtcService.GetOffer(CancellationToken cancellationToken)
