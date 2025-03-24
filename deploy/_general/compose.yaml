@@ -1,35 +1,39 @@
 services:
+  # TODO: user/pass setup for remote deployment
+  # TODO: --allowed-peer-ip for TURN in internal network only
   # Workaround to deploy multiple WebRTC servers in docker swarm infrastructure. 
   # Host mode cannot be used for several servers on minimum number of swarm nodes.
-  # So pure daemon TURN server (w/o STUN support) allowed only for peers in internal network of server deployments is introduced.
-  # 
+  #
+  # TURN server for server deployments allowed only in internal network.
+  # STUN server for clients allowing communications in non-symmetric NATs.
+  # TODO: research can STUN be disabled (because client works without it when server in host mode), 
+  #       possibly forwarding (ufw rules) should be set instead allowing server<->client communication via TURN relay on server side  
+  #
   # NOTE: service will not be required in K8s orchestration 
   #   (different load-balancer service types are available for the same server)
   coturn:
     image: coturn/coturn:latest
     # -n is not used "Do not use configuration file, take all parameters from the command line only." 
     #   as gives "CONFIGURATION ALERT: Unknown argument: "
-    #   TODO: use config file instead
+    # TODO: use config file instead
     # --listening-port=3478 mentions default value just to recall its value 
     # --relay-threads=1 to make less socket bindings in develop environments
     # --no-cli to get rid of "CONFIG ERROR: Empty cli-password, and so telnet cli interface is disabled! Please set a non empty cli-password!"
-    # 
-    # For pure TURN over UDP only:
-    #   --no-stun --no-tcp --no-tls --no-dtls --no-tcp-relay 
-    #   --no-multicast-peers "Disallow peers on well-known broadcast addresses (224.0.0.0 and above, and FFXX:*)."
-    #   TODO: --allowed-peer-ip for internal network only
-    # 
+    # --no-tcp --no-tls --no-tcp-relay allowing TURN/STUN communication only via UDP
+    # --no-multicast-peers "Disallow peers on well-known broadcast addresses (224.0.0.0 and above, and FFXX:*)."
+    #
     # --lt-cred-mech "Use long-term credentials mechanism (this one you need for WebRTC usage)."
     # --user is required for long-term authentication mechanism (--lt-cred-mech)
     # --realm is required for current .NET SIPSorcery impl (otherwise it doesn't make correct auth request), 
     #     it's also mentioned in manual "With -a option (--lt-cred-mech), do not forget to set the default realm (-r option)."
     # --fingerprint "TURN server will always add fingerprints to the messages in this session, regardless of the per-server setting."
-    #   TODO: research is --fingerprint required increasing traffic
+    # TODO: research is --fingerprint required increasing traffic
+    #
+    # TODO: enable/setup DTLS support (rm --no-dtls) for clients allowing "stuns:*" url
     command: >
       --listening-port=3478
       --relay-threads=1
       --no-cli
-      --no-stun
       --no-tcp
       --no-tls
       --no-dtls
