@@ -5,7 +5,8 @@ services:
   # Host mode cannot be used for several servers on minimum number of swarm nodes.
   #
   # TURN server for server deployments allowed only in internal network.
-  # STUN server for clients allowing communications in non-symmetric NATs.
+  # STUN server for clients allowing communications in restricted cone / symmetric NATs.
+  #   https://en.wikipedia.org/wiki/Network_address_translation#Methods_of_translation
   # TODO: research can STUN be disabled (because client works without it when server in host mode), 
   #       possibly forwarding (ufw rules) should be set instead allowing server<->client communication via TURN relay on server side  
   #

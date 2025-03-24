@@ -33,7 +33,7 @@ namespace Shared.Tp.Rtc
             _receiver = receiver;
         }
 
-        protected async Task<RtcSdpInit> ObtainOffer(CancellationToken cancellationToken)
+        protected async Task<RtcOffer> ObtainOffer(CancellationToken cancellationToken)
         {
             Log.Info("request");
             var offer = await _service.GetOffer(cancellationToken);
@@ -43,7 +43,7 @@ namespace Shared.Tp.Rtc
             Log.AddCategorySuffix($" <{_linkId}>");
             _linkToken = offer.LinkToken;
 
-            return offer.SdpInit;
+            return offer;
         }
 
         protected async Task<RtcIcInit[]> ReportAnswer(RtcSdpInit answer, CancellationToken cancellationToken)

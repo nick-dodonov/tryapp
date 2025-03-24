@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
-using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
@@ -25,7 +24,7 @@ namespace Shared.Tp.Rtc.Sip
         private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<SipRtcService> _logger;
 
-        private readonly IOptionsMonitor<SipRtcConfig> _configOptionsMonitor;
+        private readonly IOptionsMonitor<SipRtcConfig> _configOptions;
         
         private readonly ConcurrentDictionary<string, SipRtcLink> _links = new(); // token->link
 
@@ -39,7 +38,7 @@ namespace Shared.Tp.Rtc.Sip
         private int _globalLinkCounter;
         private ITpListener? _listener;
 
-        public SipRtcService(IOptionsMonitor<SipRtcConfig> configOptionsMonitor, ILoggerFactory loggerFactory)
+        public SipRtcService(IOptionsMonitor<SipRtcConfig> configOptions, ILoggerFactory loggerFactory)
         {
             _loggerFactory = loggerFactory;
             _logger = loggerFactory.CreateLogger<SipRtcService>();
@@ -48,9 +47,8 @@ namespace Shared.Tp.Rtc.Sip
             _logger.Info($"SIPSorcery version {sipVersion}");
             SIPSorcery.LogFactory.Set(loggerFactory);
 
-            _configOptionsMonitor = configOptionsMonitor;
-            var iceStr = string.Join(", ", _configOptionsMonitor.CurrentValue.IceServers?.Select(x => $"\"{x.Url}\"") ?? Enumerable.Empty<string>());
-            _logger.Info($"Initial iceServers=[{iceStr}]");
+            _configOptions = configOptions;
+            _logger.Info($"Startup {_configOptions.CurrentValue}");
         }
 
         async ValueTask<RtcOffer> IRtcService.GetOffer(CancellationToken cancellationToken)
@@ -62,7 +60,7 @@ namespace Shared.Tp.Rtc.Sip
             var link = new SipRtcLink(id, token, this, _loggerFactory);
             _links.TryAdd(token, link);
 
-            var config = _configOptionsMonitor.CurrentValue;
+            var config = _configOptions.CurrentValue;
             var configuration = new RTCConfiguration
             {
                 //iceServers = [new() { urls = "stun:stun.sipsorcery.com" }]
@@ -89,7 +87,8 @@ namespace Shared.Tp.Rtc.Sip
             {
                 LinkId = id,
                 LinkToken = token,
-                SdpInit = sdpInit.ToShared()
+                SdpInit = sdpInit.ToShared(),
+                Config = config.RemoteConfig
             };
         }
 

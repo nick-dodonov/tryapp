@@ -30,14 +30,13 @@ namespace Shared.Tp.Rtc
 
         public RtcSdpInit SdpInit;
 
-        public RtcOffer(int linkId, string linkToken, in RtcSdpInit sdpInit)
-        {
-            LinkId = linkId;
-            LinkToken = linkToken;
-            SdpInit = sdpInit;
-        }
+        /// <summary>
+        /// Suggested rtc peer connection configuration.
+        /// It allows to set up the same ICE servers as remote peer (restricted cone / symmetric NATs hole punching)  
+        /// </summary>
+        public RtcConfig? Config;
 
-        public override string ToString() => $"{nameof(RtcOffer)}({LinkId} '{LinkToken}' {SdpInit})";
+        public override string ToString() => $"{nameof(RtcOffer)}({LinkId} '{LinkToken}' {SdpInit}{(Config != null ? $" {Config}" : null)})";
     }
 
     /// <summary>
@@ -50,9 +49,9 @@ namespace Shared.Tp.Rtc
         public string type;
         public string sdp;
         // ReSharper restore InconsistentNaming
-        
+
         public override string ToString() => $"{nameof(RtcSdpInit)}({ToJson()})";
-        
+
         private string? _json;
         public string ToJson() => _json ??= WebSerializer.Default.Serialize(this);
 
