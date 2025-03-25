@@ -34,7 +34,6 @@ jobs:
           step_run: |
             #### general stack deploy 
             set -x
-            exit 111 #TODO: remove after test
 
             # initial setup #TODO: rm after swarm secrets will be used
             ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}

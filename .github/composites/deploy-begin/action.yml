@@ -1,4 +1,11 @@
 # https://docs.github.com/en/rest/deployments/deployments
+# NOTE:
+# ```
+# permissions:
+#   deployments: write
+# ```
+# required for deployment in workflow to create/update deployment/status
+#   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
 name: GitHub Deployment Begin
 description: Begin GitHub deployment environment with in-progress status and additional information
 inputs:

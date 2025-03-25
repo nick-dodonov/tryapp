@@ -13,10 +13,8 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.run_attempt == 1 }}
 
-    # required for deployment
-    #   https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/controlling-permissions-for-github_token
     permissions:
-      deployments: write  # create/update deployment/status
+      deployments: write
 
     steps:
       - uses: actions/checkout@v4
@@ -25,25 +23,10 @@ jobs:
             .github/
             deploy/portainer/
 
-      # https://docs.github.com/en/rest/deployments/deployments
-      - name: Register Deployment
-        run: |
-          #### create deployment
-          DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" \
-            -d '{
-              "ref": "'${{ github.sha }}'",
-              "environment": "infra-portainer"
-            }' \
-            https://api.github.com/repos/${{ github.repository }}/deployments)
-          echo "deployment: $DEPLOYMENT_REGISTER"
-          DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
-          echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
-
-      - name: Deployment Status (in_progress)
-        uses: ./.github/composites/deploy-status
+      - uses: ./.github/composites/deploy-begin
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          state: in_progress
+          environment: infra-portainer
 
       - uses: ./.github/composites/remote-deploy
         with:
@@ -68,18 +51,11 @@ jobs:
             # store deployment id allowing to make status inactive on stop
             ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
 
-      - name: Deployment Status (success)
-        uses: ./.github/composites/deploy-status
+      - uses: ./.github/composites/deploy-status
+        if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          state: success
-
-      - name: Deployment Status (failure)
-        uses: ./.github/composites/deploy-status
-        if: failure()
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          state: failure
+          state: ${{ job.status }}
 
   stop:
     name: Stop Deployment
