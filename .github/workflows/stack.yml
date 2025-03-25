@@ -57,7 +57,7 @@ jobs:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Stand Stack Deploy STAND_NAME=${{ env.STAND_NAME }} (stack name '${{ env.STACK_NAME }}')
+          step_name: Stand Stack Deploy STAND_NAME=${{ env.STAND_NAME }} STACK_NAME=${{ env.STACK_NAME }}
           step_run: |
             #### stand stack deploy
             set -x

@@ -1,0 +1,22 @@
+name: GitHub Deployment End
+description: End GitHub deployment with success or failed status and additional information
+inputs:
+  token:
+    required: true
+    description: "GitHub token"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Deployment Status (success)
+      uses: ./.github/composites/deploy-status
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        state: success
+
+    - name: Deployment Status (failure)
+      uses: ./.github/composites/deploy-status
+      if: failure()
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        state: failure

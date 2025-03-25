@@ -1,0 +1,33 @@
+# https://docs.github.com/en/rest/deployments/deployments
+name: GitHub Deployment Begin
+description: Begin GitHub deployment environment with in-progress status and additional information
+inputs:
+  token:
+    required: true
+    description: "GitHub token"
+  environment:
+    required: true
+    description: "Deployment environment"
+
+runs:
+  using: "composite"
+  steps:
+    - name: Register Deployment
+      shell: bash
+      run: |
+        #### create deployment
+        DEPLOYMENT_REGISTER=$(curl -X POST -H "Authorization: token ${{ inputs.token }}" \
+          -d '{
+            "ref": "'${{ github.sha }}'",
+            "environment": "${{ inputs.environment }}"
+          }' \
+          https://api.github.com/repos/${{ github.repository }}/deployments)
+        echo "deployment: $DEPLOYMENT_REGISTER"
+        DEPLOYMENT_ID=$(echo $DEPLOYMENT_REGISTER | jq -r .id)
+        echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+
+    - name: Deployment Status (in_progress)
+      uses: ./.github/composites/deploy-status
+      with:
+        token: ${{ inputs.token }}
+        state: in_progress

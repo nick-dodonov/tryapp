@@ -1,5 +1,6 @@
-# Infra general services (proxies to access dynamic app deployments)
-name: General Services
+# General Stack Services (proxies to access dynamic stand deployments)
+name: General Stack
+run-name: General Stack Deploy (${{ github.sha }})
 
 on:
   workflow_dispatch:
@@ -9,6 +10,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/composites/deploy-begin
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: infra-general
+
       - uses: ./.github/composites/remote-deploy
         env:
           # environment variables that are used for compose
@@ -20,8 +27,9 @@ jobs:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: General Stack Deploy STACK_NAME=${{ env.STACK_NAME }}
           step_run: |
-            #### general services stack deploy 
+            #### general stack deploy 
             set -x
 
             # initial setup #TODO: rm after swarm secrets will be used
@@ -42,3 +50,7 @@ jobs:
             #TODO: enable coturn reload after config instead of CLI arguments will be used
             # # force coturn reload over updated configs
             # docker service update --force ${{ env.STACK_NAME }}_coturn
+
+      - uses: ./.github/composites/deploy-end
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
