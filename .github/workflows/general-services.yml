@@ -56,5 +56,6 @@ jobs:
             # docker service update --force ${{ env.STACK_NAME }}_coturn
 
       - uses: ./.github/composites/deploy-end
+        if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
