@@ -6,6 +6,7 @@ services:
       SipRtcConfig__IceServers__0__Url: turn:${SERVER_NAME:-localhost} 
       SipRtcConfig__IceServers__0__Username: ${TURN_USERNAME:-user}
       SipRtcConfig__IceServers__0__Password: ${TURN_PASSWORD:-pass}
+      SipRtcConfig__RemoteConfig__IceServers__0__Url: stun:${SERVER_NAME:-localhost}
 
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
   #TODO: add renew part to service
