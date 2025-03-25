@@ -85,17 +85,20 @@ function RtcInit(connectAnswerCallback, connectCandidatesCallback, connectComple
     RtcApi.receivedCallback = receivedCallback;
 }
 
-function RtcConnect(managedPtr, offerPtr) {
+function RtcConnect(managedPtr, offerPtr, configPtr) {
     const offerStr = UTF8ToString(offerPtr);
-    const offer = JSON.parse(offerStr);
-    console.log("RtcConnect: offer:", offer);
+    const configStr = UTF8ToString(configPtr);
 
-    //const STUN_URL = "stun:stun.sipsorcery.com";
-    //pc = new RTCPeerConnection({ iceServers: [{ urls: STUN_URL }] });
-    pc = new RTCPeerConnection();
+    const offer = JSON.parse(offerStr);
+    const config = configStr ? JSON.parse(configStr): null;
+
+    console.log("RtcConnect: offer/config:", offer, config);
+    const pc = new RTCPeerConnection(config);
+
+    // noinspection JSUndefinedPropertyAssignment
     pc.managedPtr = managedPtr;
     const nativeHandle = RtcApi.AddNextPeer(pc);
-    
+
     pc.onconnectionstatechange = (event) => {
         const connectionState = pc.connectionState;
         console.log("RtcConnect: onconnectionstatechange:", connectionState);

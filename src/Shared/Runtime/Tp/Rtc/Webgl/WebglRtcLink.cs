@@ -1,6 +1,5 @@
 #if UNITY_5_6_OR_NEWER
 using System;
-using System.Buffers;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -68,7 +67,9 @@ namespace Shared.Tp.Rtc.Webgl
         {
             Log.Info(".");
             var offer = await ObtainOffer(cancellationToken);
-            _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, offer.ToJson());
+            _nativeHandle = WebglRtcNative.RtcConnect(_managedPtr, 
+                offer.SdpInit.ToJson(),
+                offer.Config?.ToJson());
 
             Log.Info($"result nativeHandle={_nativeHandle}, awaiting opened channel");
             await _connectTcs.Task;
