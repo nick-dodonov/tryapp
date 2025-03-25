@@ -9,7 +9,7 @@ networks:
     external: true
 
 services:
-  web:
+  nginx:
     networks:
       - general_shared
 

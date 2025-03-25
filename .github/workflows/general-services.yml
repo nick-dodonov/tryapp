@@ -39,4 +39,4 @@ jobs:
             # docker service update --force ${{ env.STACK_NAME }}_coturn
 
             # force nginx template render and reload #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
-            docker service update --force ${{ env.STACK_NAME }}_web
+            docker service update --force ${{ env.STACK_NAME }}_nginx
