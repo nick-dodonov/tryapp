@@ -48,16 +48,16 @@ jobs:
       - uses: ./.github/composites/remote-deploy
         env:
           # environment variables that are used for compose
-          STAND_NAME: ${{ github.ref_name }}
-          STACK_NAME: stand-${{ env.STAND_NAME }}
+          STAND_NAME: ${{ github.head_ref || github.ref_name }}
+          STACK_NAME: stand-${{ github.head_ref || github.ref_name }}
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Docker Stack Deploy
+          step_name: Docker Stack Deploy ('${{ env.STAND_NAME }}' - '${{ github.head_ref || github.ref_name }} ')
           step_run: |
-            #### docker stack deploy general services
+            #### server stand stack deploy ('${{ env.STAND_NAME }}' - '${{ github.head_ref || github.ref_name }} ')
             set -x
 
             # docker stack config -c compose.yaml -c compose.release.yaml # diagnose rendered stack
