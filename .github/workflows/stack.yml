@@ -1,4 +1,5 @@
-name: Stack Deploy
+name: Stand Stack
+run-name: Stand ${{ github.sha }}
 
 on:
   workflow_dispatch:
@@ -7,9 +8,14 @@ env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}/src/Server
 
+permissions:
+  deployments: write
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.run_attempt == 1 }}
+
     permissions:
       contents: read
       packages: write
@@ -17,6 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: rlespinasse/github-slug-action@v5
+
+      - uses: ./.github/composites/deploy-begin
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: stand-${{ env.GITHUB_REF_POINT_SLUG }}
 
       ################################################################
       # Server Build
@@ -45,7 +56,7 @@ jobs:
       #TODO: sign the published docker image
 
       ################################################################
-      # Server Deploy (custom docker stack deploy step much faster than docker-stack-deploy action)
+      # Stand Deploy (custom docker stack deploy step much faster than docker-stack-deploy action)
       - uses: ./.github/composites/remote-deploy
         env:
           # environment variables that are used for compose
@@ -57,17 +68,20 @@ jobs:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Stand Stack Deploy STAND_NAME=${{ env.STAND_NAME }} STACK_NAME=${{ env.STACK_NAME }}
+          step_name: Deploy Stand Stack STAND_NAME=${{ env.STAND_NAME }} STACK_NAME=${{ env.STACK_NAME }}
           step_run: |
             #### stand stack deploy
             set -x
 
-            # docker stack config -c compose.yaml -c compose.release.yaml # diagnose rendered stack
+            clean_deployment_id ${{ env.STACK_NAME }}
+
             docker stack deploy \
               --with-registry-auth \
               -c compose.yaml \
               -c compose.release.yaml \
               ${{ env.STACK_NAME }}
+
+            save_deployment_id ${{ env.STACK_NAME }}
 
             # deploy test pages
             COMMIT_SHA=$GITHUB_SHA_SHORT #${COMMIT_SHA:0:7}
@@ -75,3 +89,40 @@ jobs:
             sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
             sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
             scp -r pages/ $SSH_TARGET:.
+
+      - uses: ./.github/composites/deploy-status
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ job.status }}
+
+  ################################################################
+  # Stand Stop
+  stop:
+    runs-on: ubuntu-latest
+    if: ${{ github.run_attempt > 1 }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/
+      - uses: rlespinasse/github-slug-action@v5
+
+      - uses: ./.github/composites/remote-deploy
+        env:
+          STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Stop Stand Stack STACK_NAME=${{ env.STACK_NAME }}
+          step_run: |
+            #### stop deployment
+            set -x
+            load_deployment_id ${{ env.STACK_NAME }}
+            docker stack rm ${{ env.STACK_NAME }}
+
+      - uses: ./.github/composites/deploy-status
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: 'inactive' 

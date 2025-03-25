@@ -1,6 +1,6 @@
-# General Stack Services (proxies to access dynamic stand deployments)
+# General services (proxies to access dynamic stand deployments)
 name: General Stack
-run-name: General Stack ${{ github.sha }}
+run-name: General ${{ github.sha }}
 
 on:
   workflow_dispatch:
