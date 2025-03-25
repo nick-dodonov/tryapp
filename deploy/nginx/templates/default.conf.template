@@ -42,9 +42,17 @@ server {
         #   https://stackoverflow.com/questions/50248522/nginx-will-not-start-with-host-not-found-in-upstream
         #   https://stackoverflow.com/questions/32845674/nginx-how-to-not-exit-if-host-not-found-in-upstream/32846603#32846603
         # TODO: setup upstreams with cache to speedup requests
-        resolver 127.0.0.11 valid=30s;                                                                                                                  
-        set $upstream server;                                                                                                                           
-        proxy_pass http://$upstream:8080$request_uri;                                                                                                   
+        resolver 127.0.0.11 valid=30s;
+        set $upstream server;
+        proxy_pass http://$upstream:8080$request_uri;
+    }
+
+    # /<stand>/api/foo -> http://<stand>:8080/api/foo
+    location ~* ^/([^/]+)/api {
+        resolver 127.0.0.11 valid=30s;
+        set $upstream $1; # take first part as upstream
+        rewrite ^/[^/]+(/api.*)$ $1 break; # remove it from URI and don't search location again
+        proxy_pass http://$upstream:8080$uri$is_args$args; # $request_uri isn't rewritten, so mimic it
     }
 
     location / {
