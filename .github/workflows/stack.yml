@@ -16,6 +16,7 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@v5
 
       ################################################################
       # Server Build
@@ -51,13 +52,14 @@ jobs:
           STAND_NAME: ${{ github.head_ref || github.ref_name }}
           STACK_NAME: stand-${{ github.head_ref || github.ref_name }}
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
+          SERVER_IMAGE: ${{ steps.meta.outputs.tags }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Docker Stack Deploy ('${{ env.STAND_NAME }}' - '${{ github.head_ref || github.ref_name }} ')
+          step_name: Stand Stack Deploy STAND_NAME=${{ env.STAND_NAME }} (stack name '${{ env.STACK_NAME }}')
           step_run: |
-            #### server stand stack deploy ('${{ env.STAND_NAME }}' - '${{ github.head_ref || github.ref_name }} ')
+            #### stand stack deploy GITHUB_REF_POINT=${{ env.GITHUB_REF_POINT }} GITHUB_REF_POINT_SLUG=${{ env.GITHUB_REF_POINT_SLUG }}
             set -x
 
             # docker stack config -c compose.yaml -c compose.release.yaml # diagnose rendered stack
