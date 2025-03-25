@@ -2,6 +2,8 @@
 #   Otherwise deployed server cannot connect to host bounded coturn (can be easily diagnosed with ncat). 
 
 networks:
+  general_shared: # reason in comment of server compose
+    external: true
   host:
     name: host
     external: true

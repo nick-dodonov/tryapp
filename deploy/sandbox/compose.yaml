@@ -9,6 +9,8 @@ services:
     command: /bin/sh -c "sed -i 's/80;/181;/' /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"
     ports:
       - "181:181"
+    networks:
+      - general_shared
 
   # # https://github.com/coturn/coturn/blob/master/docker/coturn/README.md
   # coturn:
@@ -48,6 +50,8 @@ services:
 
 # swarm
 networks:
+  general_shared:
+    external: true
   host:
     name: host
     external: true

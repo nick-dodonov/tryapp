@@ -1,4 +1,15 @@
+networks:
+  # Manually created shared network (attachable allowing debug from non-swarm containers):
+  #   docker network create --driver overlay --attachable general_shared
+  # Allows access to different staging stacks from shared general services (nginx, etc)
+  general_shared:
+    external: true
+
 services:
+  web:
+    networks:
+      - general_shared
+
   server:
     environment:
       # TODO: auto-detect instead of hard-code, coturn bound on host "docker_gwbridge" network interface
@@ -7,6 +18,10 @@ services:
       SipRtcConfig__IceServers__0__Username: ${TURN_USERNAME:-user}
       SipRtcConfig__IceServers__0__Password: ${TURN_PASSWORD:-pass}
       SipRtcConfig__RemoteConfig__IceServers__0__Url: stun:${SERVER_NAME:-localhost}
+    networks:
+      general_shared:
+        aliases:
+          - server.${STACK_NAME:-local}
 
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
   #TODO: add renew part to service
