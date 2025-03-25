@@ -18,9 +18,9 @@ services:
       - host
 
   #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
-  #TODO: add renew part to service
+  #TODO: add renew part after long timeouts
+  #TODO: add nginx reload after certificate renew
   cert:
-    image: certbot/certbot:latest
     deploy:
       restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
         condition: on-failure

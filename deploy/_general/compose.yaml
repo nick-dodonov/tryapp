@@ -22,11 +22,11 @@ services:
       # TODO: separate balancer for X-Real-IP (maybe learn HAProxy usage)
       - mode: host
         protocol: tcp
-        published: 1080 #TODO: rollback after fix
+        published: 80
         target: 80
       - mode: host
         protocol: tcp
-        published: 10443 #TODO: rollback after fix
+        published: 443
         target: 443
 
   # TODO: user/pass setup for remote deployment

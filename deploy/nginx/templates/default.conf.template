@@ -17,7 +17,7 @@ server {
     }
 
     location /api {
-# CORS headers are added to service app instead (simplified local develop) 
+        # DISABLED: CORS headers are added to service app instead (simplified local develop) 
 #         # enables CORS to develop client against deployed server
 #         #   https://docs.unity3d.com/Manual/webgl-networking.html
 #         #   https://enable-cors.org/server_nginx.html
@@ -32,16 +32,11 @@ server {
 #         }
 #         add_header 'Access-Control-Allow-Origin' '*';
 
-        # temporary both nginx and server in host network mode now (simplify WebRTC impl)
-        #proxy_pass http://host.docker.internal:8080/api;
-        #proxy_pass http://localhost:8080/api;
-
         # using $upstream variable to workaround '[emerg] host not found in upstream ".." in /etc/nginx/conf.d/default.conf'
         #   https://dev.to/danielkun/nginx-everything-about-proxypass-2ona#let-nginx-start-even-when-not-all-upstream-hosts-are-available
         #   https://github.com/NginxProxyManager/nginx-proxy-manager/issues/1807
         #   https://stackoverflow.com/questions/50248522/nginx-will-not-start-with-host-not-found-in-upstream
         #   https://stackoverflow.com/questions/32845674/nginx-how-to-not-exit-if-host-not-found-in-upstream/32846603#32846603
-        # TODO: setup upstreams with cache to speedup requests
         resolver 127.0.0.11 valid=30s;
         set $upstream server;
         proxy_pass http://$upstream:8080$request_uri;
@@ -50,10 +45,10 @@ server {
     # /<stand>/api/foo -> http://<stand>:8080/api/foo
     location ~* ^/([^/]+)/api {
         resolver 127.0.0.11 valid=30s;
-        set $upstream $1; # take first part as upstream
+        set $stand $1; # take first path part as stand name
         rewrite ^/[^/]+(/api.*)$ $1 break; # remove it from URI and don't search location again
         # server service set network alias with stand name
-        proxy_pass http://server.$upstream:8080$uri$is_args$args; # $request_uri isn't rewritten so mimic it w/ uri/args
+        proxy_pass http://server.$stand:8080$uri$is_args$args; # $request_uri isn't rewritten so mimic it w/ uri/args
     }
 
     location / {

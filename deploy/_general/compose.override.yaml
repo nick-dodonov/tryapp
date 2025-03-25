@@ -13,7 +13,6 @@ services:
 
   # development: generate fake self-signed certificate with `openssl` for localhost nginx
   cert:
-    image: certbot/certbot:latest
     entrypoint:
       # TODO: don't touch existing key/cert
       - sh

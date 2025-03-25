@@ -2,15 +2,6 @@ name: Stack Deploy
 
 on:
   workflow_dispatch:
-  #DISABLE until frequent refactoring via main branch
-  # push: # auto-deploy on change (simplify deploy development)
-  #   #TMP branches: [ 'main' ]
-  #   paths:
-  #     - '.github/workflows/stack.yml'
-  #     - '.github/composites/remote-ssh/**'
-  #     - 'compose.yaml'
-  #     - 'compose.release.yaml'
-  #     - 'deploy/nginx/**'
 
 env:
   REGISTRY: ghcr.io
@@ -56,37 +47,27 @@ jobs:
       # Server Deploy (custom docker stack deploy step much faster than docker-stack-deploy action)
       - uses: ./.github/composites/remote-deploy
         env:
-          STACK_NAME: tt
+          # environment variables that are used for compose
+          STAND_NAME: ${{ github.ref_name }}
+          STACK_NAME: stand-${{ env.STAND_NAME }}
+          SERVER_NAME: ${{ secrets.REMOTE_HOST }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Docker Stack Deploy
           step_run: |
-            echo "==== prepare templates rending and initial deploy"
-            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
-            export SERVER_NAME=${{ secrets.REMOTE_HOST }}
-            export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
-            export SERVER_IMAGE=${{ steps.meta.outputs.tags }}
-            # initial tmp certbot setup #TODO: rm in favor of swarm secrets
-            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+            #### docker stack deploy general services
+            set -x
 
-            echo "==== deploy configs" #tmp until app image isn't built
-            scp -r deploy/ $SSH_TARGET:.
-
-            echo "==== docker stack deploy"
-            #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
+            # docker stack config -c compose.yaml -c compose.release.yaml # diagnose rendered stack
             docker stack deploy \
               --with-registry-auth \
               -c compose.yaml \
               -c compose.release.yaml \
               ${{ env.STACK_NAME }}
 
-            # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
-            echo "==== docker service update"
-            docker service update --force ${{ env.STACK_NAME }}_web
-
-            echo "==== deploy test pages"
+            # deploy test pages
             set -x # test echo on
             COMMIT_SHA=${{ github.sha }}
             COMMIT_SHA=${COMMIT_SHA:0:7}
