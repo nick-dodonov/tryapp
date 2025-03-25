@@ -1,7 +1,7 @@
 #if UNITY_5_6_OR_NEWER && (UNITY_EDITOR || !UNITY_WEBGL)
 using System;
-using System.Buffers;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -25,11 +25,25 @@ namespace Shared.Tp.Rtc.Unity
 
         public async Task Connect(CancellationToken cancellationToken)
         {
-            var sharedOffer = await ObtainOffer(cancellationToken);
-            Log.Info($"request: {sharedOffer}");
-            var offer = sharedOffer.FromShared();
+            Log.Info(".");
+            var offer = await ObtainOffer(cancellationToken);
 
-            _peerConnection = new();
+            var offerSdp = offer.SdpInit.FromShared();
+
+            var configuration = new RTCConfiguration()
+            {
+                iceServers = offer.Config?.IceServers?.Select(x => new RTCIceServer
+                {
+                    urls = new[] { x.Url },
+                    username = x.Username,
+                    credential = x.Password,
+                }).ToArray()
+            };
+
+            var iceServersStr = string.Join(", ", configuration.iceServers?.Select(x => $"\"{x.urls[0]}\"") ?? Enumerable.Empty<string>());
+            Log.Info($"creating peer connection: [{iceServersStr}]");
+            _peerConnection = new(ref configuration);
+
             _peerConnection.OnIceCandidate = candidate =>
             {
                 var sharedCandidate = candidate.ToShared();
@@ -52,6 +66,7 @@ namespace Shared.Tp.Rtc.Unity
             };
             _peerConnection.OnIceConnectionChange = state =>
                 Log.Info($"OnIceConnectionChange: {state}");
+
             _peerConnection.OnConnectionStateChange = state =>
             {
                 Log.Info($"OnConnectionStateChange: {state}");
@@ -67,6 +82,7 @@ namespace Shared.Tp.Rtc.Unity
                         break;
                 }
             };
+
             _peerConnection.OnDataChannel = channel =>
             {
                 Log.Info($"OnDataChannel: {Describe(channel)}");
@@ -78,14 +94,15 @@ namespace Shared.Tp.Rtc.Unity
                 channel.OnError = error => Log.Info($"OnDataChannel: OnError: {error}");
             };
 
-            await _peerConnection.SetRemoteDescription(ref offer);
+            Log.Info($"setting remote sdp: {offerSdp.type}\n{offerSdp.sdp}");
+            await _peerConnection.SetRemoteDescription(ref offerSdp);
 
-            Log.Info("creating answer");
+            Log.Info("creating answer sdp");
             var answerOp = _peerConnection.CreateAnswer();
             await answerOp;
             var answer = answerOp.Desc;
-            var sharedAnswer = answer.ToShared();
-            Log.Info($"created answer: {sharedAnswer}");
+
+            Log.Info($"setting answer sdp: {answer.type}\n{answer.sdp}");
             await _peerConnection.SetLocalDescription(ref answer);
 
             // send answer to remote side and obtain remote ice candidates
@@ -94,15 +111,15 @@ namespace Shared.Tp.Rtc.Unity
             // add remote ICE candidates
             foreach (var candidate in candidates)
             {
-                Log.Info($"adding ice candidate: {candidate}");
+                Log.Info($"adding remote ice candidate: {candidate}");
                 var unityCandidateInit = candidate.FromShared();
                 var unityCandidate = new RTCIceCandidate(unityCandidateInit);
                 var rc = _peerConnection.AddIceCandidate(unityCandidate);
                 if (!rc)
-                    Log.Error("FAILED to add ice candidate");
+                    Log.Error("FAILED to add remote ice candidate");
             }
 
-            Log.Info("awaiting data channel is opened");
+            Log.Info("awaiting data channel");
             await _dataChannelTcs.Task.WaitAsync(cancellationToken);
             Log.Info("connection established");
         }

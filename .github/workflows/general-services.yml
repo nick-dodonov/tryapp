@@ -1,5 +1,6 @@
-# Infra general services (proxies to access dynamic app deployments)
-name: General Services
+# General services (proxies to access dynamic stand deployments)
+name: General Stack
+run-name: General ${{ github.sha }}
 
 on:
   workflow_dispatch:
@@ -7,14 +8,54 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    permissions:
+      deployments: write
+
     steps:
       - uses: actions/checkout@v4
+
+      - uses: ./.github/composites/deploy-begin
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: infra-general
+
       - uses: ./.github/composites/remote-deploy
+        env:
+          # environment variables that are used for compose
+          STACK_NAME: general
+          DATA_ROOT: /home/${{ secrets.REMOTE_USER }}
+          SERVER_NAME: ${{ secrets.REMOTE_HOST }}
+          DOMAIN_EMAIL: ${{ secrets.DOMAIN_EMAIL }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: General Stack Deploy STACK_NAME=${{ env.STACK_NAME }}
           step_run: |
-            #### docker stack deploy of generatl services
-            exit 111
-            # docker stack deploy --with-registry-auth -c compose.yaml -c compose.release.yaml tt
+            #### general stack deploy 
+            set -x
+
+            # initial setup #TODO: rm after swarm secrets will be used
+            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+
+            # deploy configs #TODO: rm after general nginx proxy image will be built
+            scp -r deploy/ $SSH_TARGET:.
+
+            docker stack deploy \
+              -c ./deploy/_general/compose.yaml \
+              -c ./deploy/_general/compose.swarm.yaml \
+              ${{ env.STACK_NAME }}
+
+            #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
+            # force nginx config template render and reload
+            docker service update --force ${{ env.STACK_NAME }}_nginx
+
+            #TODO: enable coturn reload after config instead of CLI arguments will be used
+            # # force coturn reload over updated configs
+            # docker service update --force ${{ env.STACK_NAME }}_coturn
+
+      - uses: ./.github/composites/deploy-status
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ job.status }}

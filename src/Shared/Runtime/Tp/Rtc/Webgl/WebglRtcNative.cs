@@ -18,7 +18,7 @@ namespace Shared.Tp.Rtc.Webgl
         /// </summary>
         /// <returns>Native handle to associate with this connection</returns>
         [DllImport("__Internal")]
-        public static extern int RtcConnect(IntPtr managedPtr, string offer);
+        public static extern int RtcConnect(IntPtr managedPtr, string offerJson, string? configJson);
 
         [DllImport("__Internal")]
         public static extern int RtcAddIceCandidate(int nativeHandle, string candidateJson);

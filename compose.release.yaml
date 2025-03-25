@@ -1,55 +1,20 @@
 networks:
-  host:
-    name: host
+  # Manually created shared network (attachable allowing debug from non-swarm containers):
+  #   docker network create --driver overlay --attachable general_shared
+  # Allows access to different staging stacks from shared general services (nginx, etc)
+  general_shared:
     external: true
 
 services:
-  # temporary solution to test webrtc udp-connectivity
-  web:
-    networks:
-      - host
   server:
-    networks:
-      - host
-
-  #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
-  #TODO: add renew part to service
-  cert:
-    image: certbot/certbot:latest
-    deploy:
-      restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
-        condition: on-failure
-        delay: 10s
-        max_attempts: 1
-    volumes:
-      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
-      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
     environment:
-      - SERVER_NAME=${SERVER_NAME:-localhost}
-    #command:
-    entrypoint:
-      # certbot:
-      #   --test-cert - Obtain a test certificate from a staging server
-      #   --dry-run - Perform a test run against the Let's Encrypt staging server, obtaining test (invalid) certificates but not saving them to disk
-      # chown - workaround for rootless nginx container (101 is UID of nginx user)
-      #TODO: rm chown after switch to secrets
-      - sh
-      - -c
-      - |
-        set -ex
-        echo ">>>> certbot request" 
-        certbot \
-          certonly \
-          --webroot \
-          --webroot-path=/var/www/certbot \
-          --non-interactive \
-          --agree-tos \
-          --email ${DOMAIN_EMAIL} \
-          --no-eff-email \
-          --domain ${SERVER_NAME} \
-          --keep-until-expiring
-        chown -R 101 \
-          /etc/letsencrypt/archive \
-          /etc/letsencrypt/live
-        echo "<<<< certbot finished"
-        #read -n 1 -s -r -p "Press any key to exit (debugging)..."
+      # TODO: auto-detect instead of hard-code, coturn bound on host "docker_gwbridge" network interface
+      # TODO: coturn setup --relay-ip allowing to access via internal network interface only (turn:172.18.0.1 returns 172.18.0.1 as relay now)
+      SipRtcConfig__IceServers__0__Url: turn:${SERVER_NAME:-localhost} 
+      SipRtcConfig__IceServers__0__Username: ${TURN_USERNAME:-user}
+      SipRtcConfig__IceServers__0__Password: ${TURN_PASSWORD:-pass}
+      SipRtcConfig__RemoteConfig__IceServers__0__Url: stun:${SERVER_NAME:-localhost}
+    networks:
+      general_shared:
+        aliases:
+          - server.${STAND_NAME:-local}

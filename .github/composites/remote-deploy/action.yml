@@ -34,4 +34,32 @@ runs:
           # export variable for implicit docker usage in run
           export DOCKER_HOST="ssh://${SSH_TARGET}"
 
+          # allow to cleanup previous deployment id (fixing previous incorrect stop)
+          clean_deployment_id() {
+            if [[ -z "$1" ]]; then
+                echo "clean_deployment_id: name must be specified"
+                return 1
+            fi
+            ssh $SSH_TARGET rm -f deployment-$1.txt
+          }
+
+          # allow to store deployment id (to make status inactive on stop)
+          save_deployment_id() {
+            if [[ -z "$1" || -z "$DEPLOYMENT_ID" ]]; then
+                echo "save_deployment_id: name and DEPLOYMENT_ID must be specified"
+                return 1
+            fi
+            ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > deployment-$1.txt'"
+          }
+
+          # allow to obtain deployment id (to make status inactive on stop)
+          load_deployment_id() {
+            if [[ -z "$1" ]]; then
+                echo "load_deployment_id: name must be specified"
+                return 1
+            fi
+            export DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat deployment-$1.txt")
+            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
+          }
+
           ${{ inputs.step_run }}

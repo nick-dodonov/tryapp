@@ -1,3 +1,6 @@
+# TEMP: ignore external dependencies (used only for debugging SIPSorcery now)
+/ext/
+
 # user develop settings
 .env
 .local-deploy.sh

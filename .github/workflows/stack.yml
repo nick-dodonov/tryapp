@@ -1,16 +1,8 @@
-name: Stack Deploy
+name: Stand Stack
+run-name: Stand ${{ github.sha }}
 
 on:
   workflow_dispatch:
-  #DISABLE until frequent refactoring via main branch
-  # push: # auto-deploy on change (simplify deploy development)
-  #   #TMP branches: [ 'main' ]
-  #   paths:
-  #     - '.github/workflows/stack.yml'
-  #     - '.github/composites/remote-ssh/**'
-  #     - 'compose.yaml'
-  #     - 'compose.release.yaml'
-  #     - 'deploy/nginx/**'
 
 env:
   REGISTRY: ghcr.io
@@ -19,13 +11,24 @@ env:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    if: ${{ github.run_attempt == 1 }}
+
     permissions:
       contents: read
       packages: write
+      deployments: write
 
     steps:
-      - uses: actions/checkout@v2 #name: Checkout codebase
+      - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@v5
 
+      - uses: ./.github/composites/deploy-begin
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: stand-${{ env.GITHUB_REF_POINT_SLUG }}
+
+      ################################################################
+      # Server Build
       - uses: docker/setup-buildx-action@v3 #https://github.com/marketplace/actions/docker-setup-buildx
       - uses: docker/login-action@v3 #https://github.com/marketplace/actions/docker-login 
         if: github.event_name != 'pull_request'
@@ -50,43 +53,77 @@ jobs:
           cache-to: type=gha,mode=max
       #TODO: sign the published docker image
 
-      # custom docker stack deploy steps (much faster than docker-stack-deploy action)
-      - uses: ./.github/composites/remote-ssh
+      ################################################################
+      # Stand Deploy (custom docker stack deploy step much faster than docker-stack-deploy action)
+      - uses: ./.github/composites/remote-deploy
+        env:
+          # environment variables that are used for compose
+          STAND_NAME: ${{ env.GITHUB_REF_POINT_SLUG }}
+          STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
+          SERVER_NAME: ${{ secrets.REMOTE_HOST }}
+          SERVER_IMAGE: ${{ steps.meta.outputs.tags }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-          step_name: Docker Stack Deploy
+          step_name: Deploy Stand Stack STAND_NAME=${{ env.STAND_NAME }} STACK_NAME=${{ env.STACK_NAME }}
           step_run: |
-            echo "==== prepare templates rending and initial deploy"
-            export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
-            export SERVER_NAME=${{ secrets.REMOTE_HOST }}
-            export DOMAIN_EMAIL=${{ secrets.DOMAIN_EMAIL }}
-            export SERVER_IMAGE=${{ steps.meta.outputs.tags }}
-            # initial tmp certbot setup #TODO: rm in favor of swarm secrets
-            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+            #### stand stack deploy
+            set -x
 
-            echo "==== deploy configs" #tmp until app image isn't built
-            scp -r deploy/ $SSH_TARGET:.
+            clean_deployment_id ${{ env.STACK_NAME }}
 
-            echo "==== docker stack deploy"
-            export DOCKER_HOST="ssh://${SSH_TARGET}"
-            #docker stack config -c compose.yaml -c compose.release.yaml #diagnose rendered stack
-            docker stack deploy --with-registry-auth -c compose.yaml -c compose.release.yaml tt
+            docker stack deploy \
+              --with-registry-auth \
+              -c compose.yaml \
+              -c compose.release.yaml \
+              ${{ env.STACK_NAME }}
 
-            # force nginx render/reload template #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
-            echo "==== docker service update"
-            docker service update --force tt_web
+            save_deployment_id ${{ env.STACK_NAME }}
 
-            echo "==== deploy test pages"
-            set -x # test echo on
-            COMMIT_SHA=${{ github.sha }}
-            COMMIT_SHA=${COMMIT_SHA:0:7}
-            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
-            echo "COMMIT_SHA=${COMMIT_SHA}"
-            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
+            # deploy test pages
+            COMMIT_SHA=$GITHUB_SHA_SHORT #${COMMIT_SHA:0:7}
+            COMMIT_DATETIME=$(git log -1 --format=%cd "--date=format:%Y-%m-%d %H:%M:%S") #$(date -u +"%Y-%m-%d %H:%M:%S")
             sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
             sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
-            ## trailing / in rsync is important to copy source directory content to different destination folder
-            #rsync -rvv --times pages/ $SSH_TARGET:./pages/
             scp -r pages/ $SSH_TARGET:.
+
+      - uses: ./.github/composites/deploy-status
+        if: always()
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ job.status }}
+
+  ################################################################
+  # Stand Stop
+  stop:
+    runs-on: ubuntu-latest
+    if: ${{ github.run_attempt > 1 }}
+
+    permissions:
+      deployments: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: .github/
+      - uses: rlespinasse/github-slug-action@v5
+
+      - uses: ./.github/composites/remote-deploy
+        env:
+          STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
+        with:
+          ssh_user: ${{ secrets.REMOTE_USER }}
+          ssh_host: ${{ secrets.REMOTE_HOST }}
+          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
+          step_name: Stop Stand Stack STACK_NAME=${{ env.STACK_NAME }}
+          step_run: |
+            #### stop deployment
+            set -x
+            load_deployment_id ${{ env.STACK_NAME }}
+            docker stack rm ${{ env.STACK_NAME }}
+
+      - uses: ./.github/composites/deploy-status
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          state: 'inactive' 
