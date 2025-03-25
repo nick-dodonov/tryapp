@@ -11,12 +11,12 @@ runs:
     - name: Deployment Status (success)
       uses: ./.github/composites/deploy-status
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.token }}
         state: success
 
     - name: Deployment Status (failure)
       uses: ./.github/composites/deploy-status
       if: failure()
       with:
-        token: ${{ secrets.GITHUB_TOKEN }}
+        token: ${{ inputs.token }}
         state: failure
