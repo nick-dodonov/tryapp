@@ -10,3 +10,21 @@
 services:
   coturn:
     network_mode: host
+
+  # development: generate fake self-signed certificate with `openssl` for localhost nginx
+  cert:
+    image: certbot/certbot:latest
+    entrypoint:
+      # TODO: don't touch existing key/cert
+      - sh
+      - -c
+      - |
+        set -ex
+        echo ">>>> certbot emulation for development" 
+        _PATH=/etc/letsencrypt/live/$$SERVER_NAME
+        mkdir -p $$_PATH
+        openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
+          -keyout $$_PATH/privkey.pem \
+          -out    $$_PATH/fullchain.pem \
+          -subj "/C=ZZ/ST=State/L=City/O=Development/CN=localhost"
+        echo "<<<< certbot emulation finished" 

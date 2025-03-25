@@ -7,11 +7,15 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    env:
-      STACK_NAME: general
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/composites/remote-deploy
+        env:
+          # environment variables that are used in compose configuration
+          STACK_NAME: general
+          DATA_ROOT: /home/${{ secrets.REMOTE_USER }}
+          SERVER_NAME: ${{ secrets.REMOTE_HOST }}
+          DOMAIN_EMAIL: ${{ secrets.DOMAIN_EMAIL }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
@@ -19,8 +23,20 @@ jobs:
           step_run: |
             #### docker stack deploy general services
             set -x
+
+            # initial tmp certbot setup #TODO: rm in favor of swarm secrets
+            ssh -T $SSH_TARGET mkdir -p $DATA_ROOT/certbot/{www,conf}
+
+            # deploy services configs (until separate images aren't built)
+            scp -r deploy/ $SSH_TARGET:.
+
             docker stack deploy \
               -c ./deploy/_general/compose.yaml \
               -c ./deploy/_general/compose.swarm.yaml \
               ${{ env.STACK_NAME }}
-            docker service update --force ${{ env.STACK_NAME }}_coturn
+
+            # # force coturn reload over updated configs
+            # docker service update --force ${{ env.STACK_NAME }}_coturn
+
+            # force nginx template render and reload #TODO: /docker-entrypoint.d/20-envsubst-on-templates.sh && nginx -s reload
+            docker service update --force ${{ env.STACK_NAME }}_web

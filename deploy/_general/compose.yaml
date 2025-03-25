@@ -1,4 +1,34 @@
 services:
+  nginx:
+    image: nginx:latest
+    #restart: unless-stopped
+    deploy:
+      restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
+        condition: none
+    volumes:
+      # tmp DATA_ROOT from .env usage until image isn't built
+      - ${DATA_ROOT:-.}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      # templates to render environment variables
+      #   https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration-new-in-119
+      - ${DATA_ROOT:-.}/deploy/nginx/templates:/etc/nginx/templates:ro
+      - ${DATA_ROOT:-.}/pages:/usr/share/nginx/html:ro
+      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:ro
+      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:ro
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-localhost}
+    ports:
+      # using 'host' mode to simplify diagnostics (correct remote IP)
+      #   https://stackoverflow.com/questions/49415595/docker-swarm-get-real-ip-client-host-in-nginx
+      # TODO: separate balancer for X-Real-IP (maybe learn HAProxy usage)
+      - mode: host
+        protocol: tcp
+        published: 1080 #TODO: rollback after fix
+        target: 80
+      - mode: host
+        protocol: tcp
+        published: 10443 #TODO: rollback after fix
+        target: 443
+
   # TODO: user/pass setup for remote deployment
   # TODO: --allowed-peer-ip for TURN in internal network only
   # Workaround to deploy multiple WebRTC servers in docker swarm infrastructure. 
@@ -46,3 +76,12 @@ services:
       --fingerprint
       --log-file=stdout
       --verbose
+
+  #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
+  cert:
+    image: certbot/certbot:latest
+    environment:
+      - SERVER_NAME=${SERVER_NAME:-localhost}
+    volumes:
+      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
+      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw

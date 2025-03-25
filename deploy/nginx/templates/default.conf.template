@@ -52,7 +52,8 @@ server {
         resolver 127.0.0.11 valid=30s;
         set $upstream $1; # take first part as upstream
         rewrite ^/[^/]+(/api.*)$ $1 break; # remove it from URI and don't search location again
-        proxy_pass http://$upstream:8080$uri$is_args$args; # $request_uri isn't rewritten, so mimic it
+        # server service set network alias with stand name
+        proxy_pass http://server.$upstream:8080$uri$is_args$args; # $request_uri isn't rewritten so mimic it w/ uri/args
     }
 
     location / {

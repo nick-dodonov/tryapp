@@ -9,6 +9,46 @@ networks:
     external: true
 
 services:
+  web:
+    networks:
+      - general_shared
+
   coturn:
     networks: 
       - host
+
+  #TODO: try docker swarm secrets https://github.com/eerotal/certbot-docker-swarm
+  #TODO: add renew part to service
+  cert:
+    image: certbot/certbot:latest
+    deploy:
+      restart_policy: # https://docs.docker.com/reference/compose-file/deploy/#restart_policy
+        condition: on-failure
+        delay: 10s
+        max_attempts: 1
+    entrypoint:
+      # certbot:
+      #   --test-cert - Obtain a test certificate from a staging server
+      #   --dry-run - Perform a test run against the Let's Encrypt staging server, obtaining test (invalid) certificates but not saving them to disk
+      # chown - workaround for rootless nginx container (101 is UID of nginx user)
+      #TODO: rm chown after switch to secrets
+      - sh
+      - -c
+      - |
+        set -ex
+        echo ">>>> certbot request" 
+        certbot \
+          certonly \
+          --webroot \
+          --webroot-path=/var/www/certbot \
+          --non-interactive \
+          --agree-tos \
+          --email ${DOMAIN_EMAIL} \
+          --no-eff-email \
+          --domain ${SERVER_NAME} \
+          --keep-until-expiring
+        chown -R 101 \
+          /etc/letsencrypt/archive \
+          /etc/letsencrypt/live
+        echo "<<<< certbot finished"
+        #read -n 1 -s -r -p "Press any key to exit (debugging)..."
