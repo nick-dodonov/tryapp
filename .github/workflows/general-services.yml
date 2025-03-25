@@ -55,7 +55,8 @@ jobs:
             # # force coturn reload over updated configs
             # docker service update --force ${{ env.STACK_NAME }}_coturn
 
-      - uses: ./.github/composites/deploy-end
+      - uses: ./.github/composites/deploy-status
         if: always()
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
+          state: ${{ job.status }}
