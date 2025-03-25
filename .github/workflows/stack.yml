@@ -49,8 +49,8 @@ jobs:
       - uses: ./.github/composites/remote-deploy
         env:
           # environment variables that are used for compose
-          STAND_NAME: ${{ github.head_ref || github.ref_name }}
-          STACK_NAME: stand-${{ github.head_ref || github.ref_name }}
+          STAND_NAME: ${{ env.GITHUB_REF_POINT_SLUG }}
+          STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
           SERVER_IMAGE: ${{ steps.meta.outputs.tags }}
         with:
@@ -59,7 +59,7 @@ jobs:
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Stand Stack Deploy STAND_NAME=${{ env.STAND_NAME }} (stack name '${{ env.STACK_NAME }}')
           step_run: |
-            #### stand stack deploy GITHUB_REF_POINT=${{ env.GITHUB_REF_POINT }} GITHUB_REF_POINT_SLUG=${{ env.GITHUB_REF_POINT_SLUG }}
+            #### stand stack deploy
             set -x
 
             # docker stack config -c compose.yaml -c compose.release.yaml # diagnose rendered stack
@@ -70,14 +70,8 @@ jobs:
               ${{ env.STACK_NAME }}
 
             # deploy test pages
-            set -x # test echo on
-            COMMIT_SHA=${{ github.sha }}
-            COMMIT_SHA=${COMMIT_SHA:0:7}
-            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
-            echo "COMMIT_SHA=${COMMIT_SHA}"
-            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
+            COMMIT_SHA=$GITHUB_SHA_SHORT #${COMMIT_SHA:0:7}
+            COMMIT_DATETIME=$(git log -1 --format=%cd "--date=format:%Y-%m-%d %H:%M:%S") #$(date -u +"%Y-%m-%d %H:%M:%S")
             sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
             sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
-            ## trailing / in rsync is important to copy source directory content to different destination folder
-            #rsync -rvv --times pages/ $SSH_TARGET:./pages/
             scp -r pages/ $SSH_TARGET:.
