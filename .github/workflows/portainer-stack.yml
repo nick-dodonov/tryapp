@@ -1,7 +1,8 @@
-name: Portainer Deploy
+name: Portainer Stack
+run-name: Portainer ${{ github.sha }}
 
 on:
-  workflow_dispatch: # allows the workflow to be triggered manually
+  workflow_dispatch:
 
 env:
   DOCKER_STACK_NAME: portainer
@@ -9,7 +10,6 @@ env:
 
 jobs:
   deploy:
-    name: Update Deployment
     runs-on: ubuntu-latest
     if: ${{ github.run_attempt == 1 }}
 
@@ -37,8 +37,7 @@ jobs:
             #### docker stack deploy
             set -x
 
-            # cleanup previous deployment id (fixes incorrect stop by previous re-run)
-            ssh $SSH_TARGET rm -f portainer_deployment_id.txt
+            clean_deployment_id ${{ env.DOCKER_STACK_NAME }}
 
             export DATA_ROOT="/home/${{ secrets.REMOTE_USER }}"
             export SERVER_NAME=${{ secrets.REMOTE_HOST }}
@@ -48,8 +47,7 @@ jobs:
               -c deploy/portainer/portainer-agent-stack.yml \
               ${{ env.DOCKER_STACK_NAME }}
 
-            # store deployment id allowing to make status inactive on stop
-            ssh $SSH_TARGET sh -c "'echo $DEPLOYMENT_ID > portainer_deployment_id.txt'"
+            save_deployment_id ${{ env.DOCKER_STACK_NAME }}
 
       - uses: ./.github/composites/deploy-status
         if: always()
@@ -58,11 +56,10 @@ jobs:
           state: ${{ job.status }}
 
   stop:
-    name: Stop Deployment
     runs-on: ubuntu-latest
     if: ${{ github.run_attempt > 1 }}
     permissions: 
-      deployments: write # update deployment status
+      deployments: write
 
     steps:
       - uses: actions/checkout@v4
@@ -77,16 +74,11 @@ jobs:
           step_run: |
             #### stop deployment
             set -x # debug
-
-            # obtain deployment id to make status inactive
-            DEPLOYMENT_ID=$(ssh $SSH_TARGET "cat portainer_deployment_id.txt")
-            echo "DEPLOYMENT_ID=$DEPLOYMENT_ID" >> $GITHUB_ENV
-
-            # undeploy existing stack
+            load_deployment_id ${{ env.DOCKER_STACK_NAME }}
             docker stack rm ${{ env.DOCKER_STACK_NAME }}
 
       - name: Deployment Status (inactive)
         uses: ./.github/composites/deploy-status
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          state: inactive
+          state: 'inactive'
