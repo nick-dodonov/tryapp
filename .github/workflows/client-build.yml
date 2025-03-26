@@ -1,4 +1,5 @@
-name: Build Deploy
+name: Client Build
+run-name: Client ${{ github.sha }}
 
 on:
   workflow_dispatch:
