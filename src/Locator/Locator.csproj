@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
+    <PackageReference Include="Docker.DotNet.Enhanced" Version="3.126.1" />
   </ItemGroup>
 
 </Project>

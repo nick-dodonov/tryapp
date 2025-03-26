@@ -1,39 +1,52 @@
+using Microsoft.AspNetCore.Mvc;
+using Docker.DotNet;
+using Locator;
+using Microsoft.Extensions.Options;
+
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
+builder.Services.Configure<DockerConfig>(builder.Configuration.GetSection(nameof(DockerConfig)));
+builder.Services.AddSingleton<DockerClient>(sp => CreateDockerConfiguration(
+        sp.GetRequiredService<IOptions<DockerConfig>>().Value,
+        sp.GetRequiredService<ILogger<DockerClient>>())
+    .CreateClient());
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
-{
     app.MapOpenApi();
-}
 
-var summaries = new[]
+app.MapGet("/stands", async ([FromServices] DockerClient dockerClient) =>
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+    var containers = await dockerClient.Containers.ListContainersAsync(new() { All = true });
+    var stands = containers
+        .Where(c => c.State == "running")
+        .SelectMany(c => c.Labels)
+        .Where(l => l.Key == "com.docker.stack.namespace" && l.Value.StartsWith("stand-"))
+        .Select(l => l.Value)
+        .ToList();
+    
+    return Results.Json(new { stands });
+});
 
 app.Run();
+return;
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
+DockerClientConfiguration CreateDockerConfiguration(DockerConfig config, ILogger logger)
 {
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
+    var result = CreateDockerConfigurationExt(config);
+    logger.LogInformation($"Docker: {result.configuration.EndpointBaseUri} ({result.reason})");
+    return result.configuration;
+}
+
+(DockerClientConfiguration configuration, string reason) CreateDockerConfigurationExt(DockerConfig config)
+{
+    var url = config.Url;
+    if (url == null)
+        return (new(), "default");
+    if (Path.Exists(url))
+        url = $"unix://{Path.GetFullPath(url)}";
+    return (new(new Uri(url)), "config");
 }
