@@ -3,33 +3,24 @@ run-name: Client ${{ github.sha }}
 
 on:
   workflow_dispatch:
-  #DISABLE until frequent refactoring via main branch
-  # push: # auto-deploy on change (simplify deploy development)
-  #   branches: [ 'main' ]
-  #   paths:
-  #     - '.github/workflows/build.yml'
-  #     - '.github/composites/remote-ssh/**'
-  #     - 'src/Client/**'
 
 jobs:
-#  echo_job:
-#    runs-on: ubuntu-latest
-#    steps:
-#      - name: Echo Message
-#        run: echo "Hello, this is a manually triggered workflow!"
   build-deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2 #name: Checkout codebase
-      - uses: rlespinasse/github-slug-action@v3.x # Inject slug/short variables https://github.com/marketplace/actions/github-slug-action
-      
+      - uses: actions/checkout@v4
+      - uses: rlespinasse/github-slug-action@v5
+
+      ################################################################
+      # Client Build
+      #   https://game.ci/docs/github/getting-started
       - uses: actions/cache@v3
         with:
           path: src/Client/Library
           key: Library-${{ hashFiles('src/Client/Assets/**', 'src/Client/Packages/**', 'src/Client/ProjectSettings/**') }}
           restore-keys: |
             Library-
-      
+
       - uses: game-ci/unity-builder@v4
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
@@ -39,40 +30,26 @@ jobs:
           projectPath: src/Client
           targetPlatform: WebGL
           buildName: client
-      
+
       - uses: actions/upload-artifact@v4
         with:
-          name: client-${{ env.GITHUB_REF_NAME_SLUG }}
+          name: client-${{ env.GITHUB_REF_POINT_SLUG }}
           path: build/WebGL # keep client directory in archive
 
-      - uses: ./.github/composites/remote-ssh #tmp until some storage with cdn isn't used
+      ################################################################
+      # Client Deploy
+      #   using remote server with deployed stands until CDN isn't used
+      #   TODO: use CDN for client builds, for example try Cloudflare R2 or Pages (AWS S3 isn't interesting already))
+      - uses: ./.github/composites/remote-ssh
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
           ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
           step_name: Deploy Client Build
           step_run: |
-            # echo "==== diagnose client build"
-            # ls -lR build/WebGL/client
-            echo "==== deploy client build"
-            # trailing / in rsync is important to copy source directory content to different destination folder
-            rsync -rvv --times --delete build/WebGL/client/ $SSH_TARGET:./pages/${{ env.GITHUB_REF_NAME_SLUG }}/
+            #### client build deploy 
+            set -x
 
-#      - uses: ./.github/composites/remote-ssh
-#        with:
-#          ssh_user: ${{ secrets.REMOTE_USER }}
-#          ssh_host: ${{ secrets.REMOTE_HOST }}
-#          ssh_private_key: ${{ secrets.REMOTE_PRIVATE_KEY }}
-#          step_name: Deploy Build
-#          step_run: |
-#            echo "==== Replacing placeholders:"
-#            COMMIT_SHA=${{ github.sha }}
-#            COMMIT_SHA=${COMMIT_SHA:0:7}
-#            COMMIT_DATETIME=$(date -u +"%Y-%m-%d %H:%M:%S")
-#            echo "COMMIT_SHA=${COMMIT_SHA}"
-#            echo "COMMIT_DATETIME=$COMMIT_DATETIME"
-#            sed -i "s/\$COMMIT_SHA/${COMMIT_SHA}/g" pages/index.html
-#            sed -i "s/\$COMMIT_DATETIME/${COMMIT_DATETIME}/g" pages/index.html
-#  
-#            echo "==== deploy data for stack" #tmp until some storage with cdn isn't used
-#            scp -r pages/ $SSH_TARGET:.
+            # ls -lR build/WebGL/client # diagnose client build content
+            # trailing / in rsync is important to copy source directory content to different destination folder
+            rsync -rvv --times --delete build/WebGL/client/ $SSH_TARGET:./pages/${{ env.GITHUB_REF_POINT_SLUG }}/
