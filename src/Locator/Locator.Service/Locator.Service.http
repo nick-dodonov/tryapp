@@ -1,6 +1,6 @@
 @Locator_HostAddress = http://localhost:5053
 
-GET {{Locator_HostAddress}}/stands2
+GET {{Locator_HostAddress}}/stands
 Accept: application/json
 
 ###

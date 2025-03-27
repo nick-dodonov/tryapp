@@ -1,9 +1,7 @@
-using Microsoft.AspNetCore.Mvc;
 using Docker.DotNet;
-using Locator;
+using Locator.Api;
 using Locator.Service;
 using Microsoft.Extensions.Options;
-
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,44 +10,34 @@ builder.Services.AddSingleton<DockerClient>(sp => CreateDockerConfiguration(
         sp.GetRequiredService<IOptions<DockerConfig>>().Value,
         sp.GetRequiredService<ILogger<DockerClient>>())
     .CreateClient());
+builder.Services.AddSingleton<ILocator, DockerLocator>();
 builder.Services.AddCors(options => options.AddDefaultPolicy(
-    policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+    policy => policy
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader()));
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
-app.Logger.LogInformation("Service is starting.");
 
 app.UseCors();
-
 app.MapControllers();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
-
-app.MapGet("/stands", async ([FromServices] DockerClient dockerClient) =>
-{
-    var containers = await dockerClient.Containers.ListContainersAsync(new() { All = true });
-    var stands = containers
-        .Where(c => c.State == "running")
-        .SelectMany(c => c.Labels)
-        .Where(l => l.Key == "com.docker.stack.namespace" && l.Value.StartsWith("stand-"))
-        .Select(l => l.Value)
-        .ToList();
-    
-    return Results.Json(new { stands });
-});
+app.MapGet("/info", () => Task.FromResult("TODO: version"));
 
 app.Run();
 return;
 
-DockerClientConfiguration CreateDockerConfiguration(DockerConfig config, ILogger logger)
+static DockerClientConfiguration CreateDockerConfiguration(DockerConfig config, ILogger logger)
 {
     var result = CreateDockerConfigurationExt(config);
     logger.LogInformation($"Docker: {result.configuration.EndpointBaseUri} ({result.reason})");
     return result.configuration;
 }
 
-(DockerClientConfiguration configuration, string reason) CreateDockerConfigurationExt(DockerConfig config)
+static (DockerClientConfiguration configuration, string reason) CreateDockerConfigurationExt(DockerConfig config)
 {
     var url = config.Url;
     if (url == null)

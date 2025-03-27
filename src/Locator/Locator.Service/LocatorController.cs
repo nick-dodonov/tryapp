@@ -5,11 +5,9 @@ namespace Locator.Service;
 
 [ApiController]
 [Route("")]
-public class LocatorController : ILocator
+public class LocatorController(ILocator impl) : ILocator
 {
-    [Route("stands2")]
-    public ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken)
-    {
-        throw new NotImplementedException();
-    }
+    [Route("stands")]
+    public ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken) =>
+        impl.GetStands(cancellationToken);
 }
