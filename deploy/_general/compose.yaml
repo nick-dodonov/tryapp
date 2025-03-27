@@ -29,8 +29,6 @@ services:
         published: 443
         target: 443
 
-  # TODO: user/pass setup for remote deployment
-  # TODO: --allowed-peer-ip for TURN in internal network only
   # Workaround to deploy multiple WebRTC servers in docker swarm infrastructure. 
   # Host mode cannot be used for several servers on minimum number of swarm nodes.
   #
@@ -62,10 +60,17 @@ services:
     # TODO: research is --fingerprint required increasing traffic
     #
     # TODO: enable/setup DTLS support (rm --no-dtls) for clients allowing "stuns:*" url
-    #       --listening-ip=10.211.55.4
-    #       --relay-ip=10.211.55.4
-    #       --denied-peer-ip="0.0.0.0-255.255.255.255"
-    #       --allowed-peer-ip="172.17.0.0-172.17.255.255"
+    #
+    # TODO: remote --allowed-peer-ip for TURN in internal network only (additionally with auth)
+    # Local docker compose tested:
+    #   --listening-ip=10.211.55.4
+    #   --relay-ip=10.211.55.4
+    #   --denied-peer-ip="0.0.0.0-255.255.255.255"
+    #   --allowed-peer-ip="172.17.0.0-172.17.255.255"
+    #   rt -stun stun:host.docker.internal:3478
+    #   rt -stun turn:10.211.55.4
+    #   turnutils_uclient 10.211.55.4 -DgX -u user -w pass -n 1 -c -y
+    #   turnutils_uclient 172.17.0.1 -DgX -u user -w pass -n 1 -c -e 172.21.0.2
     command: >
       -n
       --listening-port=3478
@@ -76,11 +81,9 @@ services:
       --no-dtls
       --no-tcp-relay
       --no-multicast-peers
-      --user user:pass
-      --realm default
+      --user=${TURN_USERNAME:-user}:${TURN_PASSWORD:-pass}
+      --realm=default
       --lt-cred-mech
-      --allowed-peer-ip="172.17.0.0-172.17.255.255"
-      --denied-peer-ip=46.17.132.0
       --fingerprint
       --log-file=stdout
       --verbose

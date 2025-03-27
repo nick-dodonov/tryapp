@@ -62,6 +62,8 @@ jobs:
           STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
           SERVER_IMAGE: ${{ steps.meta.outputs.tags }}
+          TURN_USERNAME: ${{ secrets.TURN_USERNAME }}
+          TURN_PASSWORD: ${{ secrets.TURN_PASSWORD }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}

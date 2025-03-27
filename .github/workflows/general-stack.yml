@@ -64,6 +64,8 @@ jobs:
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
           DOMAIN_EMAIL: ${{ secrets.DOMAIN_EMAIL }}
           LOCATOR_IMAGE: ${{ needs.build-locator.outputs.image_tag }}
+          TURN_USERNAME: ${{ secrets.TURN_USERNAME }}
+          TURN_PASSWORD: ${{ secrets.TURN_PASSWORD }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}
