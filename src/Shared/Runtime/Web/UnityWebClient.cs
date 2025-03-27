@@ -39,7 +39,7 @@ namespace Shared.Web
     /// </summary>
     public class UnityWebClient : IWebClient
     {
-        public UnityWebClient(string baseUri) : this(new Uri(baseUri)) { }
+        public UnityWebClient(string baseUri) : this(new Uri(baseUri.TrimEnd('/') + '/')) { }
         private UnityWebClient(Uri baseUri) => BaseAddress = baseUri;
 
         public Uri BaseAddress { get; set; }
