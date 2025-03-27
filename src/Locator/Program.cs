@@ -31,6 +31,8 @@ app.MapGet("/stands", async ([FromServices] DockerClient dockerClient) =>
     return Results.Json(new { stands });
 });
 
+app.UseCors();
+
 app.Run();
 return;
 
