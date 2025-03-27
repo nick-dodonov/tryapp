@@ -44,9 +44,10 @@ services:
   #   (different load-balancer service types are available for the same server)
   coturn:
     image: coturn/coturn:latest
-    # -n is not used "Do not use configuration file, take all parameters from the command line only." 
-    #   as gives "CONFIGURATION ALERT: Unknown argument: "
+    # -n "Do not use configuration file, take all parameters from the command line only." 
+    #   not used as it gives "CONFIGURATION ALERT: Unknown argument: "
     # TODO: use config file instead
+    #
     # --listening-port=3478 mentions default value just to recall its value 
     # --relay-threads=1 to make less socket bindings in develop environments
     # --no-cli to get rid of "CONFIG ERROR: Empty cli-password, and so telnet cli interface is disabled! Please set a non empty cli-password!"
@@ -85,3 +86,9 @@ services:
     volumes:
       - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
       - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
+
+  locator:
+    image: ${LOCATOR_IMAGE:-locator}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # WebAPI TCP port 8080 is internal as NGINX is used to access
