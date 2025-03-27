@@ -11,10 +11,13 @@ builder.Services.AddSingleton<DockerClient>(sp => CreateDockerConfiguration(
         sp.GetRequiredService<IOptions<DockerConfig>>().Value,
         sp.GetRequiredService<ILogger<DockerClient>>())
     .CreateClient());
+builder.Services.AddCors(options => options.AddDefaultPolicy(
+    policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
+app.UseCors();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 
@@ -30,8 +33,6 @@ app.MapGet("/stands", async ([FromServices] DockerClient dockerClient) =>
     
     return Results.Json(new { stands });
 });
-
-app.UseCors();
 
 app.Run();
 return;
