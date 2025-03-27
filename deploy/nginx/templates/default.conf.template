@@ -21,7 +21,7 @@ server {
     ################################################################
     # Locator service
     #   /-/stands
-    location /- {
+    location ~ ^/-/(.*) {
         # DISABLED: CORS headers are added to service app instead (simplified local develop) 
 #         # enables CORS to develop client against deployed server
 #         #   https://docs.unity3d.com/Manual/webgl-networking.html
@@ -44,7 +44,7 @@ server {
         #   https://stackoverflow.com/questions/32845674/nginx-how-to-not-exit-if-host-not-found-in-upstream/32846603#32846603
         resolver 127.0.0.11 valid=30s;
         set $upstream locator;
-        proxy_pass http://$upstream:8080$request_uri;
+        proxy_pass http://$upstream:8080/$1$is_args$args; # $request_uri contains full /-/..
     }
 
     ################################################################
