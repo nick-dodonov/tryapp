@@ -16,6 +16,7 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
+app.Logger.LogInformation("Service is starting.");
 
 app.UseCors();
 if (app.Environment.IsDevelopment())

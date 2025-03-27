@@ -31,4 +31,4 @@ services:
   locator:
     build:
       context: ../..
-      dockerfile: src/Locator/Dockerfile
+      dockerfile: src/Locator/Locator.Service/Dockerfile

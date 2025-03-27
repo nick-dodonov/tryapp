@@ -6,17 +6,17 @@ EXPOSE 8080
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
-COPY ["src/Locator/Locator.csproj", "src/Locator/"]
-RUN dotnet restore "src/Locator/Locator.csproj"
+COPY ["src/Locator/Locator.Service/Locator.Service.csproj", "src/Locator/Locator.Service/"]
+RUN dotnet restore "src/Locator/Locator.Service/Locator.Service.csproj"
 COPY . .
-WORKDIR "/src/src/Locator"
+WORKDIR "/src/src/Locator/Locator.Service"
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-  dotnet build "Locator.csproj" -c $BUILD_CONFIGURATION -o /app/build
+  dotnet build "Locator.Service.csproj" -c $BUILD_CONFIGURATION -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-  dotnet publish "Locator.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
+  dotnet publish "Locator.Service.csproj" -c $BUILD_CONFIGURATION -o /app/publish /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
@@ -31,4 +31,4 @@ USER root
 RUN groupadd -g $DOCKER_GID docker
 USER $APP_UID:docker
 
-ENTRYPOINT ["dotnet", "Locator.dll"]
+ENTRYPOINT ["dotnet", "Locator.Service.dll"]

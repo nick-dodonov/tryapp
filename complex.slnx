@@ -1,10 +1,7 @@
 <Solution>
-  <!--
-  TODO: flag to control ext refs by source (also implement OptionalReference to use them instead of nuget package
-  <Folder Name="/ext/">
-    <Project Path="ext\sipsorcery\src\SIPSorcery.csproj" Type="Classic C#" />
+  <Folder Name="/Locator/">
+    <Project Path="src\Locator\Locator.Service\Locator.Service.csproj" Type="Classic C#" />
   </Folder>
-  -->
   <Folder Name="/Server/">
     <Project Path="src\Common\Runtime\Common.csproj" Type="Classic C#" />
     <Project Path="src\Server\Server.csproj" Type="Classic C#" />
@@ -14,5 +11,4 @@
     <Project Path="src\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Runtime\Shared.csproj" Type="Classic C#" />
   </Folder>
-  <Project Path="src\Locator\Locator.csproj" Type="Classic C#" />
 </Solution>
