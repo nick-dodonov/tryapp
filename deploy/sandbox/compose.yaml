@@ -25,10 +25,6 @@ services:
   #   # --external-ip='$$(detect-external-ip)'
   #  
   #   # Docker Desktop compose:
-  #   #   rt -stun stun:host.docker.internal:3478
-  #   #   rt -stun turn:192.168.65.3
-  #   #   rt -stun turn:10.211.55.4
-  #   #   turnutils_uclient 172.21.0.1 -DgX -u user -w pass -e 172.21.0.2 -n 1 -c -y
   #   #   --relay-ip=10.211.55.4 # --relay-ip=0.0.0.0
   #   command: >
   #     -n

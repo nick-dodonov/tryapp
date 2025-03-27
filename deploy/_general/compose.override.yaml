@@ -27,3 +27,8 @@ services:
           -out    $$_PATH/fullchain.pem \
           -subj "/C=ZZ/ST=State/L=City/O=Development/CN=localhost"
         echo "<<<< certbot emulation finished" 
+
+  locator:
+    build:
+      context: ../..
+      dockerfile: src/Locator/Locator.Service/Dockerfile

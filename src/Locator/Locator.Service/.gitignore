@@ -1,0 +1,2 @@
+# for remote docker via SSH debugging: setup-remote-ssh-docker-sock.sh
+/docker.sock

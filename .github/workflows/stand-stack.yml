@@ -22,11 +22,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: rlespinasse/github-slug-action@v5
 
-      - uses: ./.github/composites/deploy-begin
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          environment: stand-${{ env.GITHUB_REF_POINT_SLUG }}
-
       ################################################################
       # Server Build
       - uses: docker/setup-buildx-action@v3 #https://github.com/marketplace/actions/docker-setup-buildx
@@ -55,6 +50,11 @@ jobs:
 
       ################################################################
       # Stand Deploy (custom docker stack deploy step much faster than docker-stack-deploy action)
+      - uses: ./.github/composites/deploy-begin
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          environment: stand-${{ env.GITHUB_REF_POINT_SLUG }}
+
       - uses: ./.github/composites/remote-deploy
         env:
           # environment variables that are used for compose
@@ -62,6 +62,8 @@ jobs:
           STACK_NAME: stand-${{ env.GITHUB_REF_POINT_SLUG }}
           SERVER_NAME: ${{ secrets.REMOTE_HOST }}
           SERVER_IMAGE: ${{ steps.meta.outputs.tags }}
+          TURN_USERNAME: ${{ secrets.TURN_USERNAME }}
+          TURN_PASSWORD: ${{ secrets.TURN_PASSWORD }}
         with:
           ssh_user: ${{ secrets.REMOTE_USER }}
           ssh_host: ${{ secrets.REMOTE_HOST }}

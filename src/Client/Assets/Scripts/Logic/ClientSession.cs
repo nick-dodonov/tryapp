@@ -95,9 +95,6 @@ namespace Client.Logic
 
             clientTap.SetActive(false);
 
-            _stateSyncer?.Dispose();
-            _stateSyncer = null;
-            
             _dumpLink = null;
             _timeLink = null;
             _link?.Dispose();
@@ -106,6 +103,10 @@ namespace Client.Logic
             _api = null;
             _meta?.Dispose();
             _meta = null;
+
+            // destroy after link to not fail on latest Received
+            _stateSyncer?.Dispose();
+            _stateSyncer = null;
         }
 
         private void Update()

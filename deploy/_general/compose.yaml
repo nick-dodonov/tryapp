@@ -7,13 +7,13 @@ services:
         condition: none
     volumes:
       # tmp DATA_ROOT from .env usage until image isn't built
-      - ${DATA_ROOT:-.}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DATA_ROOT:-../..}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       # templates to render environment variables
       #   https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration-new-in-119
-      - ${DATA_ROOT:-.}/deploy/nginx/templates:/etc/nginx/templates:ro
-      - ${DATA_ROOT:-.}/pages:/usr/share/nginx/html:ro
-      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:ro
-      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:ro
+      - ${DATA_ROOT:-../..}/deploy/nginx/templates:/etc/nginx/templates:ro
+      - ${DATA_ROOT:-../..}/pages:/usr/share/nginx/html:ro
+      - ${DATA_ROOT:-../..}/certbot/www:/var/www/certbot:ro
+      - ${DATA_ROOT:-../..}/certbot/conf:/etc/letsencrypt:ro
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     ports:
@@ -29,8 +29,6 @@ services:
         published: 443
         target: 443
 
-  # TODO: user/pass setup for remote deployment
-  # TODO: --allowed-peer-ip for TURN in internal network only
   # Workaround to deploy multiple WebRTC servers in docker swarm infrastructure. 
   # Host mode cannot be used for several servers on minimum number of swarm nodes.
   #
@@ -44,9 +42,10 @@ services:
   #   (different load-balancer service types are available for the same server)
   coturn:
     image: coturn/coturn:latest
-    # -n is not used "Do not use configuration file, take all parameters from the command line only." 
-    #   as gives "CONFIGURATION ALERT: Unknown argument: "
+    # -n "Do not use configuration file, take all parameters from the command line only." 
+    #   not used as it gives "CONFIGURATION ALERT: Unknown argument: "
     # TODO: use config file instead
+    #
     # --listening-port=3478 mentions default value just to recall its value 
     # --relay-threads=1 to make less socket bindings in develop environments
     # --no-cli to get rid of "CONFIG ERROR: Empty cli-password, and so telnet cli interface is disabled! Please set a non empty cli-password!"
@@ -61,7 +60,19 @@ services:
     # TODO: research is --fingerprint required increasing traffic
     #
     # TODO: enable/setup DTLS support (rm --no-dtls) for clients allowing "stuns:*" url
+    #
+    # TODO: remote --allowed-peer-ip for TURN in internal network only (additionally with auth)
+    # Local docker compose tested:
+    #   --listening-ip=10.211.55.4
+    #   --relay-ip=10.211.55.4
+    #   --denied-peer-ip="0.0.0.0-255.255.255.255"
+    #   --allowed-peer-ip="172.17.0.0-172.17.255.255"
+    #   rt -stun stun:host.docker.internal:3478
+    #   rt -stun turn:10.211.55.4
+    #   turnutils_uclient 10.211.55.4 -DgX -u user -w pass -n 1 -c -y
+    #   turnutils_uclient 172.17.0.1 -DgX -u user -w pass -n 1 -c -e 172.21.0.2
     command: >
+      -n
       --listening-port=3478
       --relay-threads=1
       --no-cli
@@ -70,9 +81,9 @@ services:
       --no-dtls
       --no-tcp-relay
       --no-multicast-peers
+      --user=${TURN_USERNAME:-user}:${TURN_PASSWORD:-pass}
+      --realm=default
       --lt-cred-mech
-      --user user:pass
-      --realm default
       --fingerprint
       --log-file=stdout
       --verbose
@@ -83,5 +94,11 @@ services:
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     volumes:
-      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
-      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
+      - ${DATA_ROOT:-../..}/certbot/www:/var/www/certbot:rw
+      - ${DATA_ROOT:-../..}/certbot/conf:/etc/letsencrypt:rw
+
+  locator:
+    image: ${LOCATOR_IMAGE:-locator}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    # WebAPI TCP port 8080 is internal as NGINX is used to access

@@ -96,16 +96,20 @@ namespace Client.UI
                 if (env.TryGetValue("SERVER_URL", out var envUrl))
                     return new(".env", envUrl);
 #endif
-                var optionsUrl = await OptionsReader.TryParseOptionsJsonServerFirst();
-                if (optionsUrl != null)
-                    return new("options.json", new Uri(optionsUrl).GetLeftPart(UriPartial.Authority));
+                var url = await OptionsReader.TryParseOptionsJsonServerFirst();
+                if (url != null)
+                    return new("options.json", new Uri(url).GetLeftPart(UriPartial.Path));
             }
 
-            var url = Application.absoluteURL;
-            if (!string.IsNullOrEmpty(url))
-            {
-                url = new Uri(url).GetLeftPart(UriPartial.Authority);
-                return new("hosting", url);
+            { // default via deployed client location 
+                var url = Application.absoluteURL;
+                if (!string.IsNullOrEmpty(url))
+                {
+                    url = new Uri(url).GetLeftPart(UriPartial.Path);
+                    if (System.IO.Path.HasExtension(url)) // get rid of index.html if specified
+                        url = url[..(url.LastIndexOf('/') + 1)];
+                    return new("hosting", url);
+                }
             }
 
             return null;
