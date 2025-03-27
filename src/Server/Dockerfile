@@ -30,7 +30,7 @@ WORKDIR /repo
 COPY . .
 
 #TEMP diagnose content and stack.yml action build issue
-RUN ls -lR /repo
+#RUN ls -lR /repo
 
 WORKDIR "/repo/src/Server"
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
