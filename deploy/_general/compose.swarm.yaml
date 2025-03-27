@@ -52,3 +52,7 @@ services:
           /etc/letsencrypt/live
         echo "<<<< certbot finished"
         #read -n 1 -s -r -p "Press any key to exit (debugging)..."
+
+  locator:
+    networks:
+      - general_shared # allow access from nginx
