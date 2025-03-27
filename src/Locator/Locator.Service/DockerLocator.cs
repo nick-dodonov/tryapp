@@ -1,29 +1,50 @@
 using Docker.DotNet;
 using Locator.Api;
+using Locator.Service.Options;
+using Microsoft.Extensions.Options;
 
 namespace Locator.Service;
 
-public class DockerLocator(DockerClient dockerClient) : ILocator
+public class DockerLocator : ILocator
 {
-    private const string StandNamespacePrefix = "stand-";
+    private readonly LocatorConfig _config;
+    private readonly DockerClient _dockerClient;
+
+    public DockerLocator(IOptions<LocatorConfig> options, DockerClient dockerClient, ILogger<DockerLocator> logger)
+    {
+        _dockerClient = dockerClient;
+        _config = options.Value;
+
+        logger.LogInformation($"{_config}");
+    }
+
+    private const string StackNameKey = "com.docker.stack.namespace";
 
     public async ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken)
     {
-        var containers = await dockerClient.Containers.ListContainersAsync(new() { All = true }, cancellationToken);
+        var containers = await _dockerClient.Containers.ListContainersAsync(new() { All = true }, cancellationToken);
+
+        var stackPrefix = _config.StandStackPrefix;
         var stands = containers
-            .Where(c => c.State == "running")
-            // .Where(c => c.Labels.Any(l =>
-            //     l.Key == "com.docker.stack.namespace" &&
-            //     l.Value.StartsWith(StandNamespacePrefix))
-            // )
-            .SelectMany(c => c.Labels)
-            .Where(l =>
-                l.Key == "com.docker.stack.namespace" &&
-                l.Value.StartsWith(StandNamespacePrefix))
-            .Select(l => new StandInfo
+            .Where(c => 
+                c.State == "running" &&
+                c.Labels.Any(l =>
+                    l.Key == StackNameKey &&
+                    l.Value.StartsWith(stackPrefix))
+            )
+            .Select(c =>
             {
-                Name = l.Value[StandNamespacePrefix.Length..]
-            });
-        return stands.ToArray();
+                var name = c.Labels[StackNameKey][stackPrefix.Length..];
+                return new StandInfo
+                {
+                    Name = name,
+                    Url = _config.StandUrlTemplate.Replace("$STAND_NAME", name),
+                    Created = c.Labels.TryGetValue("org.opencontainers.image.created", out var created) ? created : null,
+                    Sha = c.Labels.TryGetValue("org.opencontainers.image.revision", out var sha) ? sha : null,
+                };
+            })
+            .ToArray();
+
+        return stands;
     }
 }

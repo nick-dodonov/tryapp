@@ -1,10 +1,12 @@
 using Docker.DotNet;
 using Locator.Api;
 using Locator.Service;
+using Locator.Service.Options;
 using Microsoft.Extensions.Options;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.DefaultConfigure<LocatorConfig>(builder.Configuration);
 builder.Services.Configure<DockerConfig>(builder.Configuration.GetSection(nameof(DockerConfig)));
 builder.Services.AddSingleton<DockerClient>(sp => CreateDockerConfiguration(
         sp.GetRequiredService<IOptions<DockerConfig>>().Value,
@@ -40,7 +42,7 @@ static DockerClientConfiguration CreateDockerConfiguration(DockerConfig config, 
 static (DockerClientConfiguration configuration, string reason) CreateDockerConfigurationExt(DockerConfig config)
 {
     var url = config.Url;
-    if (url == null)
+    if (string.IsNullOrEmpty(url))
         return (new(), "default");
     if (Path.Exists(url))
         url = $"unix://{Path.GetFullPath(url)}";

@@ -56,3 +56,5 @@ services:
   locator:
     networks:
       - general_shared # allow access from nginx
+    environment:
+      LocatorConfig__StandUrlTemplate: "https://${SERVER_NAME:-localhost}/$STAND_NAME"

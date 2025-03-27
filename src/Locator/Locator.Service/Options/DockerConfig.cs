@@ -1,4 +1,4 @@
-namespace Locator.Service;
+namespace Locator.Service.Options;
 
 public class DockerConfig
 {
