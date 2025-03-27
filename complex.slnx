@@ -1,5 +1,7 @@
 <Solution>
   <Folder Name="/Locator/">
+    <Project Path="src\Locator\Locator.Api\Locator.Api.csproj" Type="Classic C#" />
+    <Project Path="src\Locator\Locator.Client\Locator.Client.csproj" Type="Classic C#" />
     <Project Path="src\Locator\Locator.Service\Locator.Service.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Server/">

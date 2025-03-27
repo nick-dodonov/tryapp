@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Docker.DotNet;
 using Locator;
+using Locator.Service;
 using Microsoft.Extensions.Options;
 
 
@@ -13,12 +14,15 @@ builder.Services.AddSingleton<DockerClient>(sp => CreateDockerConfiguration(
     .CreateClient());
 builder.Services.AddCors(options => options.AddDefaultPolicy(
     policy => policy.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
+builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
 app.Logger.LogInformation("Service is starting.");
 
 app.UseCors();
+
+app.MapControllers();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
 

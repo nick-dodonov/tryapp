@@ -1,4 +1,4 @@
-namespace Locator;
+namespace Locator.Service;
 
 public class DockerConfig
 {
