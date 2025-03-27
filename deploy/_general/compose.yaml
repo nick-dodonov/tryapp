@@ -7,13 +7,13 @@ services:
         condition: none
     volumes:
       # tmp DATA_ROOT from .env usage until image isn't built
-      - ${DATA_ROOT:-.}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ${DATA_ROOT:-../..}/deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       # templates to render environment variables
       #   https://github.com/docker-library/docs/tree/master/nginx#using-environment-variables-in-nginx-configuration-new-in-119
-      - ${DATA_ROOT:-.}/deploy/nginx/templates:/etc/nginx/templates:ro
-      - ${DATA_ROOT:-.}/pages:/usr/share/nginx/html:ro
-      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:ro
-      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:ro
+      - ${DATA_ROOT:-../..}/deploy/nginx/templates:/etc/nginx/templates:ro
+      - ${DATA_ROOT:-../..}/pages:/usr/share/nginx/html:ro
+      - ${DATA_ROOT:-../..}/certbot/www:/var/www/certbot:ro
+      - ${DATA_ROOT:-../..}/certbot/conf:/etc/letsencrypt:ro
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     ports:
@@ -62,7 +62,12 @@ services:
     # TODO: research is --fingerprint required increasing traffic
     #
     # TODO: enable/setup DTLS support (rm --no-dtls) for clients allowing "stuns:*" url
+    #       --listening-ip=10.211.55.4
+    #       --relay-ip=10.211.55.4
+    #       --denied-peer-ip="0.0.0.0-255.255.255.255"
+    #       --allowed-peer-ip="172.17.0.0-172.17.255.255"
     command: >
+      -n
       --listening-port=3478
       --relay-threads=1
       --no-cli
@@ -71,9 +76,11 @@ services:
       --no-dtls
       --no-tcp-relay
       --no-multicast-peers
-      --lt-cred-mech
       --user user:pass
       --realm default
+      --lt-cred-mech
+      --allowed-peer-ip="172.17.0.0-172.17.255.255"
+      --denied-peer-ip=46.17.132.0
       --fingerprint
       --log-file=stdout
       --verbose
@@ -84,8 +91,8 @@ services:
     environment:
       - SERVER_NAME=${SERVER_NAME:-localhost}
     volumes:
-      - ${DATA_ROOT:-.}/certbot/www:/var/www/certbot:rw
-      - ${DATA_ROOT:-.}/certbot/conf:/etc/letsencrypt:rw
+      - ${DATA_ROOT:-../..}/certbot/www:/var/www/certbot:rw
+      - ${DATA_ROOT:-../..}/certbot/conf:/etc/letsencrypt:rw
 
   locator:
     image: ${LOCATOR_IMAGE:-locator}
