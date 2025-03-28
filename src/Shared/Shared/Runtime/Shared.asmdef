@@ -4,6 +4,7 @@
     "references": [
         "UniTask",
         "Unity.WebRTC",
+        "Shared.Log",
         "Shared.System"
     ],
     "includePlatforms": [],

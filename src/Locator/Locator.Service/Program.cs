@@ -21,6 +21,14 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(
 builder.Services.AddControllers();
 builder.Services.AddOpenApi();
 
+var factory = LoggerFactory.Create(
+    builder => builder.AddSimpleConsole(o =>
+    {
+        o.SingleLine = true;
+        o.TimestampFormat = "[HH:mm:ss.ffffff] ";
+        o.UseUtcTimestamp = true;
+    }));
+
 var app = builder.Build();
 
 app.UseCors();

@@ -3,6 +3,7 @@
     "rootNamespace": "Shared.Editor",
     "references": [
         "Shared",
+        "Shared.Log",
         "Shared.Unity"
     ],
     "includePlatforms": [

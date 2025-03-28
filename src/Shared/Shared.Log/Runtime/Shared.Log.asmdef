@@ -1,9 +1,8 @@
 {
-    "name": "Common",
-    "rootNamespace": "Common",
+    "name": "Shared.Log",
+    "rootNamespace": "Shared",
     "references": [
-        "Shared",
-        "Shared.Log"
+        "Shared.System"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
@@ -11,7 +10,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Microsoft.Extensions.Logging.Abstractions.dll",
-        "Microsoft.Extensions.Options.dll"
+        "Microsoft.Extensions.Logging.dll",
+        "ZString.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

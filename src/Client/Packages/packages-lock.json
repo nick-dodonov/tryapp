@@ -305,6 +305,17 @@
         "shared.system": "0.1.0"
       }
     },
+    "shared.log": {
+      "version": "file:../../Shared/Shared.Log",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
+        "org.nuget.microsoft.extensions.logging": "9.0.1",
+        "org.nuget.zstring": "2.6.0",
+        "shared.system": "0.1.0"
+      }
+    },
     "shared.system": {
       "version": "file:../../Shared/Shared.System",
       "depth": 0,

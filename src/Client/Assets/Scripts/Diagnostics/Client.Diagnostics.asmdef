@@ -4,6 +4,7 @@
     "references": [
         "RuntimeInspector.Runtime",
         "Shared",
+        "Shared.Log",
         "Shared.System",
         "Unity.TextMeshPro"
     ],

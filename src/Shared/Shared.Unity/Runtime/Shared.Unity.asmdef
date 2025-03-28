@@ -2,7 +2,8 @@
     "name": "Shared.Unity",
     "rootNamespace": "Shared",
     "references": [
-        "Shared"
+        "Shared",
+        "Shared.Log"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
