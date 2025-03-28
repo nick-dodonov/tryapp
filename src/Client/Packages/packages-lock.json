@@ -291,7 +291,7 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "shared": {
-      "version": "file:../../Shared",
+      "version": "file:../../Shared/Shared",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -307,7 +307,7 @@
       }
     },
     "shared.unity": {
-      "version": "file:../../Shared.Unity",
+      "version": "file:../../Shared/Shared.Unity",
       "depth": 0,
       "source": "local",
       "dependencies": {

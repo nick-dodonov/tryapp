@@ -16,7 +16,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Common\Runtime\Common.csproj"/>
-        <ProjectReference Include="..\Shared.Dotnet\Shared.Dotnet.csproj" />
+        <ProjectReference Include="..\Shared\Shared.Dotnet\Shared.Dotnet.csproj" />
     </ItemGroup>
 
     <ItemGroup>
