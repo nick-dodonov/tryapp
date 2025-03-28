@@ -10,9 +10,6 @@
 
     <!-- TODO: split parts with different assembles -->
     <ItemGroup>
-        <!-- Web deps -->
-        <PackageReference Include="Newtonsoft.Json" Version="13.0.3"/>
-        
         <!-- Tp impls deps -->
         <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.1"/>
     </ItemGroup>
@@ -26,6 +23,7 @@
     <ItemGroup>
       <ProjectReference Include="..\..\Shared.Log\Runtime\Shared.Log.csproj" />
       <ProjectReference Include="..\..\Shared.System\Runtime\Shared.System.csproj" />
+      <ProjectReference Include="..\..\Shared.Web\Runtime\Shared.Web.csproj" />
     </ItemGroup>
 
 </Project>

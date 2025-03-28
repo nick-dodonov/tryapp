@@ -5,7 +5,8 @@
         "UniTask",
         "Unity.WebRTC",
         "Shared.Log",
-        "Shared.System"
+        "Shared.System",
+        "Shared.Web"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

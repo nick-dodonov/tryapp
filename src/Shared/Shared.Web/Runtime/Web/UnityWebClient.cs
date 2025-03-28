@@ -7,7 +7,6 @@ using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
-using Cysharp.Threading.Tasks;
 using UnityEngine.Networking;
 
 namespace Shared.Web
@@ -107,7 +106,7 @@ namespace Shared.Web
         private static HttpResponseMessage CreateHttpResponseMessage(UnityWebRequest request)
         {
             if (IsError(request))
-                throw new UnityWebRequestException(request);
+                throw new HttpRequestException(request.result.ToString()); // Cysharp.Threading.Tasks.UnityWebRequestException(request);
             
             var response = new HttpResponseMessage();
             response.StatusCode = (HttpStatusCode)request.responseCode;

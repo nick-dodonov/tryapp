@@ -333,6 +333,15 @@
         "shared": "0.2.0"
       }
     },
+    "shared.web": {
+      "version": "file:../../Shared/Shared.Web",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "org.nuget.system.text.json": "9.0.1",
+        "com.unity.modules.unitywebrequest": "1.0.0"
+      }
+    },
     "com.unity.modules.audio": {
       "version": "1.0.0",
       "depth": 0,

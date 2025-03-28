@@ -13,6 +13,7 @@
     <Project Path="src\Shared\Shared.Log\Runtime\Shared.Log.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Runtime.Tests\Shared.System.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Runtime\Shared.System.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.Web\Runtime\Shared.Web.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared\Runtime\Shared.csproj" Type="Classic C#" />
   </Folder>

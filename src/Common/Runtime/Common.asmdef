@@ -3,7 +3,8 @@
     "rootNamespace": "Common",
     "references": [
         "Shared",
-        "Shared.Log"
+        "Shared.Log",
+        "Shared.Web"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
