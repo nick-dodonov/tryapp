@@ -9,8 +9,10 @@
     <Project Path="src\Server\Server.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Shared/">
-    <Project Path="src\Shared\Shared\Runtime\Shared.csproj" Type="Classic C#" />
-    <Project Path="src\Shared\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Dotnet\Shared.Dotnet.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.System\Runtime.Tests\Shared.System.Tests.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.System\Runtime\Shared.System.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared\Runtime.Tests\Shared.Tests.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared\Runtime\Shared.csproj" Type="Classic C#" />
   </Folder>
 </Solution>

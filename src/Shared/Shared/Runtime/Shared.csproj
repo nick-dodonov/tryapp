@@ -29,5 +29,8 @@
         <PackageReference Include="SIPSorcery" Version="8.0.11" />
         <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1"/>
     </ItemGroup>
+    <ItemGroup>
+      <ProjectReference Include="..\..\Shared.System\Runtime\Shared.System.csproj" />
+    </ItemGroup>
 
 </Project>

@@ -302,6 +302,14 @@
         "org.nuget.system.text.json": "9.0.1",
         "org.nuget.zstring": "2.6.0",
         "com.unity.modules.unitywebrequest": "1.0.0",
+        "shared.system": "0.1.0"
+      }
+    },
+    "shared.system": {
+      "version": "file:../../Shared/Shared.System",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.test-framework": "1.4.5"
       }

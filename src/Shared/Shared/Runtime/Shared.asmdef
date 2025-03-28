@@ -3,7 +3,8 @@
     "rootNamespace": "Shared",
     "references": [
         "UniTask",
-        "Unity.WebRTC"
+        "Unity.WebRTC",
+        "Shared.System"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

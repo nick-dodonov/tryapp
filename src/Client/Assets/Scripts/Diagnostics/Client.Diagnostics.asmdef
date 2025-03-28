@@ -4,6 +4,7 @@
     "references": [
         "RuntimeInspector.Runtime",
         "Shared",
+        "Shared.System",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
