@@ -3,6 +3,6 @@
   "version": "0.1.0",
   "displayName": "Shared.Unity",
   "dependencies": {
-    "shared": "0.2.0"
+    "shared.tp": "0.1.0"
   }
 }

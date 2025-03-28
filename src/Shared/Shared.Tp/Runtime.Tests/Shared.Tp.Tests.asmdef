@@ -1,14 +1,14 @@
 {
-    "name": "Shared.Tests",
-    "rootNamespace": "Shared.Tests",
+    "name": "Shared.Tp.Tests",
+    "rootNamespace": "Shared.Tp.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Shared"
+        "Shared.Tp"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
         "nunit.framework.dll"

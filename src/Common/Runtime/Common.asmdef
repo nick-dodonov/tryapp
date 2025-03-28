@@ -2,8 +2,8 @@
     "name": "Common",
     "rootNamespace": "Common",
     "references": [
-        "Shared",
         "Shared.Log",
+        "Shared.Tp",
         "Shared.Web"
     ],
     "includePlatforms": [],

@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Shared\Runtime\Shared.csproj"/>
+        <ProjectReference Include="..\Shared.Tp\Runtime\Shared.Tp.csproj"/>
     </ItemGroup>
 
 </Project>

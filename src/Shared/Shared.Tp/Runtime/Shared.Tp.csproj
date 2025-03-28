@@ -8,7 +8,6 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
-    <!-- TODO: split parts with different assembles -->
     <ItemGroup>
         <!-- Tp impls deps -->
         <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.1"/>
