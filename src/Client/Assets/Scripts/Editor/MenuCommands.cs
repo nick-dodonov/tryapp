@@ -1,5 +1,6 @@
 using System;
 using System.Threading;
+using Client.Utility;
 using Locator.Client;
 using Shared.Log;
 using Shared.Web;
@@ -16,10 +17,11 @@ namespace Client.Editor
             try
             {
                 Slog.Info("request");
-                var webClient = new UnityWebClient("TODO: option");
+                var options = await OptionsReader.TryReadOptions();
+                var webClient = new UnityWebClient(options.Locator);
                 var locator = new ClientLocator(webClient);
                 var stands = await locator.GetStands(CancellationToken.None);
-                Slog.Info($"result: {WebSerializer.Default.Serialize(stands)}");
+                Slog.Info($"result: {stands.Length} stands:\n{WebSerializer.Default.Serialize(stands, true)}");
             }
             catch (Exception e)
             {

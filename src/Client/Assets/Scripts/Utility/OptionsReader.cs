@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Shared.Log;
 using Shared.Web;
@@ -46,22 +47,25 @@ namespace Client.Utility
             return envVariables;
         }
 
-        public static async ValueTask<string> TryParseOptionsJsonServerFirst()
+        public static async ValueTask<ClientOptions> TryReadOptions()
         {
             try
             {
                 var content = await ReadOptionsJson();
                 if (content == null)
                     return null;
-                var options = WebSerializer.Default.Deserialize<Options>(content);
-                return options.Servers[0];
+                var options = WebSerializer.Default.Deserialize<ClientOptions>(content);
+                return options;
             }
             catch (Exception e)
             {
-                Slog.Error($"failed: {e}");
+                Slog.Error($"{e}");
             }
             return null;
         }
+
+        public static async ValueTask<string> TryParseOptionsJsonServerFirst()
+            => (await TryReadOptions())?.Servers.FirstOrDefault();
 
         private static async ValueTask<string> ReadOptionsJson()
         {
@@ -80,12 +84,6 @@ namespace Client.Utility
                 return null;
             var content = request.downloadHandler.text;
             return content;
-        }
-
-        [Serializable]
-        public class Options
-        {
-            public string[] Servers;
         }
     }
 }
