@@ -40,8 +40,10 @@ namespace Client.UI
             }
         }
 
-        private void OnEnable()
+        private async void OnEnable()
         {
+            await ClientOptions.InstanceAsync;
+
             SetSpinnerActive(false);
             SetServerList(ServerList.CreateDefault());
 

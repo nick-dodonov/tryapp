@@ -33,7 +33,8 @@ namespace Client.Utility
             result.AddDefaultItem();
             
             await Task.Delay(5000, cancellationToken); //XXXXXXXXXXXXXXXXXXXXXXXXX
-            
+
+            await ClientOptions.InstanceAsync;
             await result.AddStandsAsync(cancellationToken);
             return result;
         }
@@ -53,7 +54,7 @@ namespace Client.Utility
         private static bool DetectLocalhost(out string localhost)
         {
             localhost = "localhost";
-            var absoluteURL = Startup.AbsoluteUrl;
+            var absoluteURL = ClientApp.AbsoluteUrl;
             if (string.IsNullOrEmpty(absoluteURL))
                 return true; // running in editor
             if (absoluteURL.Contains("localhost"))
@@ -67,7 +68,7 @@ namespace Client.Utility
         private void AddDefaultItem()
         {
             // default via deployed client location 
-            var url = Startup.AbsoluteUrl;
+            var url = ClientApp.AbsoluteUrl;
             if (string.IsNullOrEmpty(url))
                 return;
 
@@ -85,14 +86,13 @@ namespace Client.Utility
             Add(new($"{name} <i>(hosting)</i>", url));
         }
 
-        private static async ValueTask<string> GetLocatorUrlAsync()
+        private static string GetLocatorUrlAsync()
         {
-            var options = await OptionsReader.TryReadOptions();
-            var url = options?.Locator;
+            var url = ClientOptions.Instance.Locator;
             if (url != null)
                 return url;
 
-            url = Startup.AbsoluteUrl;
+            url = ClientApp.AbsoluteUrl;
             if (!string.IsNullOrEmpty(url))
             {
                 url = new Uri(url).GetLeftPart(UriPartial.Authority);
@@ -106,7 +106,7 @@ namespace Client.Utility
         {
             try
             {
-                var locatorUrl = await GetLocatorUrlAsync();
+                var locatorUrl = GetLocatorUrlAsync();
                 if (locatorUrl == null)
                     return;
 

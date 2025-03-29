@@ -16,7 +16,7 @@ namespace Client.Utility
             try
             {
                 Slog.Info("request");
-                var options = await OptionsReader.TryReadOptions();
+                var options = await ClientOptions.InstanceAsync;
                 var webClient = new UnityWebClient(options.Locator);
                 var locator = new ClientLocator(webClient);
                 var stands = await locator.GetStands(CancellationToken.None);
