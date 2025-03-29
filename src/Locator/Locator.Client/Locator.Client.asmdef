@@ -2,11 +2,12 @@
     "name": "Locator.Client",
     "rootNamespace": "Locator.Client",
     "references": [
-        "GUID:e36a5a4b52a174ccbaf49663f3c75c5f"
+        "Locator.Api",
+        "Shared.Web"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
-    "allowUnsafeCode": true,
+    "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [],
     "autoReferenced": true,

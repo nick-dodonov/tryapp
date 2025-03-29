@@ -1,14 +1,22 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Locator.Api;
+using Shared.Web;
 
 namespace Locator.Client
 {
     public class ClientLocator : ILocator
     {
-        public ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken)
+        private readonly IWebClient _client;
+        public ClientLocator(IWebClient client) => _client = client;
+
+        public async ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            using var response = await _client.GetAsync("stands", cancellationToken);
+            response.EnsureSuccessStatusCode();
+            var content = await response.Content.ReadAsStringAsync();
+            var result = WebSerializer.Default.Deserialize<StandInfo[]>(content);
+            return result;
         }
     }
 }

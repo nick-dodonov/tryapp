@@ -16,7 +16,8 @@ namespace Client.Editor
             try
             {
                 Slog.Info("request");
-                var locator = new ClientLocator();
+                var webClient = new UnityWebClient("TODO: option");
+                var locator = new ClientLocator(webClient);
                 var stands = await locator.GetStands(CancellationToken.None);
                 Slog.Info($"result: {WebSerializer.Default.Serialize(stands)}");
             }
