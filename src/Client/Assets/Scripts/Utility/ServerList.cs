@@ -3,15 +3,72 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using Cysharp.Text;
 using Locator.Client;
 using Shared.Log;
 using Shared.Web;
 
 namespace Client.Utility
 {
-    internal record ServerItem(string Text, string Url)
+    internal class ServerItem
     {
-        public override string ToString() => $"\"{Text}\" {Url}";
+        private string _name;
+        private string _url;
+        private string _kind;
+        private readonly bool _default;
+
+        public ServerItem(string name, string url, string kind, bool @default = false)
+        {
+            _name = name;
+            _url = url;
+            _kind = kind;
+            _default = @default;
+        }
+
+        public void Update(ServerItem item)
+        {
+            _name = item._name;
+            _url = item._url;
+            _kind = item._kind;
+        }
+
+        public override string ToString() => $"\"{_name}\" ({_kind}) {_url}";
+
+        public string Url => _url;
+
+        public string Text
+        {
+            get
+            {
+                var sb = ZString.CreateStringBuilder(true);
+                try
+                {
+                    // align left/right on same line:
+                    //  <align=left>localhost<line-height=0>
+                    //  <align=right><i>(debug)</i><line-height=1em>
+
+                    sb.Append("<line-height=0>");
+
+                    if (_default)
+                        sb.Append("<b>");
+                    sb.Append(_name);
+                    if (_default)
+                        sb.Append("</b>");
+
+                    sb.Append("\n<align=right><line-height=1em>");
+
+                    sb.Append("<i><mspace=0.55em>");
+                    sb.Append(_kind);
+                    //sb.Append("</mspace></i>");
+
+                    return sb.ToString();
+                }
+                finally
+                {
+                    sb.Dispose();
+                }
+            }
+        }
     }
 
     internal class ServerList : List<ServerItem>
@@ -31,8 +88,6 @@ namespace Client.Utility
             var result = new ServerList();
             result.AddLocalhostItems();
             result.AddDefaultItem();
-            
-            await Task.Delay(5000, cancellationToken); //XXXXXXXXXXXXXXXXXXXXXXXXX
 
             await ClientOptions.InstanceAsync;
             await result.AddStandsAsync(cancellationToken);
@@ -41,14 +96,11 @@ namespace Client.Utility
 
         private void AddLocalhostItems()
         {
-            if (DetectLocalhost(out var localhost))
-            {
-                //<align=left>localhost<line-height=0>
-                //<align=right><i>(debug)</i><line-height=1em>
-                Add(new("localhost <i>(debug)</i>", $"http://{localhost}:5270"));
-                Add(new("localhost <i>(http)</i>", $"http://{localhost}"));
-                Add(new("localhost <i>(ssl)</i>", $"https://{localhost}"));
-            }
+            if (!DetectLocalhost(out var localhost))
+                return;
+            Add(new("local (ide)", $"http://{localhost}:5270", "debug"));
+            Add(new("local (http)", $"http://{localhost}", "debug"));
+            Add(new("local (ssl)", $"https://{localhost}", "debug"));
         }
 
         private static bool DetectLocalhost(out string localhost)
@@ -57,11 +109,14 @@ namespace Client.Utility
             var absoluteURL = ClientApp.AbsoluteUrl;
             if (string.IsNullOrEmpty(absoluteURL))
                 return true; // running in editor
+
             if (absoluteURL.Contains("localhost"))
                 return true;
+
             localhost = "127.0.0.1";
             if (absoluteURL.Contains(localhost))
                 return true;
+
             return false;
         }
 
@@ -76,14 +131,14 @@ namespace Client.Utility
             url = uri.GetLeftPart(UriPartial.Path);
 
             // get rid of index.html if specified and trim trailing '/' if exists
-            url = Path.HasExtension(url) 
-                ? url[..url.LastIndexOf('/')] 
+            url = Path.HasExtension(url)
+                ? url[..url.LastIndexOf('/')]
                 : url.TrimEnd('/');
 
             // get last path part as stand name
             var name = url[(url.LastIndexOf('/') + 1)..];
 
-            Add(new($"{name} <i>(hosting)</i>", url));
+            Add(new(name, url, "default", true));
         }
 
         private static string GetLocatorUrlAsync()
@@ -115,9 +170,13 @@ namespace Client.Utility
                 var stands = await locator.GetStands(cancellationToken);
                 foreach (var stand in stands)
                 {
-                    var serverOption = new ServerItem($"{stand.Name} <i>(locator)</i>", stand.Url);
+                    var kind = "stand";
+                    if (!string.IsNullOrEmpty(stand.Sha))
+                        kind = stand.Sha[..7];
+
+                    var serverOption = new ServerItem(stand.Name, stand.Url, kind);
                     _log.Info($"add locator server: {serverOption}");
-                    Add(serverOption);
+                    AddOrUpdate(serverOption);
                 }
             }
             catch (Exception e)
@@ -125,6 +184,19 @@ namespace Client.Utility
                 _log.Error($"{e}");
             }
         }
-        
+
+        private void AddOrUpdate(ServerItem serverItem)
+        {
+            foreach (var item in this)
+            {
+                if (item.Url != serverItem.Url)
+                    continue;
+
+                item.Update(serverItem);
+                return;
+            }
+
+            Add(serverItem);
+        }
     }
 }
