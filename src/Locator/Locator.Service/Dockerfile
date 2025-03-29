@@ -23,7 +23,7 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 
 # setup user allowing access docker.sock
-# TODO: add build-arg to setup docker group GID from deploy target 
+# TODO: add build-arg to setup docker group GID from deploy target
 #   OR replace locator docker access w/ HTTPS or Portainer API instead
 #   OR change locator implementation w/ broadcast to locate accessible servers (better because of additional info and implicit healthchecks)
 ARG DOCKER_GID=988

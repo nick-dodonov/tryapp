@@ -109,6 +109,20 @@
         "shared.tp": "0.1.0"
       }
     },
+    "locator.api": {
+      "version": "file:../../Locator/Locator.Api",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "locator.client": {
+      "version": "file:../../Locator/Locator.Client",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "locator.api": "0.1.0"
+      }
+    },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
       "version": "9.0.1",
       "depth": 2,
@@ -290,6 +304,14 @@
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
+    "shared.boot": {
+      "version": "file:../../Shared/Shared.Boot",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "shared.tp": "0.1.0"
+      }
+    },
     "shared.log": {
       "version": "file:../../Shared/Shared.Log",
       "depth": 0,
@@ -316,14 +338,6 @@
       "source": "local",
       "dependencies": {
         "shared.system": "0.1.0"
-      }
-    },
-    "shared.boot": {
-      "version": "file:../../Shared/Shared.Boot",
-      "depth": 0,
-      "source": "local",
-      "dependencies": {
-        "shared.tp": "0.1.0"
       }
     },
     "shared.web": {

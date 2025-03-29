@@ -1,0 +1,16 @@
+{
+    "name": "Locator.Client",
+    "rootNamespace": "Locator.Client",
+    "references": [
+        "GUID:e36a5a4b52a174ccbaf49663f3c75c5f"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

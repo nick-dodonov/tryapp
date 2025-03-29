@@ -7,6 +7,8 @@
     "com.unity.webrtc": "3.0.0-pre.8",
     "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2",
     "common": "file:../../Common",
+    "locator.api": "file:../../Locator/Locator.Api",
+    "locator.client": "file:../../Locator/Locator.Client",
     "shared.boot": "file:../../Shared/Shared.Boot",
     "shared.log": "file:../../Shared/Shared.Log",
     "shared.system": "file:../../Shared/Shared.System",

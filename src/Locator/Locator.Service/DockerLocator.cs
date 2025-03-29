@@ -26,7 +26,7 @@ public class DockerLocator : ILocator
 
         var stackPrefix = _config.StandStackPrefix;
         var stands = containers
-            .Where(c => 
+            .Where(c =>
                 c.State == "running" &&
                 c.Labels.Any(l =>
                     l.Key == StackNameKey &&
