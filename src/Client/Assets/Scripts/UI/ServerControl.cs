@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Client.Utility;
 using Common.Meta;
+using Cysharp.Threading.Tasks;
+using Locator.Client;
 using Shared.Log;
 using Shared.Web;
 using TMPro;
@@ -39,12 +42,15 @@ namespace Client.UI
                 _serverOptions.Add(new("localhost-ssl", $"https://{localhost}"));
             }
 
-            var hostingOption = await NeedServerHostingOption();
-            if (hostingOption != null)
-            {
-                _log.Info($"add server {hostingOption}");
-                _serverOptions.Add(hostingOption);
-            }
+            var cancellationToken = gameObject.GetCancellationTokenOnDestroy();
+            await AddServerOptionsStands(cancellationToken);
+
+            // var hostingOption = await NeedServerHostingOption();
+            // if (hostingOption != null)
+            // {
+            //     _log.Info($"add server {hostingOption}");
+            //     _serverOptions.Add(hostingOption);
+            // }
 
             serverDropdown.options.Clear();
             serverDropdown.options.AddRange(_serverOptions.Select(x => new TMP_Dropdown.OptionData(x.Text)));
@@ -87,6 +93,23 @@ namespace Client.UI
             return false;
         }
 
+        private static async ValueTask<string> GetLocatorUrlAsync()
+        {
+            var options = await OptionsReader.TryReadOptions();
+            var url = options?.Locator;
+            if (url != null)
+                return url;
+
+            url = Application.absoluteURL;
+            if (!string.IsNullOrEmpty(url))
+            {
+                url = new Uri(url).GetLeftPart(UriPartial.Authority);
+                return $"{url}/-/";
+            }
+
+            return null;
+        }
+
         private static async ValueTask<ServerOption> NeedServerHostingOption()
         {
             if (NeedServerLocalhostOptions(out _))
@@ -115,6 +138,34 @@ namespace Client.UI
             return null;
         }
 
+        private async Task AddServerOptionsStands(CancellationToken cancellationToken)
+        {
+            try
+            {
+                var locatorUrl = await GetLocatorUrlAsync();
+                if (locatorUrl != null)
+                {
+                    using var locatorWebClient = new UnityWebClient(locatorUrl);
+                    var locator = new ClientLocator(locatorWebClient);
+                    var stands = await locator.GetStands(cancellationToken);
+                    foreach (var stand in stands)
+                    {
+                        var serverOption = new ServerOption(stand.Name, stand.Url);
+                        _log.Info($"add locator server: {serverOption}");
+                        _serverOptions.Add(serverOption);
+                    }
+                }
+                else
+                {
+                    //TODO: add default stand
+                }
+            }
+            catch (Exception e)
+            {
+                _log.Error($"{e}");
+            }
+        }
+        
         private void OnServerChanged(int arg0)
         {
             if (_webClient != null)
