@@ -14,7 +14,7 @@ namespace Locator.Client
         {
             using var response = await _client.GetAsync("stands", cancellationToken);
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.ReadAsStringAsync(cancellationToken);
             var result = WebSerializer.Default.Deserialize<StandInfo[]>(content);
             return result;
         }
