@@ -1,17 +1,16 @@
 using System;
 using System.Threading;
-using Client.Utility;
+using Diagnostics.Debug;
 using Locator.Client;
 using Shared.Log;
 using Shared.Web;
-using UnityEditor;
+using UnityEngine.Scripting;
 
-namespace Client.Editor
+namespace Client.Utility
 {
-    public static class MenuCommands
+    public static class DebugActions
     {
-        
-        [MenuItem("[App]/Debug Locator")]
+        [Preserve, DebugAction]
         public static async void DebugLocator()
         {
             try

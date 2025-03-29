@@ -2,13 +2,18 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Scripting;
+
+[assembly: AlwaysLinkAssembly]
 
 namespace Shared.System
 {
     public class UnitySharedSystem : ISharedSystem
     {
+#if UNITY_EDITOR
         [UnityEditor.InitializeOnLoadMethod]
-        [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
+#endif
+        [Preserve, RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterAssembliesLoaded)]
         private static void Initialize()
         {
             SharedSystem.SetInstance(new UnitySharedSystem());

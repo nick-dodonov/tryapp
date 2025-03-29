@@ -76,7 +76,7 @@ namespace Client.Utility
                     return null;
                 return await File.ReadAllTextAsync(optionsJsonPath);
             }
-            var absoluteUrl = Application.absoluteURL;
+            var absoluteUrl = Startup.AbsoluteUrl;
             var optionsUri = new Uri(new(absoluteUrl), "options.json");
             var request = UnityWebRequest.Get(optionsUri);
             await request.SendWebRequest();

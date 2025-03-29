@@ -6,13 +6,12 @@ using System.Threading.Tasks;
 using Locator.Client;
 using Shared.Log;
 using Shared.Web;
-using UnityEngine;
 
 namespace Client.Utility
 {
     internal record ServerItem(string Text, string Url)
     {
-        public override string ToString() => $"({Text}): {Url}";
+        public override string ToString() => $"\"{Text}\" {Url}";
     }
 
     internal class ServerList : List<ServerItem>
@@ -32,6 +31,9 @@ namespace Client.Utility
             var result = new ServerList();
             result.AddLocalhostItems();
             result.AddDefaultItem();
+            
+            await Task.Delay(5000, cancellationToken); //XXXXXXXXXXXXXXXXXXXXXXXXX
+            
             await result.AddStandsAsync(cancellationToken);
             return result;
         }
@@ -40,16 +42,18 @@ namespace Client.Utility
         {
             if (DetectLocalhost(out var localhost))
             {
-                Add(new("localhost-debug", $"http://{localhost}:5270"));
-                Add(new("localhost-http", $"http://{localhost}"));
-                Add(new("localhost-ssl", $"https://{localhost}"));
+                //<align=left>localhost<line-height=0>
+                //<align=right><i>(debug)</i><line-height=1em>
+                Add(new("localhost <i>(debug)</i>", $"http://{localhost}:5270"));
+                Add(new("localhost <i>(http)</i>", $"http://{localhost}"));
+                Add(new("localhost <i>(ssl)</i>", $"https://{localhost}"));
             }
         }
 
         private static bool DetectLocalhost(out string localhost)
         {
             localhost = "localhost";
-            var absoluteURL = Application.absoluteURL;
+            var absoluteURL = Startup.AbsoluteUrl;
             if (string.IsNullOrEmpty(absoluteURL))
                 return true; // running in editor
             if (absoluteURL.Contains("localhost"))
@@ -63,7 +67,7 @@ namespace Client.Utility
         private void AddDefaultItem()
         {
             // default via deployed client location 
-            var url = Application.absoluteURL;
+            var url = Startup.AbsoluteUrl;
             if (string.IsNullOrEmpty(url))
                 return;
 
@@ -76,9 +80,9 @@ namespace Client.Utility
                 : url.TrimEnd('/');
 
             // get last path part as stand name
-            var name = url[url.LastIndexOf('/')..];
+            var name = url[(url.LastIndexOf('/') + 1)..];
 
-            Add(new(name, url));
+            Add(new($"{name} <i>(hosting)</i>", url));
         }
 
         private static async ValueTask<string> GetLocatorUrlAsync()
@@ -88,7 +92,7 @@ namespace Client.Utility
             if (url != null)
                 return url;
 
-            url = Application.absoluteURL;
+            url = Startup.AbsoluteUrl;
             if (!string.IsNullOrEmpty(url))
             {
                 url = new Uri(url).GetLeftPart(UriPartial.Authority);
@@ -102,24 +106,18 @@ namespace Client.Utility
         {
             try
             {
-                await Task.Delay(5000, cancellationToken); //XXXXXXXXXXXXXXXXXXXXXXXXX
-
                 var locatorUrl = await GetLocatorUrlAsync();
-                if (locatorUrl != null)
+                if (locatorUrl == null)
+                    return;
+
+                using var locatorWebClient = new UnityWebClient(locatorUrl);
+                var locator = new ClientLocator(locatorWebClient);
+                var stands = await locator.GetStands(cancellationToken);
+                foreach (var stand in stands)
                 {
-                    using var locatorWebClient = new UnityWebClient(locatorUrl);
-                    var locator = new ClientLocator(locatorWebClient);
-                    var stands = await locator.GetStands(cancellationToken);
-                    foreach (var stand in stands)
-                    {
-                        var serverOption = new ServerItem(stand.Name, stand.Url);
-                        _log.Info($"add locator server: {serverOption}");
-                        Add(serverOption);
-                    }
-                }
-                else
-                {
-                    //TODO: add default stand
+                    var serverOption = new ServerItem($"{stand.Name} <i>(locator)</i>", stand.Url);
+                    _log.Info($"add locator server: {serverOption}");
+                    Add(serverOption);
                 }
             }
             catch (Exception e)
