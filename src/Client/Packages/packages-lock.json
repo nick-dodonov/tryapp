@@ -318,8 +318,8 @@
         "shared.system": "0.1.0"
       }
     },
-    "shared.unity": {
-      "version": "file:../../Shared/Shared.Unity",
+    "shared.boot": {
+      "version": "file:../../Shared/Shared.Boot",
       "depth": 0,
       "source": "local",
       "dependencies": {

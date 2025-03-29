@@ -1,9 +1,9 @@
 {
-    "name": "Shared.Unity.Editor",
+    "name": "Shared.Boot.Editor",
     "rootNamespace": "Shared.Editor",
     "references": [
         "Shared.Log",
-        "Shared.Unity"
+        "Shared.Boot.Unity"
     ],
     "includePlatforms": [
         "Editor"

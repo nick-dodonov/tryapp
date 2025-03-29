@@ -1,5 +1,5 @@
 {
-    "name": "Shared.Unity",
+    "name": "Shared.Boot.Unity",
     "rootNamespace": "Shared",
     "references": [
         "Shared.Log"

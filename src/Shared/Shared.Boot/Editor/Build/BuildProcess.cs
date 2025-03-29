@@ -9,7 +9,7 @@ namespace Shared.Editor.Build
     public class BuildProcess : IPreprocessBuildWithReport
     {
         private static readonly Slog.Area _log = new();
-        
+
         [InitializeOnLoadMethod]
         private static void InitOnLoad()
         {
@@ -22,7 +22,7 @@ namespace Shared.Editor.Build
             _log.Info($"{buildOptions}");
 
             // replace default webgl build hosting service
-            //  there is the issue with WebRTC usage because of several response headers miss 
+            //  there is the issue with WebRTC usage because of several response headers miss
             var autoRun = (buildOptions & BuildOptions.AutoRunPlayer) != 0;
             if (autoRun)
                 buildOptions &= ~BuildOptions.AutoRunPlayer;
@@ -47,7 +47,7 @@ namespace Shared.Editor.Build
             var summary = report.summary;
             _log.Info(@$"{summary.outputPath}
 platform: {summary.platform}
-buildType: {summary.buildType} 
+buildType: {summary.buildType}
 options: ""{summary.options}""");
         }
     }
