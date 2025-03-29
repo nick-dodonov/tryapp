@@ -3,6 +3,7 @@
     "rootNamespace": "Common",
     "references": [
         "Shared.Log",
+        "Shared.System",
         "Shared.Tp",
         "Shared.Web"
     ],

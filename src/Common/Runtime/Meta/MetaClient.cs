@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.System;
 using Shared.Tp.Rtc;
 using Shared.Web;
 
@@ -31,7 +32,7 @@ namespace Common.Meta
             _logger.Info($"request: {_client.BaseAddress}{uri}");
             using var response = await _client.GetAsync(uri, cancellationToken);
             response.EnsureSuccessStatusCode();
-            var content = await response.Content.ReadAsStringAsync();
+            var content = await response.Content.SharedReadAsStringAsync(cancellationToken);
             _logger.Info($"response: {content}");
             var result = WebSerializer.Default.Deserialize<ServerInfo>(content);
             return result;

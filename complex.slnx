@@ -11,6 +11,7 @@
   <Folder Name="/Shared/">
     <Project Path="src\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Log\Runtime\Shared.Log.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.System\Asp~\Shared.System.Asp.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Runtime.Tests\Shared.System.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Runtime\Shared.System.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Tp\Asp~\Shared.Tp.Asp.csproj" Type="Classic C#" />

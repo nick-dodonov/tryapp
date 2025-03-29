@@ -8,7 +8,7 @@ namespace System.Threading.Tasks
     /// Adopted net9 methods as extensions methods for netstandard2.1 using TaskCompletionSource
     /// Adopted for WebGL builds (ConfigureAwait isn't supported)
     ///     TODO: DRY with #ifdef implementing SafeConfigureAwait variant with custom GetAwaiter repeating/delegating to ConfiguredTaskAwaitable/ConfiguredAsyncDisposable 
-    /// 
+    ///
     /// TODO: possible speedup using custom GetAwaiter implementation
     /// TODO: add unit tests and comparison with core implementation behaviour
     /// </summary>
@@ -132,7 +132,7 @@ namespace System.Threading.Tasks
         private static CancellationTokenSource CreateCancellationTokenSource(uint millisecondsTimeout,
             CancellationToken cancellationToken)
         {
-            if (!cancellationToken.CanBeCanceled) 
+            if (!cancellationToken.CanBeCanceled)
                 return new((int)millisecondsTimeout);
 
             var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

@@ -1,6 +1,6 @@
 {
     "name": "Shared.System",
-    "rootNamespace": "Shared.System",
+    "rootNamespace": "",
     "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
