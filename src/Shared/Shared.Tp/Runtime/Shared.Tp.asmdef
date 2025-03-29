@@ -1,0 +1,28 @@
+{
+    "name": "Shared.Tp",
+    "rootNamespace": "Shared",
+    "references": [
+        "UniTask",
+        "Unity.WebRTC",
+        "Shared.Log",
+        "Shared.System",
+        "Shared.Web"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Microsoft.Extensions.Logging.dll",
+        "Microsoft.Extensions.Options.dll",
+        "System.Runtime.CompilerServices.Unsafe.dll",
+        "System.Text.Json.dll",
+        "Newtonsoft.Json.dll",
+        "ZString.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

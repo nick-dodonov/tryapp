@@ -106,7 +106,21 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "shared": "0.2.0"
+        "shared.tp": "0.1.0"
+      }
+    },
+    "locator.api": {
+      "version": "file:../../Locator/Locator.Api",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {}
+    },
+    "locator.client": {
+      "version": "file:../../Locator/Locator.Client",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "locator.api": "0.1.0"
       }
     },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
@@ -166,7 +180,7 @@
     },
     "org.nuget.microsoft.extensions.options": {
       "version": "9.0.1",
-      "depth": 1,
+      "depth": 2,
       "source": "registry",
       "dependencies": {
         "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.1",
@@ -177,7 +191,7 @@
     },
     "org.nuget.microsoft.extensions.primitives": {
       "version": "9.0.1",
-      "depth": 2,
+      "depth": 3,
       "source": "registry",
       "dependencies": {
         "org.nuget.system.memory": "4.5.5",
@@ -194,7 +208,7 @@
     },
     "org.nuget.system.componentmodel.annotations": {
       "version": "5.0.0",
-      "depth": 2,
+      "depth": 3,
       "source": "registry",
       "dependencies": {},
       "url": "https://unitynuget-registry.openupm.com"
@@ -290,28 +304,49 @@
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
-    "shared": {
-      "version": "file:../../Shared",
+    "shared.boot": {
+      "version": "file:../../Shared/Shared.Boot",
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "com.cysharp.unitask": "2.5.10",
+        "shared.tp": "0.1.0"
+      }
+    },
+    "shared.log": {
+      "version": "file:../../Shared/Shared.Log",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
         "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
         "org.nuget.microsoft.extensions.logging": "9.0.1",
-        "org.nuget.microsoft.extensions.options": "9.0.1",
-        "org.nuget.system.text.json": "9.0.1",
         "org.nuget.zstring": "2.6.0",
-        "com.unity.modules.unitywebrequest": "1.0.0",
+        "shared.system": "0.1.0"
+      }
+    },
+    "shared.system": {
+      "version": "file:../../Shared/Shared.System",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1",
         "com.unity.test-framework": "1.4.5"
       }
     },
-    "shared.unity": {
-      "version": "file:../../Shared.Unity",
+    "shared.tp": {
+      "version": "file:../../Shared/Shared.Tp",
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "shared": "0.2.0"
+        "shared.system": "0.1.0"
+      }
+    },
+    "shared.web": {
+      "version": "file:../../Shared/Shared.Web",
+      "depth": 0,
+      "source": "local",
+      "dependencies": {
+        "org.nuget.system.text.json": "9.0.1",
+        "com.unity.modules.unitywebrequest": "1.0.0"
       }
     },
     "com.unity.modules.audio": {

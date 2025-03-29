@@ -1,0 +1,17 @@
+{
+    "name": "Locator.Client",
+    "rootNamespace": "Locator.Client",
+    "references": [
+        "Locator.Api",
+        "Shared.Web"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

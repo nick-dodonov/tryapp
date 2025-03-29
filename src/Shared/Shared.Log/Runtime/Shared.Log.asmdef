@@ -1,0 +1,20 @@
+{
+    "name": "Shared.Log",
+    "rootNamespace": "Shared",
+    "references": [
+        "Shared.System"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Microsoft.Extensions.Logging.dll",
+        "ZString.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,19 @@
+{
+    "name": "Shared.Boot.Editor",
+    "rootNamespace": "Shared.Editor",
+    "references": [
+        "Shared.Log",
+        "Shared.Boot.Unity"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

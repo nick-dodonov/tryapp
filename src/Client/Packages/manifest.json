@@ -7,13 +7,19 @@
     "com.unity.webrtc": "3.0.0-pre.8",
     "com.yasirkula.runtimeinspector": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2",
     "common": "file:../../Common",
-    "shared": "file:../../Shared",
-    "shared.unity": "file:../../Shared.Unity",
+    "locator.api": "file:../../Locator/Locator.Api",
+    "locator.client": "file:../../Locator/Locator.Client",
+    "shared.boot": "file:../../Shared/Shared.Boot",
+    "shared.log": "file:../../Shared/Shared.Log",
+    "shared.system": "file:../../Shared/Shared.System",
+    "shared.tp": "file:../../Shared/Shared.Tp",
+    "shared.web": "file:../../Shared/Shared.Web",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.physics": "1.0.0"
   },
   "testables": [
-    "shared"
+    "shared.system",
+    "shared.tp"
   ],
   "scopedRegistries": [
     {

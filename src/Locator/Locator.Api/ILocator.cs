@@ -8,12 +8,12 @@ namespace Locator.Api
     {
         public ValueTask<StandInfo[]> GetStands(CancellationToken cancellationToken);
     }
-    
+
     [Serializable]
     public class StandInfo
     {
         // ReSharper disable UnusedMember.Global UnassignedField.Global NotAccessedField.Global
-        //[RequiredMember] 
+        //[RequiredMember]
         public string Name { get; set; } = string.Empty;
         public string Url { get; set; } = string.Empty;
         public string? Created { get; set; }

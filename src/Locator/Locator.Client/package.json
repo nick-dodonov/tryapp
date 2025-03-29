@@ -1,0 +1,8 @@
+{
+  "name": "locator.client",
+  "version": "0.1.0",
+  "displayName": "Locator.Client",
+  "dependencies": {
+    "locator.api": "0.1.0"
+  }
+}
