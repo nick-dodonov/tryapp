@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.Logic;
 using Client.UI;
+using Client.Utility;
 using Shared.Audit;
 using Shared.Log;
 using UnityEngine;
@@ -20,9 +21,11 @@ namespace Client
         public ClientSession clientSession;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
+        // ReSharper disable once AsyncVoidMethod
         private static async void Initialize()
         {
             _log.Info(">>>> starting client");
+            await ClientOptions.InstanceAsync;
             // var logger = Slog.Factory.CreateLogger<MainHud>();
             // logger.Info("==== starting client (logger) ====");
             StartupInfo.Print();

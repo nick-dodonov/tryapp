@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading;
 using System.Threading.Tasks;
+using UnityEngine.Scripting;
 
 namespace Locator.Api
 {
@@ -13,11 +14,10 @@ namespace Locator.Api
     public class StandInfo
     {
         // ReSharper disable UnusedMember.Global UnassignedField.Global NotAccessedField.Global
-        //[RequiredMember]
-        public string Name { get; set; } = string.Empty;
-        public string Url { get; set; } = string.Empty;
-        public string? Created { get; set; }
-        public string? Sha { get; set; }
+        [RequiredMember] public string Name { get; set; } = string.Empty;
+        [RequiredMember] public string Url { get; set; } = string.Empty;
+        [RequiredMember] public string? Created { get; set; }
+        [RequiredMember] public string? Sha { get; set; }
         // ReSharper restore UnusedMember.Global UnassignedField.Global NotAccessedField.Global
     }
 }
