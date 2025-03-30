@@ -4,21 +4,21 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
         <RootNamespace>Server</RootNamespace>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     </PropertyGroup>
 
     <ItemGroup>
-      <Content Include="..\..\.dockerignore">
+      <Content Include="..\..\..\.dockerignore">
         <Link>.dockerignore</Link>
       </Content>
     </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\Common\Runtime\Common.csproj"/>
-        <ProjectReference Include="..\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" />
-        <ProjectReference Include="..\Shared\Shared.System\Asp~\Shared.System.Asp.csproj" />
-        <ProjectReference Include="..\Shared\Shared.Tp\Asp~\Shared.Tp.Asp.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.System\Asp~\Shared.System.Asp.csproj" />
+        <ProjectReference Include="..\..\Shared\Shared.Tp\Asp~\Shared.Tp.Asp.csproj" />
     </ItemGroup>
 
     <ItemGroup>

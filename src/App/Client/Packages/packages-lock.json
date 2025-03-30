@@ -17,9 +17,8 @@
     "com.unity.ext.nunit": {
       "version": "2.0.5",
       "depth": 1,
-      "source": "registry",
-      "dependencies": {},
-      "url": "https://packages.unity.com"
+      "source": "builtin",
+      "dependencies": {}
     },
     "com.unity.ide.rider": {
       "version": "3.0.35",
@@ -40,7 +39,7 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.nuget.mono-cecil": {
-      "version": "1.11.4",
+      "version": "1.11.5",
       "depth": 1,
       "source": "registry",
       "dependencies": {},
@@ -54,15 +53,14 @@
       "url": "https://packages.unity.com"
     },
     "com.unity.test-framework": {
-      "version": "1.4.6",
+      "version": "1.5.1",
       "depth": 1,
-      "source": "registry",
+      "source": "builtin",
       "dependencies": {
         "com.unity.ext.nunit": "2.0.3",
         "com.unity.modules.imgui": "1.0.0",
         "com.unity.modules.jsonserialize": "1.0.0"
-      },
-      "url": "https://packages.unity.com"
+      }
     },
     "com.unity.ugui": {
       "version": "2.0.0",
@@ -90,16 +88,16 @@
       "source": "embedded",
       "dependencies": {
         "com.unity.editorcoroutines": "1.0.0",
-        "com.unity.test-framework": "1.4.2",
-        "com.unity.nuget.mono-cecil": "1.11.4"
+        "com.unity.test-framework": "1.5.1",
+        "com.unity.nuget.mono-cecil": "1.11.5"
       }
     },
     "com.yasirkula.runtimeinspector": {
-      "version": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.2",
+      "version": "https://github.com/yasirkula/UnityRuntimeInspector.git#v1.7.4",
       "depth": 0,
       "source": "git",
       "dependencies": {},
-      "hash": "b0980bb9a554d8d429cec645593b5c207c49163a"
+      "hash": "bdd9b5b6f7556290171ad0fdd276b1bc14c462de"
     },
     "common": {
       "version": "file:../../Common",
@@ -110,13 +108,13 @@
       }
     },
     "locator.api": {
-      "version": "file:../../Locator/Locator.Api",
+      "version": "file:../../../Locator/Locator.Api",
       "depth": 0,
       "source": "local",
       "dependencies": {}
     },
     "locator.client": {
-      "version": "file:../../Locator/Locator.Client",
+      "version": "file:../../../Locator/Locator.Client",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -124,7 +122,7 @@
       }
     },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -133,64 +131,64 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.dependencyinjection": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.1",
-        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.1",
+        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.3",
+        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.3",
         "org.nuget.system.threading.tasks.extensions": "4.5.4"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.dependencyinjection.abstractions": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.1",
+        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.3",
         "org.nuget.system.threading.tasks.extensions": "4.5.4"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.logging": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.1",
-        "org.nuget.microsoft.extensions.dependencyinjection": "9.0.1",
-        "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
-        "org.nuget.microsoft.extensions.options": "9.0.1",
-        "org.nuget.system.diagnostics.diagnosticsource": "9.0.1"
+        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.3",
+        "org.nuget.microsoft.extensions.dependencyinjection": "9.0.3",
+        "org.nuget.microsoft.extensions.logging.abstractions": "9.0.3",
+        "org.nuget.microsoft.extensions.options": "9.0.3",
+        "org.nuget.system.diagnostics.diagnosticsource": "9.0.3"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.logging.abstractions": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.1",
-        "org.nuget.system.diagnostics.diagnosticsource": "9.0.1",
+        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.3",
+        "org.nuget.system.diagnostics.diagnosticsource": "9.0.3",
         "org.nuget.system.buffers": "4.5.1",
         "org.nuget.system.memory": "4.5.5"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.options": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.1",
-        "org.nuget.microsoft.extensions.primitives": "9.0.1",
+        "org.nuget.microsoft.extensions.dependencyinjection.abstractions": "9.0.3",
+        "org.nuget.microsoft.extensions.primitives": "9.0.3",
         "org.nuget.system.componentmodel.annotations": "5.0.0"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.microsoft.extensions.primitives": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 3,
       "source": "registry",
       "dependencies": {
@@ -200,8 +198,8 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.buffers": {
-      "version": "4.5.1",
-      "depth": 2,
+      "version": "4.6.1",
+      "depth": 1,
       "source": "registry",
       "dependencies": {},
       "url": "https://unitynuget-registry.openupm.com"
@@ -214,7 +212,7 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.diagnostics.diagnosticsource": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -224,7 +222,7 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.io.pipelines": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -235,32 +233,32 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.memory": {
-      "version": "4.5.5",
-      "depth": 2,
+      "version": "4.6.2",
+      "depth": 1,
       "source": "registry",
       "dependencies": {
-        "org.nuget.system.buffers": "4.5.1",
-        "org.nuget.system.numerics.vectors": "4.4.0",
-        "org.nuget.system.runtime.compilerservices.unsafe": "4.5.3"
+        "org.nuget.system.buffers": "4.6.1",
+        "org.nuget.system.numerics.vectors": "4.6.1",
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.1.1"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.numerics.vectors": {
-      "version": "4.4.0",
-      "depth": 3,
+      "version": "4.6.1",
+      "depth": 2,
       "source": "registry",
       "dependencies": {},
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.runtime.compilerservices.unsafe": {
-      "version": "6.0.0",
+      "version": "6.1.1",
       "depth": 2,
       "source": "registry",
       "dependencies": {},
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.text.encodings.web": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 2,
       "source": "registry",
       "dependencies": {
@@ -271,13 +269,13 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.text.json": {
-      "version": "9.0.1",
+      "version": "9.0.3",
       "depth": 1,
       "source": "registry",
       "dependencies": {
-        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.1",
-        "org.nuget.system.io.pipelines": "9.0.1",
-        "org.nuget.system.text.encodings.web": "9.0.1",
+        "org.nuget.microsoft.bcl.asyncinterfaces": "9.0.3",
+        "org.nuget.system.io.pipelines": "9.0.3",
+        "org.nuget.system.text.encodings.web": "9.0.3",
         "org.nuget.system.buffers": "4.5.1",
         "org.nuget.system.memory": "4.5.5",
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0",
@@ -286,11 +284,11 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.threading.tasks.extensions": {
-      "version": "4.5.4",
-      "depth": 2,
+      "version": "4.6.2",
+      "depth": 1,
       "source": "registry",
       "dependencies": {
-        "org.nuget.system.runtime.compilerservices.unsafe": "4.5.3"
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.1.1"
       },
       "url": "https://unitynuget-registry.openupm.com"
     },
@@ -305,7 +303,7 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "shared.boot": {
-      "version": "file:../../Shared/Shared.Boot",
+      "version": "file:../../../Shared/Shared.Boot",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -313,27 +311,30 @@
       }
     },
     "shared.log": {
-      "version": "file:../../Shared/Shared.Log",
+      "version": "file:../../../Shared/Shared.Log",
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
-        "org.nuget.microsoft.extensions.logging": "9.0.1",
+        "org.nuget.microsoft.extensions.logging.abstractions": "9.0.3",
+        "org.nuget.microsoft.extensions.logging": "9.0.3",
         "org.nuget.zstring": "2.6.0",
         "shared.system": "0.1.0"
       }
     },
     "shared.system": {
-      "version": "file:../../Shared/Shared.System",
+      "version": "file:../../../Shared/Shared.System",
       "depth": 0,
       "source": "local",
       "dependencies": {
         "com.unity.nuget.newtonsoft-json": "3.2.1",
-        "com.unity.test-framework": "1.4.5"
+        "com.unity.test-framework": "1.5.1",
+        "org.nuget.system.buffers": "4.6.1",
+        "org.nuget.system.memory": "4.6.2",
+        "org.nuget.system.threading.tasks.extensions": "4.6.2"
       }
     },
     "shared.tp": {
-      "version": "file:../../Shared/Shared.Tp",
+      "version": "file:../../../Shared/Shared.Tp",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -341,11 +342,11 @@
       }
     },
     "shared.web": {
-      "version": "file:../../Shared/Shared.Web",
+      "version": "file:../../../Shared/Shared.Web",
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "org.nuget.system.text.json": "9.0.1",
+        "org.nuget.system.text.json": "9.0.3",
         "com.unity.modules.unitywebrequest": "1.0.0"
       }
     },

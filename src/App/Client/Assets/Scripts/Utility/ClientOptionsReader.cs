@@ -34,7 +34,8 @@ namespace Client.Utility
         {
             if (Application.isEditor)
             {
-                const string optionsJsonPath = "../../pages/options.json";
+                //TODO: find options.json in parent folder or via .env
+                const string optionsJsonPath = "../../../pages/options.json";
                 if (!File.Exists(optionsJsonPath))
                     return null;
                 return await File.ReadAllTextAsync(optionsJsonPath);

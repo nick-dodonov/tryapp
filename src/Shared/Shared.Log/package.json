@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "displayName": "Shared.Log",
   "dependencies": {
-    "org.nuget.microsoft.extensions.logging.abstractions": "9.0.1",
-    "org.nuget.microsoft.extensions.logging": "9.0.1",
+    "org.nuget.microsoft.extensions.logging.abstractions": "9.0.3",
+    "org.nuget.microsoft.extensions.logging": "9.0.3",
     "org.nuget.zstring": "2.6.0",
     "shared.system": "0.1.0"
   }
