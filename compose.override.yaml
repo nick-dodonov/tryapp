@@ -1,7 +1,7 @@
 services:
   server:
     build:
-      dockerfile: src/Server/Dockerfile
+      dockerfile: src/App/Server/Dockerfile
     environment:
       # TODO: external setup auto-detection for coturn service 10.211.55.4
       SipRtcConfig__IceServers__0__Url: turn:10.211.55.4:3478

@@ -8,11 +8,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- Log shared deps -->
+        <!-- Runtime deps -->
         <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1"/>
         <PackageReference Include="ZString" Version="2.6.0"/>
 
-        <!-- Log asp impls deps -->
+        <!-- ASP deps -->
         <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1"/>
         <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1"/>
     </ItemGroup>

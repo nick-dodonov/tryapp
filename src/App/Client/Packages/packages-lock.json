@@ -110,13 +110,13 @@
       }
     },
     "locator.api": {
-      "version": "file:../../Locator/Locator.Api",
+      "version": "file:../../../Locator/Locator.Api",
       "depth": 0,
       "source": "local",
       "dependencies": {}
     },
     "locator.client": {
-      "version": "file:../../Locator/Locator.Client",
+      "version": "file:../../../Locator/Locator.Client",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -305,7 +305,7 @@
       "url": "https://unitynuget-registry.openupm.com"
     },
     "shared.boot": {
-      "version": "file:../../Shared/Shared.Boot",
+      "version": "file:../../../Shared/Shared.Boot",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -313,7 +313,7 @@
       }
     },
     "shared.log": {
-      "version": "file:../../Shared/Shared.Log",
+      "version": "file:../../../Shared/Shared.Log",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -324,7 +324,7 @@
       }
     },
     "shared.system": {
-      "version": "file:../../Shared/Shared.System",
+      "version": "file:../../../Shared/Shared.System",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -333,7 +333,7 @@
       }
     },
     "shared.tp": {
-      "version": "file:../../Shared/Shared.Tp",
+      "version": "file:../../../Shared/Shared.Tp",
       "depth": 0,
       "source": "local",
       "dependencies": {
@@ -341,7 +341,7 @@
       }
     },
     "shared.web": {
-      "version": "file:../../Shared/Shared.Web",
+      "version": "file:../../../Shared/Shared.Web",
       "depth": 0,
       "source": "local",
       "dependencies": {

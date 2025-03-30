@@ -24,15 +24,15 @@ ARG BUILD_CONFIGURATION=Release
 WORKDIR /repo
 
 #TODO: copy and dotnet restore all csproj deps in separate docker image layer
-#COPY ["src/Server/Server.csproj", "/repo/src/Server/"]
-#RUN dotnet restore "/repo/src/Server/Server.csproj"
+#COPY ["src/App/Server/Server.csproj", "/repo/src/App/Server/"]
+#RUN dotnet restore "/repo/src/Aspp/Server/Server.csproj"
 
 COPY . .
 
 #TEMP diagnose content and stack.yml action build issue
 #RUN ls -lR /repo
 
-WORKDIR "/repo/src/Server"
+WORKDIR "/repo/src/App/Server"
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
     dotnet build "Server.csproj" \
     -c $BUILD_CONFIGURATION \

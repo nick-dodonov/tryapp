@@ -16,8 +16,8 @@ jobs:
       #   https://game.ci/docs/github/getting-started
       - uses: actions/cache@v3
         with:
-          path: src/Client/Library
-          key: Library-${{ hashFiles('src/Client/Assets/**', 'src/Client/Packages/**', 'src/Client/ProjectSettings/**') }}
+          path: src/App/Client/Library
+          key: Library-${{ hashFiles('src/App/Client/Assets/**', 'src/App/Client/Packages/**', 'src/App/Client/ProjectSettings/**') }}
           restore-keys: |
             Library-
 
@@ -27,7 +27,7 @@ jobs:
           UNITY_EMAIL: ${{ secrets.UNITY_EMAIL }}
           UNITY_PASSWORD: ${{ secrets.UNITY_PASSWORD }}
         with:
-          projectPath: src/Client
+          projectPath: src/App/Client
           targetPlatform: WebGL
           buildName: client
 

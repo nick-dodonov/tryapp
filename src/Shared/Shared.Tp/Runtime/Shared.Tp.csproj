@@ -9,15 +9,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!-- Tp impls deps -->
         <PackageReference Include="Microsoft.Extensions.Options" Version="9.0.1"/>
-    </ItemGroup>
+        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1"/>
 
-    <!-- Tp.Rtc impls deps -->
-    <ItemGroup>
         <!--<ProjectReference Include="..\..\..\ext\sipsorcery\src\SIPSorcery.csproj"/>-->
         <PackageReference Include="SIPSorcery" Version="8.0.11" />
-        <PackageReference Include="Microsoft.Extensions.Hosting" Version="9.0.1"/>
     </ItemGroup>
     <ItemGroup>
       <ProjectReference Include="..\..\Shared.Log\Runtime\Shared.Log.csproj" />

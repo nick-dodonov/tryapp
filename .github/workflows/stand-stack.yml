@@ -40,7 +40,7 @@ jobs:
       - uses: docker/build-push-action@v6 #https://github.com/marketplace/actions/build-and-push-docker-images
         with:
           context: .
-          file: src/Server/Dockerfile
+          file: src/App/Server/Dockerfile
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
