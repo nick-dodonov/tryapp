@@ -8,8 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.0" />
     <PackageReference Include="Docker.DotNet.Enhanced" Version="3.126.1" />
+    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="9.0.3" />
     <PackageReference Include="Microsoft.Extensions.Options.DataAnnotations" Version="9.0.3" />
   </ItemGroup>
 

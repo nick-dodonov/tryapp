@@ -9,12 +9,12 @@
 
     <ItemGroup>
         <!-- Runtime deps -->
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="9.0.3" />
         <PackageReference Include="ZString" Version="2.6.0"/>
 
         <!-- ASP deps -->
-        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.1"/>
-        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.1"/>
+        <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="9.0.3" />
+        <PackageReference Include="Microsoft.Extensions.Logging" Version="9.0.3" />
     </ItemGroup>
 
     <ItemGroup>
