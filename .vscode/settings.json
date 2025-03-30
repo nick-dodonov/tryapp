@@ -5,4 +5,17 @@
     "fiveServer.ignore": [
         "**"
     ],
+    "liveServer.settings.donotShowInfoMsg": true,
+    "liveServer.settings.ignoreFiles": [
+        ".vscode/**",
+        "**/*.scss",
+        "**/*.sass",
+        "**/*.ts",
+        "**/*.*",
+        "**/*",
+        "**"
+    ],
+    "livePreview.portNumber": 5500,
+    "livePreview.openPreviewTarget": "External Browser",
+    "livePreview.serverKeepAliveAfterEmbeddedPreviewClose": 1,
 }

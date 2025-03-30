@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
@@ -15,15 +16,16 @@ namespace Client.Utility
         private string _name;
         private string _url;
         private string _kind;
-        private readonly bool _default;
+        private bool _default;
 
-        public ServerItem(string name, string url, string kind, bool @default = false)
+        public ServerItem(string name, string url, string kind)
         {
             _name = name;
             _url = url;
             _kind = kind;
-            _default = @default;
         }
+
+        public void SetDefault(bool @default) => _default = @default;
 
         public void Update(ServerItem item)
         {
@@ -71,9 +73,17 @@ namespace Client.Utility
         }
     }
 
-    internal class ServerList : List<ServerItem>
+    internal class ServerList : IEnumerable<ServerItem>
     {
         private static readonly Slog.Area _log = new();
+
+        private bool _defaultAdded;
+        private readonly List<ServerItem> _items = new();
+
+        public ServerItem this[int index] => _items[index];
+        public List<ServerItem>.Enumerator GetEnumerator() => _items.GetEnumerator();
+        IEnumerator<ServerItem> IEnumerable<ServerItem>.GetEnumerator() => _items.GetEnumerator();
+        IEnumerator IEnumerable.GetEnumerator() => _items.GetEnumerator();
 
         public static ServerList CreateDefault()
         {
@@ -122,11 +132,12 @@ namespace Client.Utility
 
         private void AddDefaultItem()
         {
-            // default via deployed client location 
-            var url = ClientApp.AbsoluteUrl;
-            if (string.IsNullOrEmpty(url))
+            // local build cannot specify default server
+            //TODO: possibly default server can be added by branch
+            if (DetectLocalhost(out _))
                 return;
 
+            var url = ClientApp.AbsoluteUrl;
             var uri = new Uri(url);
             url = uri.GetLeftPart(UriPartial.Path);
 
@@ -138,7 +149,7 @@ namespace Client.Utility
             // get last path part as stand name
             var name = url[(url.LastIndexOf('/') + 1)..];
 
-            Add(new(name, url, "default", true));
+            Add(new(name, url, "default"));
         }
 
         private static string GetLocatorUrlAsync()
@@ -185,9 +196,20 @@ namespace Client.Utility
             }
         }
 
+        private void Add(ServerItem serverItem)
+        {
+            if (!_defaultAdded)
+            {
+                _defaultAdded = true;
+                serverItem.SetDefault(true);
+            }
+
+            _items.Add(serverItem);
+        }
+
         private void AddOrUpdate(ServerItem serverItem)
         {
-            foreach (var item in this)
+            foreach (var item in _items)
             {
                 if (item.Url != serverItem.Url)
                     continue;
