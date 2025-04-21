@@ -3,6 +3,8 @@
     "rootNamespace": "",
     "references": [
         "RuntimeInspector.Runtime",
+        "Shared.Boot",
+        "Shared.Boot.Unity",
         "Shared.Log",
         "Shared.System",
         "Unity.TextMeshPro"

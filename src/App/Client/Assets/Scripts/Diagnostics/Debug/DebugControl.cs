@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Shared.Boot.Version;
 using Shared.Log;
 using TMPro;
 using UnityEngine;
@@ -49,7 +50,8 @@ namespace Diagnostics.Debug
 
         private void OnEnable()
         {
-            debugText.text = $"version: {Application.version}";
+            //UnityVersionProvider.BuildInfo;
+            debugText.text = $"{Application.version} / {UnityVersionProvider.BuildInfo.GetShortDescription()}";
 
             _options.Clear();
 

@@ -1,19 +1,14 @@
 {
-    "name": "Shared.Boot.Unity",
+    "name": "Shared.Boot",
     "rootNamespace": "Shared.Boot",
-    "references": [
-        "Shared.Boot",
-        "Shared.Log"
-    ],
+    "references": [],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": [
-        "Microsoft.Extensions.Options.dll"
-    ],
+    "precompiledReferences": [],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": false
+    "noEngineReferences": true
 }
