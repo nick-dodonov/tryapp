@@ -21,10 +21,18 @@ namespace Shared.Boot.Editor.Version
 
         BuildVersion IVersionProvider.ReadBuildVersion()
         {
+            var sha = Environment.GetEnvironmentVariable("GITHUB_SHA");
+            if (string.IsNullOrEmpty(sha))
+                sha = TryProcessChecked(GitExecutable, "rev-parse HEAD", "<fail>").Trim();
+
+            var branch = Environment.GetEnvironmentVariable("GITHUB_REF_POINT");
+            if (string.IsNullOrEmpty(branch))
+                branch = TryProcessChecked(GitExecutable, "rev-parse --abbrev-ref HEAD", "<fail>").Trim();
+
             return new()
             {
-                Sha = TryProcessChecked(GitExecutable, "rev-parse HEAD", "<fail>").Trim(),
-                Branch = TryProcessChecked(GitExecutable, "rev-parse --abbrev-ref HEAD", "<fail>").Trim(),
+                Sha = sha,
+                Branch = branch,
                 Time = DateTime.Now 
             };
         }

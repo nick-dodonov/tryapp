@@ -23,6 +23,7 @@ namespace Shared.Boot.Editor.Version
 
             var asset = ScriptableObject.CreateInstance<BuildVersionAsset>();
             asset.buildVersion = ((IVersionProvider)(new EditorVersionProvider())).ReadBuildVersion();
+            Slog.Info(asset.buildVersion.ToShortInfo());
 
             AssetDatabase.CreateAsset(asset, path);
             AssetDatabase.SaveAssets();
