@@ -2,6 +2,7 @@
     "name": "Common",
     "rootNamespace": "Common",
     "references": [
+        "Shared.Boot",
         "Shared.Log",
         "Shared.System",
         "Shared.Tp",

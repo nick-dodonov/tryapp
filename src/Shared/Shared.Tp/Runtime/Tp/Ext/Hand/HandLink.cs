@@ -18,7 +18,7 @@ namespace Shared.Tp.Ext.Hand
     /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
     /// TODO: reconnect support (possibly another wrapper)
     /// </summary>
-    public partial class HandLink : ExtLink
+    public class HandLink : ExtLink
     {
         private readonly HandApi _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;

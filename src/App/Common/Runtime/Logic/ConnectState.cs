@@ -1,5 +1,6 @@
 using System;
 using System.Buffers;
+using Shared.Boot.Version;
 using Shared.Tp.Ext.Hand;
 using Shared.Web;
 
@@ -23,10 +24,11 @@ namespace Common.Logic
     public class ConnectState : IHandConnectState
     {
         public string LinkId { get; set; } = string.Empty;
+        public BuildVersion BuildVersion { get; set; } = new();
 
         public ConnectState() {}
         public ConnectState(string linkId) => LinkId = linkId;
 
-        public override string ToString() => $"ConnectState({LinkId})"; //diagnostics only
+        public override string ToString() => $"ConnectState({LinkId} {BuildVersion.ToShortInfo()})"; //diagnostics only
     }
 }
