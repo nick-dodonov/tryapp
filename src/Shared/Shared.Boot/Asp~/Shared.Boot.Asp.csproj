@@ -15,11 +15,11 @@
     <!--TODO: intergate via SG or task to AssemblyAttribute instead of EmbeddedResource or mybe using separate nuget package-->
     <Target Name="EmbedBuildVersion" BeforeTargets="PrepareForBuild">
         <Exec Command="git rev-parse HEAD" 
-              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low">
+              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionSha"/>
         </Exec>
         <Exec Command="git rev-parse --abbrev-ref HEAD" 
-              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low">
+              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionBranch"/>
         </Exec>
 

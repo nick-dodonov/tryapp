@@ -33,10 +33,12 @@ COPY . .
 #RUN ls -lR /repo
 
 WORKDIR "/repo/src/App/Server"
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet build "Server.csproj" \
-    -c $BUILD_CONFIGURATION \
-    -o /app/build
+
+#exclude build as it's built again on publish
+# RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+#     dotnet build "Server.csproj" \
+#     -c $BUILD_CONFIGURATION \
+#     -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release

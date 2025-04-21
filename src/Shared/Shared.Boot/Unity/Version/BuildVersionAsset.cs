@@ -7,12 +7,12 @@ namespace Shared.Boot.Version
     public class BuildVersionAsset : ScriptableObject, ISerializationCallbackReceiver
     {
         public BuildVersion buildVersion;
-        public long timeTicks; // workaround for DateTime isn't serializable in unity        
+        public string? timeIso8601;
 
-        void ISerializationCallbackReceiver.OnBeforeSerialize()
-            => timeTicks = buildVersion.Time.Ticks;
+        void ISerializationCallbackReceiver.OnBeforeSerialize() 
+            => timeIso8601 = buildVersion.Time.ToString("O");
 
         void ISerializationCallbackReceiver.OnAfterDeserialize()
-            => buildVersion.Time = new(timeTicks);
+            => buildVersion.Time = DateTime.Parse(timeIso8601);
     }
 }
