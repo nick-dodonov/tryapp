@@ -1300,10 +1300,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: DebugControl
       objectReference: {fileID: 0}
-    - target: {fileID: 4174049494337692578, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
-      propertyPath: m_fontColor32.rgba
-      value: 4278255560
-      objectReference: {fileID: 0}
     - target: {fileID: 5780822707783327733, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1410,7 +1406,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5990686352420442097, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 411.66602
+      value: 393.66602
       objectReference: {fileID: 0}
     - target: {fileID: 5990838454373032489, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.x

@@ -11,7 +11,8 @@ namespace Shared.Boot.Version
 
         BuildInfo IVersionProvider.ReadBuildInfo()
         {
-            throw new System.NotImplementedException("TODO: read asset");
+            var asset = UnityEngine.Resources.Load<BuildInfoAsset>("BuildInfo");
+            return asset.BuildInfo;
         }
     }
 }

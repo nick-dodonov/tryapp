@@ -1,4 +1,7 @@
+using System.IO;
+using Shared.Boot.Version;
 using UnityEditor;
+using Shared.Log;
 using UnityEngine;
 
 namespace Shared.Boot.Editor.Version
@@ -22,6 +25,22 @@ namespace Shared.Boot.Editor.Version
             Menu.SetChecked(UseRuntimeProviderMenuItemName, UseRuntimeProvider);
             return !EditorApplication.isPlayingOrWillChangePlaymode;
         }
-        
+
+        [MenuItem("[Shared]/Version/Export Build Info")]
+        public static void ExportBuildInfo()
+        {
+            const string path = "Assets/Resources/BuildInfo.asset";
+            Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+            Slog.Info(path);
+
+            var asset = ScriptableObject.CreateInstance<BuildInfoAsset>();
+            asset.BuildInfo = ((IVersionProvider)(new EditorVersionProvider())).ReadBuildInfo();
+
+            AssetDatabase.CreateAsset(asset, path);
+            AssetDatabase.SaveAssets();
+        }
+
+        // private static string GetPackageSourceDir([System.Runtime.CompilerServices.CallerFilePath] string path = "") 
+        //     => Path.GetDirectoryName(path)!.Replace("Editor/Version", "");
     }
 }

@@ -4,7 +4,7 @@ namespace Shared.Boot.Version
     {
         public static string GetShortDescription(this BuildInfo info)
         {
-            return $"{info.Branch} {info.Sha[..7]} / {info.Time:yyyy-MM-dd HH:mm}";
+            return $"{info.Branch} {info.Sha[..7]} | {info.Time:yyyy-MM-dd HH:mm}";
         }
     }
 }
