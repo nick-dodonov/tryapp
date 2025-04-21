@@ -10,7 +10,7 @@ namespace Common.Logic
     {
         public static ITpApi CreateApi(
             ITpApi rtcApi,
-            ConnectState? connectState,
+            ConnectState connectState,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {

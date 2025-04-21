@@ -21,7 +21,6 @@ namespace Shared.Tp.Ext.Hand
 
         public int Attempts => _attempts;
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void AckReceived()
         {
             _ackTcs.TrySetResult(null);

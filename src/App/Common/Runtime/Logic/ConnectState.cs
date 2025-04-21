@@ -7,13 +7,13 @@ namespace Common.Logic
 {
     public class ConnectStateProvider : IHandStateProvider
     {
-        private readonly ConnectState? _connectState;
-        public ConnectStateProvider(ConnectState? connectState) => _connectState = connectState;
+        private readonly ConnectState _connectState;
+        public ConnectStateProvider(ConnectState connectState) => _connectState = connectState;
 
-        IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState!;
+        IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState;
 
-        void IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState connectState) 
-            => WebSerializer.Default.Serialize(writer, connectState);
+        int IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState connectState) 
+            => WebSerializer.Default.SerializeTo(writer, connectState);
 
         IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
             => WebSerializer.Default.Deserialize<ConnectState>(span);
