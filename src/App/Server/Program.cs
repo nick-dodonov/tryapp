@@ -4,16 +4,16 @@ using Microsoft.Extensions.Options;
 using Server;
 using Server.Logic;
 using Server.Meta;
+using Shared.Boot.Asp.Version;
 using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
-using Shared.Version;
 
 var version = new AspVersionProvider().ReadBuildVersion();
-Slog.Info($">>>> starting build {version.GetShortDescription()}");
+Slog.Info($"==== starting build: {version.GetShortDescription()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug
@@ -59,12 +59,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseAuthorization();
-// Apply CORS middleware
-app.UseCors();
+app.UseCors(); // Apply CORS middleware
 
 app.MapControllers();
 
-Slog.Info("<<<< running hosted services");
+Slog.Info(">>>> running service");
 app.Run();
+Slog.Info("<<<< exiting service");
