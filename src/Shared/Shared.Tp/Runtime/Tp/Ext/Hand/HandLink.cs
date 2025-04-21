@@ -28,6 +28,8 @@ namespace Shared.Tp.Ext.Hand
         private IHandConnectState? _localState;
         private IHandConnectState? _remoteState;
 
+        public IHandConnectState? RemoteState => _remoteState;
+        
         /// <summary>
         /// Flags required for initial reliable state handshaking
         /// </summary>

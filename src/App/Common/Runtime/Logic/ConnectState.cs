@@ -14,7 +14,7 @@ namespace Common.Logic
         IHandConnectState IHandStateProvider.ProvideConnectState() => _connectState;
 
         int IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState connectState) 
-            => WebSerializer.Default.SerializeTo(writer, connectState);
+            => WebSerializer.Default.SerializeTo(writer, (ConnectState)connectState);
 
         IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
             => WebSerializer.Default.Deserialize<ConnectState>(span);
@@ -24,11 +24,15 @@ namespace Common.Logic
     public class ConnectState : IHandConnectState
     {
         public string LinkId { get; set; } = string.Empty;
-        public BuildVersion BuildVersion { get; set; } = new();
+        public BuildVersion BuildVersion;
 
-        public ConnectState() {}
-        public ConnectState(string linkId) => LinkId = linkId;
+        public ConnectState() {} // for deserialization
+        public ConnectState(string linkId, BuildVersion buildVersion)
+        {
+            LinkId = linkId;
+            BuildVersion = buildVersion;
+        }
 
-        public override string ToString() => $"ConnectState({LinkId} {BuildVersion.ToShortInfo()})"; //diagnostics only
+        public override string ToString() => $"ConnectState({LinkId} \"{BuildVersion.ToShortInfo()}\")"; //diagnostics only
     }
 }

@@ -25,7 +25,7 @@ namespace Client
         // ReSharper disable once AsyncVoidMethod
         private static async void Initialize()
         {
-            _log.Info($">>>> starting build: {UnityVersionProvider.BuildVersion.ToShortInfo()}");
+            _log.Info($">>>> starting build: {UnityVersionProvider.BuildVersion.ToShortInfo(true)}");
             await ClientOptions.InstanceAsync;
             // var logger = Slog.Factory.CreateLogger<MainHud>();
             // logger.Info("==== starting client (logger) ====");

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using Cysharp.Text;
 using Shared.Boot.Version;
 using Shared.Log;
 using TMPro;
@@ -48,9 +49,33 @@ namespace Diagnostics.Debug
             "Utilities",
         };
 
+        public void SetServerVersion(BuildVersion? serverBuildVersion)
+        {
+            if (serverBuildVersion != null)
+                _log.Info($"server version: {serverBuildVersion.Value.ToShortInfo()}");
+
+            var sb = ZString.CreateStringBuilder(true);
+            try
+            {
+                sb.Append(Application.version);
+                sb.Append(" | ");
+                sb.AppendShortInfo(UnityVersionProvider.BuildVersion, true);
+                if (serverBuildVersion != null)
+                {
+                    sb.AppendLine();
+                    sb.AppendShortInfo(serverBuildVersion.Value, true);
+                }
+                debugText.text = sb.ToString();
+            }
+            finally
+            {
+                sb.Dispose();
+            }
+        }
+
         private void OnEnable()
         {
-            debugText.text = $"{Application.version} | {UnityVersionProvider.BuildVersion.ToShortInfo()}";
+            SetServerVersion(null);
 
             _options.Clear();
 
@@ -124,8 +149,5 @@ namespace Diagnostics.Debug
             //option.Action();
             option.Method.Invoke(null, Array.Empty<object>());
         }
-
-        //[Preserve, DebugAction]
-        public static void DebugTest() => _log.Info(".");
     }
 }
