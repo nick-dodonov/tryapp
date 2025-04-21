@@ -4,14 +4,16 @@ using Microsoft.Extensions.Options;
 using Server;
 using Server.Logic;
 using Server.Meta;
-using Shared.Audit;
+using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
+using Shared.Version;
 
-Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
+var version = new AspVersionProvider().ReadBuildVersion();
+Slog.Info($">>>> starting build {version.GetShortDescription()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug
@@ -64,5 +66,5 @@ app.UseCors();
 
 app.MapControllers();
 
-Slog.Info("<<<<");
+Slog.Info("<<<< running hosted services");
 app.Run();
