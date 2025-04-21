@@ -19,11 +19,10 @@ namespace Shared.Boot.Editor.Version
                 UnityVersionProvider.SetVersionProvider(new EditorVersionProvider());
         }
 
-        BuildInfo IVersionProvider.ReadBuildInfo()
+        BuildVersion IVersionProvider.ReadBuildVersion()
         {
             return new()
             {
-                Provider = GetType().Name,
                 Sha = TryProcessChecked(GitExecutable, "rev-parse HEAD", "<fail>").Trim(),
                 Branch = TryProcessChecked(GitExecutable, "rev-parse --abbrev-ref HEAD", "<fail>").Trim(),
                 Time = DateTime.Now 
@@ -44,9 +43,6 @@ namespace Shared.Boot.Editor.Version
             {
                 sb.Append(process.StandardOutput.ReadToEnd());
             } while (!process.HasExited);
-            // while (!process.HasExited)
-            //     sb.Append(process.StandardOutput.ReadToEnd());
-            // sb.Append(process.StandardOutput.ReadToEnd()); //necessary
 
             if (process.ExitCode != 0)
                 throw new($"\"{exe} {args}\", exit code: {process.ExitCode}");
