@@ -10,7 +10,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Microsoft.Extensions.Options.dll"
+        "Microsoft.Extensions.Options.dll",
+        "ZString.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

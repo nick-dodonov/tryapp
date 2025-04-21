@@ -4,7 +4,8 @@ using System.Threading.Tasks;
 using Client.Logic;
 using Client.UI;
 using Client.Utility;
-using Shared.Audit;
+using Shared.Boot.Audit;
+using Shared.Boot.Version;
 using Shared.Log;
 using UnityEngine;
 using Utilities.Async;
@@ -24,7 +25,7 @@ namespace Client
         // ReSharper disable once AsyncVoidMethod
         private static async void Initialize()
         {
-            _log.Info(">>>> starting client");
+            _log.Info($">>>> starting build: {UnityVersionProvider.BuildVersion.ToShortInfo()}");
             await ClientOptions.InstanceAsync;
             // var logger = Slog.Factory.CreateLogger<MainHud>();
             // logger.Info("==== starting client (logger) ====");
@@ -36,7 +37,7 @@ namespace Client
 
             // workaround for com.utilities.async init: creates CoroutineRunner to handle System.Threading.Timer
             await Awaiters.UnityMainThread; 
-            _log.Info("<<<<");
+            _log.Info("==== running app");
         }
         
         private void OnEnable()

@@ -13,7 +13,7 @@ using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
 var version = new AspVersionProvider().ReadBuildVersion();
-Slog.Info($"==== starting build: {version.GetShortDescription()}");
+Slog.Info($">>>> starting build: {version.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug
@@ -64,6 +64,6 @@ app.UseCors(); // Apply CORS middleware
 
 app.MapControllers();
 
-Slog.Info(">>>> running service");
+Slog.Info("==== running service");
 app.Run();
 Slog.Info("<<<< exiting service");

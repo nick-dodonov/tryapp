@@ -61,6 +61,5 @@ namespace Shared.Boot.Editor.Version
                 return failResult;
             }
         }
-        
     }
 }

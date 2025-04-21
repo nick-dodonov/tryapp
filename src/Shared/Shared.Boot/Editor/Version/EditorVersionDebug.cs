@@ -14,7 +14,7 @@ namespace Shared.Boot.Editor.Version
         public static void ReadBuildVersion()
         {
             var buildVersion = ((IVersionProvider)(new UnityVersionProvider())).ReadBuildVersion();
-            Slog.Info(buildVersion.GetShortDescription());
+            Slog.Info(buildVersion.ToShortInfo());
         }
     }
 }

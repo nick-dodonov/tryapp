@@ -50,7 +50,7 @@ namespace Diagnostics.Debug
 
         private void OnEnable()
         {
-            debugText.text = $"{Application.version} | {UnityVersionProvider.BuildVersion.GetShortDescription()}";
+            debugText.text = $"{Application.version} | {UnityVersionProvider.BuildVersion.ToShortInfo()}";
 
             _options.Clear();
 
