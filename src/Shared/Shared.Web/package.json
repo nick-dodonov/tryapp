@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "displayName": "Shared.Web",
   "dependencies": {
-    "org.nuget.system.text.json": "9.0.3",
+    "org.nuget.system.text.json": "9.0.4",
     "com.unity.modules.unitywebrequest": "1.0.0"
   }
 }
