@@ -23,7 +23,7 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new ConnectStateProvider(connectState),
+                new StdStateProvider<ConnectState>(connectState, static (state) => state.LinkId),
                 loggerFactory);
         }
     }
