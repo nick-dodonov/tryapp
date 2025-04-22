@@ -6,13 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <ItemGroup>
-        <AssemblyAttribute Include="BuildVersionAttribute">
-            <_Parameter1>$([System.DateTime]::Now.ToString(O))</_Parameter1>
-        </AssemblyAttribute>
-    </ItemGroup>
-
-    <!--TODO: intergate via SG or task to AssemblyAttribute instead of EmbeddedResource or mybe using separate nuget package-->
+    <!--TODO: intergate attribute via SG or task to obtain from entry assembly instead of this one -->
     <Target Name="EmbedBuildVersion" BeforeTargets="PrepareForBuild">
         <Exec Command="git rev-parse HEAD" 
               IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
@@ -24,29 +18,28 @@
         </Exec>
 
         <PropertyGroup>
-            <BuildVersionResource>BuildVersion.json</BuildVersionResource>
-            <BuildVersionEmbedPath>$(BaseIntermediateOutputPath)$(BuildVersionResource)</BuildVersionEmbedPath>
+            <BuildVersionTime>$([System.DateTime]::Now.ToString(O))</BuildVersionTime>
             <BuildVersionSha Condition="'$(BuildVersionSha)' == ''">unknown</BuildVersionSha>
             <BuildVersionBranch Condition="'$(BuildVersionBranch)' == ''">unknown</BuildVersionBranch>
-            <BuildVersionJson>{ 
-  "Sha": "$(BuildVersionSha)",
-  "Branch": "$(BuildVersionBranch)"
-}</BuildVersionJson>
+            <!--<MSBuildProjectDependenciesTargets>-->
+            <!--    $(MSBuildProjectDependenciesTargets);EmbedBuildVersion-->
+            <!--</MSBuildProjectDependenciesTargets>-->
         </PropertyGroup>
 
-        <Message Text="EmbedBuildVersion: $(BuildVersionEmbedPath)%0A$(BuildVersionJson)" Importance="high"/>
+        <Message Text="EmbedBuildVersion: $(BuildVersionEmbedPath)
+    sha: $(BuildVersionSha)
+    branch: $(BuildVersionBranch)
+    time: $(BuildVersionTime)" 
+                 Importance="high"/>
 
-        <WriteLinesToFile File="$(BuildVersionEmbedPath)" Lines="$(BuildVersionJson)" Overwrite="True"/>
         <ItemGroup>
-            <EmbeddedResource Include="$(BuildVersionEmbedPath)">
-                <LogicalName>$(BuildVersionResource)</LogicalName>
-            </EmbeddedResource>
+            <AssemblyAttribute Include="BuildVersionAttribute">
+                <_Parameter1>$([System.DateTime]::Now.ToString(O))</_Parameter1>
+                <_Parameter2>$(BuildVersionSha)</_Parameter2>
+                <_Parameter3>$(BuildVersionBranch)</_Parameter3>
+            </AssemblyAttribute>
         </ItemGroup>
     </Target>
-
-    <ItemGroup>
-        <PackageReference Include="Microsoft.Extensions.FileProviders.Embedded" Version="9.0.4"/>
-    </ItemGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\Shared.Log\Runtime\Shared.Log.csproj"/>
