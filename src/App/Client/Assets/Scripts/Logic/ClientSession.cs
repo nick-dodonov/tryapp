@@ -80,7 +80,7 @@ namespace Client.Logic
 
             _link = await _api.Connect(this, cancellationToken);
 
-            var handLink = _link.Find<HandLink<ConnectState>>() ?? throw new("HandLink not found");
+            var handLink = _link.Find<HandLink<ConnectState, ConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");

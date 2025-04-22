@@ -22,34 +22,41 @@ namespace Shared.Tp.Ext.Hand
         public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
-    public class HandApi<TState> : ExtApi<HandLink<TState>> where TState : class
+    public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>
+        where TLocalState : class
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandStateProvider<TState> _stateProvider;
+        private readonly IHandStateProvider<TLocalState> _localStateProvider;
+        private readonly IHandStateProvider<TRemoteState> _remoteStateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public HandApi(ITpApi innerApi, IHandStateProvider<TState> stateProvider, ILoggerFactory loggerFactory) 
+        public HandApi(
+            ITpApi innerApi, 
+            IHandStateProvider<TLocalState> localStateProvider, 
+            IHandStateProvider<TRemoteState> remoteStateProvider, 
+            ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
-            _stateProvider = stateProvider;
+            _localStateProvider = localStateProvider;
+            _remoteStateProvider = remoteStateProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<HandApi<TState>>();
-            logger.Info($"state provider: {stateProvider}");
+            var logger = loggerFactory.CreateLogger<HandApi<TLocalState, TRemoteState>>();
+            logger.Info($"state providers: local={localStateProvider} remote={remoteStateProvider}");
         }
 
-        protected override HandLink<TState> CreateClientLink(ITpReceiver receiver) 
-            => new(this, receiver, _stateProvider, _loggerFactory);
+        protected override HandLink<TLocalState, TRemoteState> CreateClientLink(ITpReceiver receiver) 
+            => new(this, receiver, _localStateProvider, _remoteStateProvider, _loggerFactory);
 
-        protected override HandLink<TState> CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _stateProvider, _loggerFactory);
+        protected override HandLink<TLocalState, TRemoteState> CreateServerLink(ITpLink innerLink) =>
+            new(this, innerLink, _localStateProvider, _remoteStateProvider, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 
         /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = (HandLink<TState>)await base.Connect(receiver, cancellationToken);
+            var link = (HandLink<TLocalState, TRemoteState>)await base.Connect(receiver, cancellationToken);
             await link.Handshake(cancellationToken);
             return link;
         }
