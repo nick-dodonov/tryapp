@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace Common.Logic
+namespace Common.Logic.Shared
 {
     [Serializable]
     public class SyncOptions

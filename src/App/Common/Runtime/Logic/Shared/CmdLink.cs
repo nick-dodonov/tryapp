@@ -5,7 +5,7 @@ using Shared.Log;
 using Shared.Tp;
 using Shared.Web;
 
-namespace Common.Logic
+namespace Common.Logic.Shared
 {
     public interface ICmdSender<T>
     {
