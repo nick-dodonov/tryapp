@@ -35,27 +35,30 @@ namespace Shared.Tp.Ext.Hand
         private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
         private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider;
 
+        private readonly HandLink<TLocalState, TRemoteState>.LinkIdProvider _linkIdProvider;
+        
         public HandshakeOptions HandshakeOptions { get; } = new();
 
         public HandApi(
             ITpApi innerApi, 
             IHandLocalStateProvider<TLocalState> localStateProvider, 
             IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            HandLink<TLocalState, TRemoteState>.LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
             _localStateProvider = localStateProvider;
             _remoteStateProvider = remoteStateProvider;
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<HandApi<TLocalState, TRemoteState>>();
-            logger.Info($"state providers: local={localStateProvider} remote={remoteStateProvider}");
+            Slog.Info($"state providers: local={localStateProvider} remote={remoteStateProvider}");
         }
 
         protected override HandLink<TLocalState, TRemoteState> CreateClientLink(ITpReceiver receiver) 
-            => new(this, receiver, _localStateProvider, _remoteStateProvider, _loggerFactory);
+            => new(this, receiver, _localStateProvider, _remoteStateProvider, _linkIdProvider, _loggerFactory);
 
         protected override HandLink<TLocalState, TRemoteState> CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _localStateProvider, _remoteStateProvider, _loggerFactory);
+            new(this, innerLink, _localStateProvider, _remoteStateProvider,_linkIdProvider, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 

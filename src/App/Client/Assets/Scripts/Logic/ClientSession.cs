@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
 using Common.Logic;
+using Common.Logic.Shared;
 using Common.Meta;
 using Diagnostics.Debug;
 using Shared.Log;
@@ -70,12 +71,14 @@ namespace Client.Logic
 
             // initialize for connection
             _meta = new MetaClient(webClient, Slog.Factory);
+            var peerId = GetPeerId();
             _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
-                new(GetPeerId()),
+                new(peerId),
                 static (state) => state.PeerId,
                 static (_) => "SRV",
-                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
+                (_) => $"{peerId}",
+                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 

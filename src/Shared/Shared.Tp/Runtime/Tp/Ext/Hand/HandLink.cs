@@ -22,6 +22,10 @@ namespace Shared.Tp.Ext.Hand
     {
         private readonly HandApi<TLocalState, TRemoteState> _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
+
+        public delegate string LinkIdProvider(HandLink<TLocalState, TRemoteState> link);
+        private readonly LinkIdProvider _linkIdProvider = null!;
+
         private ILogger _logger = null!;
 
         private readonly IHandLocalStateProvider<TLocalState> _localStateProvider = null!;
@@ -29,7 +33,7 @@ namespace Shared.Tp.Ext.Hand
         private TLocalState? _localState;
         private TRemoteState? _remoteState;
 
-        public TRemoteState RemoteState => _remoteState!;
+        public TRemoteState? RemoteState => _remoteState;
 
         /// <summary>
         /// Flags required for initial reliable state handshaking
@@ -49,7 +53,8 @@ namespace Shared.Tp.Ext.Hand
         // client side
         public HandLink(HandApi<TLocalState, TRemoteState> api, ITpReceiver receiver, 
             IHandLocalStateProvider<TLocalState> localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            IHandRemoteStateProvider<TRemoteState> remoteStateProvider,
+            LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(receiver)
         {
@@ -57,14 +62,16 @@ namespace Shared.Tp.Ext.Hand
             _localStateProvider = localStateProvider;
             _remoteStateProvider = remoteStateProvider;
             _localState = _localStateProvider.ProvideState();
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), _localStateProvider.GetLinkId(_localState));
+            InitLogger();
         }
 
         // server side
         public HandLink(HandApi<TLocalState, TRemoteState> api, ITpLink innerLink, 
             IHandLocalStateProvider<TLocalState> localStateProvider, 
             IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(innerLink)
         {
@@ -72,10 +79,18 @@ namespace Shared.Tp.Ext.Hand
             _localStateProvider = localStateProvider;
             _remoteStateProvider = remoteStateProvider;
             _localState = _localStateProvider.ProvideState();
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), GetRemotePeerId());
+            InitLogger();
         }
 
+        private void InitLogger()
+        {
+            _logger = new IdLogger(
+                _loggerFactory.CreateLogger(nameof(HandLink<TLocalState, TRemoteState>)),
+                _linkIdProvider(this));
+        }
+        
         protected override void Close(string reason)
         {
             _logger.Info(reason);
@@ -204,7 +219,7 @@ namespace Shared.Tp.Ext.Hand
                     _remoteState = _remoteStateProvider.Deserialize(span);
                     _remotePeerId = null;
                     _logger.Info($"syn state: {_remoteState}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), GetRemotePeerId());
+                    InitLogger(); // reinitialize logger to include remote state now (peer id to simplify diagnostics)
 
                     // notify listener connection is established after a handshake
                     if (_api.CallConnected(this))

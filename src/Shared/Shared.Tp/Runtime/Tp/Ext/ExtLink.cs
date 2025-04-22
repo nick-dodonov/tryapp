@@ -6,7 +6,7 @@ namespace Shared.Tp.Ext
 {
     public class ExtLink: ITpLink, ITpReceiver
     {
-        protected internal ITpLink InnerLink = null!;
+        public ITpLink InnerLink = null!;
 
         private ITpReceiver? _receiver;
         private PostponedBytes _receivePostponed; 

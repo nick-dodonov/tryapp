@@ -14,6 +14,7 @@ namespace Common.Logic
             TLocalState localState,
             LinkIdProvider<TLocalState> localLinkIdProvider,
             LinkIdProvider<TRemoteState> remoteLinkIdProvider,
+            HandLink<TLocalState, TRemoteState>.LinkIdProvider linkIdProvider,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
@@ -28,6 +29,7 @@ namespace Common.Logic
                 ),
                 new StdLocalStateProvider<TLocalState>(localState, localLinkIdProvider),
                 new StdRemoteStateProvider<TRemoteState>(remoteLinkIdProvider),
+                linkIdProvider,
                 loggerFactory);
         }
     }
