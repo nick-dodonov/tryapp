@@ -52,9 +52,9 @@ namespace Shared.Tp.Ext.Hand
         {
             _api = api;
             _stateProvider = stateProvider;
-            _localState = _stateProvider.ProvideConnectState();
+            _localState = _stateProvider.ProvideState();
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _localState.LinkId);
+            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), _stateProvider.GetLinkId(_localState));
         }
 
         // server side
@@ -64,7 +64,7 @@ namespace Shared.Tp.Ext.Hand
         {
             _api = api;
             _stateProvider = stateProvider;
-            _localState = _stateProvider.ProvideConnectState();
+            _localState = _stateProvider.ProvideState();
             _loggerFactory = loggerFactory;
             _logger = new IdLogger(loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
         }
@@ -75,9 +75,9 @@ namespace Shared.Tp.Ext.Hand
             base.Close(reason);
         }
 
-        private string? _remotePeerId;
+        private string? _remotePeerId; // cached value, invalidated when remote state changed
         public sealed override string GetRemotePeerId() 
-            => _remotePeerId ??= $"{_remoteState?.LinkId}/{InnerLink.GetRemotePeerId()}";
+            => _remotePeerId ??= $"{(_remoteState != null ? _stateProvider.GetLinkId(_remoteState): null)}/{InnerLink.GetRemotePeerId()}";
 
         public async Task Handshake(CancellationToken cancellationToken)
         {

@@ -9,16 +9,17 @@ namespace Shared.Tp.Ext.Hand
 {
     public interface IHandConnectState
     {
-        public string LinkId { get; }
     }
 
     public interface IHandStateProvider
     {
-        IHandConnectState ProvideConnectState();
-        int Serialize(IBufferWriter<byte> writer, IHandConnectState connectState);
+        IHandConnectState ProvideState();
+        string GetLinkId(IHandConnectState state);
+
+        int Serialize(IBufferWriter<byte> writer, IHandConnectState state);
         IHandConnectState Deserialize(ReadOnlySpan<byte> span);
     }
-    
+
     public class HandshakeOptions
     {
         public int TimeoutMs = 5000;
