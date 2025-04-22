@@ -7,26 +7,21 @@ using Shared.Log;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandBaseStateProvider<in TState>
-    {
-        string GetLinkId(TState state);
-    }
-    
-    public interface IHandLocalStateProvider<TState> : IHandBaseStateProvider<TState>
+    public interface IHandLocalStateProvider<TState>
     {
         TState ProvideState();
         int Serialize(IBufferWriter<byte> writer, TState state);
     }
 
-    public interface IHandRemoteStateProvider<TState> : IHandBaseStateProvider<TState>
+    public interface IHandRemoteStateProvider<out TState>
     {
         TState Deserialize(ReadOnlySpan<byte> span);
     }
-    
+
     public class HandshakeOptions
     {
-        public int TimeoutMs = 5000;
-        public int SynRetryMs = 500; //TODO: incremental retry support
+        public readonly int TimeoutMs = 5000;
+        public readonly int SynRetryMs = 500; //TODO: incremental retry support
     }
 
     public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>

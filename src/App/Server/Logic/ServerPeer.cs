@@ -1,6 +1,7 @@
 using Common.Logic;
 using Common.Logic.Shared;
 using Shared.Tp;
+using Shared.Tp.Ext.Hand;
 
 namespace Server.Logic;
 
@@ -12,12 +13,18 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     private readonly StdCmdLink<ServerState, ClientState> _cmdLink;
     public ITpReceiver Receiver => _cmdLink;
 
+    private readonly string _peerStateId;
+    
     public ServerPeer(ServerSession session, ITpLink link)
     {
         _session = session;
         _stateSyncer = new(this);
         _cmdLink = new(link, _stateSyncer);
         _stateSyncer.Init(_cmdLink);
+        
+        var handLink = link.Find<HandLink<ServerConnectState, ClientConnectState>>() ?? throw new("HandLink not found");
+        _peerStateId = handLink.RemoteState?.PeerId ?? throw new("PeerId not found");
+        _peerStateId = $"{_peerStateId}/{link.GetRemotePeerId()}";
     }
 
     public void Dispose()
@@ -29,7 +36,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     public PeerState GetPeerState()
         => new()
         {
-            Id = _cmdLink.Link.GetRemotePeerId(),
+            Id = _peerStateId,
             ClientState = _stateSyncer.RemoteState
         };
 

@@ -97,10 +97,6 @@ namespace Shared.Tp.Ext.Hand
             base.Close(reason);
         }
 
-        private string? _remotePeerId; // cached value, invalidated when remote state changed
-        public sealed override string GetRemotePeerId() 
-            => _remotePeerId ??= $"{(_remoteState != null ? _remoteStateProvider.GetLinkId(_remoteState): null)}/{InnerLink.GetRemotePeerId()}";
-
         public async Task Handshake(CancellationToken cancellationToken)
         {
             var synState = _localState!;
@@ -217,7 +213,6 @@ namespace Shared.Tp.Ext.Hand
                     }
 
                     _remoteState = _remoteStateProvider.Deserialize(span);
-                    _remotePeerId = null;
                     _logger.Info($"syn state: {_remoteState}");
                     InitLogger(); // reinitialize logger to include remote state now (peer id to simplify diagnostics)
 
@@ -244,7 +239,6 @@ namespace Shared.Tp.Ext.Hand
                 if (_remoteState == null)
                 {
                     _remoteState = _remoteStateProvider.Deserialize(span[..ackStateSize]);
-                    _remotePeerId = null;
                     _logger.Info($"ack state: {_remoteState}");
 
                     if (_synState != null)

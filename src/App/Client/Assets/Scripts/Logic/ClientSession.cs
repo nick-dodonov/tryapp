@@ -75,8 +75,6 @@ namespace Client.Logic
             _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(peerId),
-                static (state) => state.PeerId,
-                static (_) => "SRV",
                 (_) => $"{peerId}",
                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory

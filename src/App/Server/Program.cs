@@ -33,8 +33,6 @@ builder.Services
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
         sp.GetRequiredService<SipRtcService>(),
         new(AspVersionProvider.BuildVersion),
-        static (_) => "SRV",
-        static (state) => state.PeerId,
         static (link) => $"{link.RemoteState?.PeerId}/{link.InnerLink.GetRemotePeerId()}",
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))

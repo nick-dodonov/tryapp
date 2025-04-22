@@ -12,8 +12,6 @@ namespace Common.Logic
         public static ITpApi CreateApi<TLocalState, TRemoteState>(
             ITpApi rtcApi,
             TLocalState localState,
-            LinkIdProvider<TLocalState> localLinkIdProvider,
-            LinkIdProvider<TRemoteState> remoteLinkIdProvider,
             HandLink<TLocalState, TRemoteState>.LinkIdProvider linkIdProvider,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
@@ -27,8 +25,8 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new StdLocalStateProvider<TLocalState>(localState, localLinkIdProvider),
-                new StdRemoteStateProvider<TRemoteState>(remoteLinkIdProvider),
+                new StdLocalStateProvider<TLocalState>(localState),
+                new StdRemoteStateProvider<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
         }
