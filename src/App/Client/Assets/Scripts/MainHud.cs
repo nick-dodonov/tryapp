@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.Logic;
@@ -25,7 +26,7 @@ namespace Client
         // ReSharper disable once AsyncVoidMethod
         private static async void Initialize()
         {
-            _log.Info($">>>> starting build: {UnityVersionProvider.BuildVersion.ToShortInfo(true)}");
+            _log.Info($">>>> starting {Application.productName}: {UnityVersionProvider.BuildVersion.ToShortInfo(true)}");
             await ClientOptions.InstanceAsync;
             // var logger = Slog.Factory.CreateLogger<MainHud>();
             // logger.Info("==== starting client (logger) ====");
@@ -39,7 +40,7 @@ namespace Client
             await Awaiters.UnityMainThread; 
             _log.Info("==== running app");
         }
-        
+
         private void OnEnable()
         {
             sessionControl.Controller = this;

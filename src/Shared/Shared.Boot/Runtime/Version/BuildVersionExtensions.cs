@@ -24,7 +24,7 @@ namespace Shared.Boot.Version
     {
         public static void AppendShortInfo(this ref Utf16ValueStringBuilder sb, in BuildVersion version, bool shortToday = false)
         {
-            sb.Append(version.Branch);
+            sb.Append(version.Ref);
 
             sb.Append(" | ");
             var sha = version.Sha.AsSpan();

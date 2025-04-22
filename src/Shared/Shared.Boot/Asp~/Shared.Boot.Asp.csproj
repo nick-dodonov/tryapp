@@ -8,35 +8,35 @@
 
     <!--TODO: intergate attribute via SG or task to obtain from entry assembly instead of this one -->
     <Target Name="EmbedBuildVersion" BeforeTargets="PrepareForBuild">
-        <Exec Command="git rev-parse HEAD" 
-              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionSha"/>
-        </Exec>
         <Exec Command="git rev-parse --abbrev-ref HEAD" 
               IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
-            <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionBranch"/>
+            <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionRef"/>
+        </Exec>
+        <Exec Command="git rev-parse HEAD"
+              IgnoreExitCode="True" ConsoleToMsBuild="true" EchoOff="true" StandardOutputImportance="low" LogStandardErrorAsError="true">
+            <Output TaskParameter="ConsoleOutput" PropertyName="BuildVersionSha"/>
         </Exec>
 
         <PropertyGroup>
             <BuildVersionTime>$([System.DateTime]::Now.ToString(O))</BuildVersionTime>
             <BuildVersionSha Condition="'$(BuildVersionSha)' == ''">unknown</BuildVersionSha>
-            <BuildVersionBranch Condition="'$(BuildVersionBranch)' == ''">unknown</BuildVersionBranch>
+            <BuildVersionRef Condition="'$(BuildVersionRef)' == ''">unknown</BuildVersionRef>
             <!--<MSBuildProjectDependenciesTargets>-->
             <!--    $(MSBuildProjectDependenciesTargets);EmbedBuildVersion-->
             <!--</MSBuildProjectDependenciesTargets>-->
         </PropertyGroup>
 
         <Message Text="EmbedBuildVersion: $(BuildVersionEmbedPath)
+    ref: $(BuildVersionRef)
     sha: $(BuildVersionSha)
-    branch: $(BuildVersionBranch)
     time: $(BuildVersionTime)" 
                  Importance="high"/>
 
         <ItemGroup>
             <AssemblyAttribute Include="BuildVersionAttribute">
-                <_Parameter1>$([System.DateTime]::Now.ToString(O))</_Parameter1>
+                <_Parameter1>$(BuildVersionRef)</_Parameter1>
                 <_Parameter2>$(BuildVersionSha)</_Parameter2>
-                <_Parameter3>$(BuildVersionBranch)</_Parameter3>
+                <_Parameter3>$([System.DateTime]::Now.ToString(O))</_Parameter3>
             </AssemblyAttribute>
         </ItemGroup>
     </Target>

@@ -133,7 +133,6 @@ namespace Client.Utility
         private void AddDefaultItem()
         {
             // local build cannot specify default server
-            //TODO: possibly default server can be added by branch
             if (DetectLocalhost(out _))
                 return;
 

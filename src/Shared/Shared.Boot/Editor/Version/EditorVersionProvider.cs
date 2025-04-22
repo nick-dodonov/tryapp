@@ -36,8 +36,8 @@ namespace Shared.Boot.Editor.Version
 
             return new()
             {
+                Ref = gitRef,
                 Sha = gitSha,
-                Branch = gitRef,
                 Time = DateTime.Now 
             };
         }

@@ -1,3 +1,4 @@
+using System.Reflection;
 using Common.Logic;
 using Common.Meta;
 using Microsoft.Extensions.Options;
@@ -12,7 +13,7 @@ using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
-Slog.Info($">>>> starting build: {AspVersionProvider.BuildVersion.ToShortInfo()}");
+Slog.Info($">>>> starting {Assembly.GetExecutingAssembly().GetName().Name}: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug

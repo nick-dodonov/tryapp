@@ -24,8 +24,8 @@ public class AspVersionProvider : IVersionProvider
 
         var version = new BuildVersion
         {
+            Ref = attribute.Ref,
             Sha = attribute.Sha,
-            Branch = attribute.Branch,
         };
         if (DateTime.TryParse(attribute.Timestamp, out var time))
             version.Time = time;

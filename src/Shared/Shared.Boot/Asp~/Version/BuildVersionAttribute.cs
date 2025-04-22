@@ -4,14 +4,14 @@
 
 [AttributeUsage(AttributeTargets.Assembly)]
 public class BuildVersionAttribute(
-    string timestamp,
+    string @ref,
     string sha,
-    string branch
+    string timestamp
     ) : Attribute
 {
-    public string Timestamp { get; } = timestamp;
+    public string Ref { get; } = @ref;
     public string Sha { get; } = sha;
-    public string Branch { get; } = branch;
+    public string Timestamp { get; } = timestamp;
 }
 
 #pragma warning restore CA1050
