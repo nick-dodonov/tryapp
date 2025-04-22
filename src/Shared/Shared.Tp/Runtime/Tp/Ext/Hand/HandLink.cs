@@ -75,6 +75,10 @@ namespace Shared.Tp.Ext.Hand
             base.Close(reason);
         }
 
+        private string? _remotePeerId;
+        public sealed override string GetRemotePeerId() 
+            => _remotePeerId ??= $"{_remoteState?.LinkId}/{InnerLink.GetRemotePeerId()}";
+
         public async Task Handshake(CancellationToken cancellationToken)
         {
             var synState = _localState!;
@@ -106,9 +110,6 @@ namespace Shared.Tp.Ext.Hand
                 throw;
             }
         }
-
-        public sealed override string GetRemotePeerId() =>
-            $"{_remoteState?.LinkId}/{InnerLink.GetRemotePeerId()}"; //TODO: speedup without string interpolation
 
         private int _resendSynAck = (byte)Flags.Zero;
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
@@ -194,6 +195,7 @@ namespace Shared.Tp.Ext.Hand
                     }
 
                     _remoteState = _stateProvider.Deserialize(span);
+                    _remotePeerId = null;
                     _logger.Info($"syn state: {_remoteState}");
                     _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink>(), GetRemotePeerId());
 
@@ -220,6 +222,7 @@ namespace Shared.Tp.Ext.Hand
                 if (_remoteState == null)
                 {
                     _remoteState = _stateProvider.Deserialize(span[..ackStateSize]);
+                    _remotePeerId = null;
                     _logger.Info($"ack state: {_remoteState}");
 
                     if (_synState != null)
