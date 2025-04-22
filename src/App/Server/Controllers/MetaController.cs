@@ -14,6 +14,6 @@ public sealed class MetaController(IMeta meta, IRtcService rtcService)
     IRtcService IMeta.RtcService => rtcService;
 
     [Route("info")]
-    public ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken) =>
-        meta.GetInfo(cancellationToken);
+    public ValueTask<MetaInfo> GetInfo(CancellationToken cancellationToken)
+        => meta.GetInfo(cancellationToken);
 }

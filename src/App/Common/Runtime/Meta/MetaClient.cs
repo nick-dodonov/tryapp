@@ -26,7 +26,7 @@ namespace Common.Meta
 
         IRtcService IMeta.RtcService => _rtcService;
 
-        public async ValueTask<ServerInfo> GetInfo(CancellationToken cancellationToken)
+        public async ValueTask<MetaInfo> GetInfo(CancellationToken cancellationToken)
         {
             const string uri = "api/info";
             _logger.Info($"request: {_client.BaseAddress}{uri}");
@@ -34,16 +34,8 @@ namespace Common.Meta
             response.EnsureSuccessStatusCode();
             var content = await response.Content.SharedReadAsStringAsync(cancellationToken);
             _logger.Info($"response: {content}");
-            var result = WebSerializer.Default.Deserialize<ServerInfo>(content);
+            var result = WebSerializer.Default.Deserialize<MetaInfo>(content);
             return result;
-
-            //TODO: PR to add System.Net.Http.Json to UnityNuGet (https://github.com/xoofx/UnityNuGet)
-            //  to simplify usage instead of just System.Text.Json (adding support for encodings and mach more checks)
-            //var result = await response.Content.ReadFromJsonAsync<string>(_serializerOptions, cancellationToken);
-            
-            // //WebGL disabled: System.Text.Json.JsonSerializer doesn't work too
-            // await using var contentStream = await response.Content.ReadAsStreamAsync(); //webgl-disabled: .ConfigureAwait(false);
-            // var result = await JsonSerializer.DeserializeAsync<ServerInfo>(contentStream, _serializerOptions, cancellationToken); //webgl-disabled:.ConfigureAwait(false);
         }
     }
 }

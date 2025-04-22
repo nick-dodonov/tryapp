@@ -12,8 +12,7 @@ using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
-var version = new AspVersionProvider().ReadBuildVersion();
-Slog.Info($">>>> starting build: {version.ToShortInfo()}");
+Slog.Info($">>>> starting build: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug
@@ -31,7 +30,7 @@ builder.Services
     .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
         sp.GetRequiredService<SipRtcService>(), 
-        new(version),
+        new(AspVersionProvider.BuildVersion),
         static (_) => "SRV",
         static (state) => state.PeerId,
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
