@@ -9,21 +9,14 @@ public sealed class ServerPeer : IDisposable, ICmdReceiver<ClientState>, ISyncHa
     private readonly ServerSession _session;
 
     private readonly StdCmdLink<ServerState, ClientState> _cmdLink;
-
     public ITpReceiver Receiver => _cmdLink;
-    public ITpLink Link => _cmdLink.Link;
 
     private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
-    public ServerPeer(ServerSession session, ITpLink link, ILoggerFactory loggerFactory)
+    public ServerPeer(ServerSession session, ITpLink link)
     {
-        //_logger = new IdLogger(loggerFactory.CreateLogger<ServerPeer>(), link.GetRemotePeerId());
         _session = session;
         _cmdLink = new(link, this);
-
-        // var syncerLogger = new IdLogger(
-        //     loggerFactory.CreateLogger<StateSyncer<ServerState, ClientState>>(),
-        //     link.GetRemotePeerId());
         _stateSyncer = new(this, _cmdLink);
     }
 
@@ -36,7 +29,7 @@ public sealed class ServerPeer : IDisposable, ICmdReceiver<ClientState>, ISyncHa
     public PeerState GetPeerState() 
         => new()
         {
-            Id = Link.GetRemotePeerId(),
+            Id = _cmdLink.Link.GetRemotePeerId(),
             ClientState = _stateSyncer.RemoteState
         };
 
