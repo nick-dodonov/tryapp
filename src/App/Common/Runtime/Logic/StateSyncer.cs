@@ -1,10 +1,6 @@
 using System;
-using Shared.Log;
-using Shared.Tp;
-using Shared.Web;
 using UnityEngine;
 using UnityEngine.Scripting;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Common.Logic
 {
@@ -24,10 +20,8 @@ namespace Common.Logic
 
     public class StateSyncer<TLocal, TRemote> : IDisposable
     {
-        private readonly ILogger _logger;
-
         private readonly ISyncHandler<TLocal, TRemote> _handler;
-        private readonly ITpLink _link;
+        private readonly ICmdSender<TLocal> _cmdLink;
 
         private int _updateSendFrame;
         private float _updateElapsedTime;
@@ -37,11 +31,10 @@ namespace Common.Logic
         public TRemote RemoteState =>
             _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
 
-        public StateSyncer(ISyncHandler<TLocal, TRemote> handler, ITpLink link, ILogger logger)
+        public StateSyncer(ISyncHandler<TLocal, TRemote> handler, ICmdSender<TLocal> cmdLink)
         {
-            _logger = logger;
             _handler = handler;
-            _link = link;
+            _cmdLink = cmdLink;
         }
 
         public void Dispose() { }
@@ -52,8 +45,7 @@ namespace Common.Logic
                 return;
 
             var localState = _handler.MakeLocalState(_updateSendFrame++);
-
-            _link.Send(WebSerializer.Default.Serialize, in localState);
+            _cmdLink.CmdSend(in localState);
         }
 
         private bool CanSend(float deltaTime)
@@ -74,17 +66,10 @@ namespace Common.Logic
             return false;
         }
 
-        public void RemoteUpdate(ReadOnlySpan<byte> span)
+        public void RemoteUpdate(TRemote remoteState)
         {
-            try
-            {
-                _remoteState = WebSerializer.Default.Deserialize<TRemote>(span);
-                _handler.ReceivedRemoteState(_remoteState);
-            }
-            catch (Exception e)
-            {
-                _logger.Error($"{e}");
-            }
+            _remoteState = remoteState;
+            _handler.ReceivedRemoteState(_remoteState);
         }
     }
 }

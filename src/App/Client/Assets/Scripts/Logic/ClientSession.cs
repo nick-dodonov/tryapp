@@ -7,8 +7,6 @@ using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
-using Microsoft.Extensions.Logging;
-using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
@@ -28,7 +26,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientSession : MonoBehaviour, ITpReceiver, ISyncHandler<ClientState, ServerState>
+    public class ClientSession : MonoBehaviour, ICmdReceiver<ServerState>, ISyncHandler<ClientState, ServerState>
     {
         private static readonly Slog.Area _log = new();
 
@@ -43,10 +41,10 @@ namespace Client.Logic
         private IMeta _meta;
         private ITpApi _api;
 
-        private ITpLink _link;
+        private StdCmdLink<ClientState, ServerState> _cmdLink;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
-        
+
         private StateSyncer<ClientState, ServerState> _stateSyncer;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
@@ -65,7 +63,7 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_link != null)
+            if (_cmdLink != null)
                 throw new InvalidOperationException("RtcStart: link is already established");
 
             _workflowOperator = workflowOperator;
@@ -80,18 +78,18 @@ namespace Client.Logic
                 Slog.Factory
             );
 
-            _link = await _api.Connect(this, cancellationToken);
+            _cmdLink = await StdCmdLink<ClientState, ServerState>.Connect(_api, this, cancellationToken);
+            var link = _cmdLink.Link;
 
-            var handLink = _link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
+            var handLink = link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
-            _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
-            _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
-
+            _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");
+            _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
-            _stateSyncer = new(this, _link, logger);
+            //var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
+            _stateSyncer = new(this, _cmdLink);
 
             clientTap.SetActive(true);
         }
@@ -110,8 +108,9 @@ namespace Client.Logic
 
             _dumpLink = null;
             _timeLink = null;
-            _link?.Dispose();
-            _link = null;
+
+            _cmdLink?.Dispose();
+            _cmdLink = null;
 
             _api = null;
             _meta?.Dispose();
@@ -124,7 +123,7 @@ namespace Client.Logic
 
         private void Update()
         {
-            if (_link == null)
+            if (_cmdLink == null)
                 return;
 
             var sessionMs = _timeLink.RemoteMs;
@@ -198,10 +197,10 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             }
         }
 
-        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span) => 
-            _stateSyncer.RemoteUpdate(span);
+        void ICmdReceiver<ServerState>.CmdReceived(in ServerState cmd)
+            => _stateSyncer.RemoteUpdate(cmd);
 
-        void ITpReceiver.Disconnected(ITpLink link)
+        void ICmdReceiver<ServerState>.CmdDisconnected()
         {
             _log.Info("notifying handler");
             _workflowOperator.Disconnected();

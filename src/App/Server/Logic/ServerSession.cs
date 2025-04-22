@@ -31,7 +31,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
     private Task? _looperShutdownTask;
 
     private int _peerCount;
-    private readonly ConcurrentDictionary<ITpLink, ServerPeer> _peers = new();
+    private readonly ConcurrentDictionary<ITpLink, ServerPeer> _peers = new(); //TODO: rm don't need map link->peer
 
     private readonly IVirtualPeer[] _virtualPeers =
     [
@@ -85,7 +85,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         _peers.TryAdd(link, peer);
         if (Interlocked.Increment(ref _peerCount) == 1)
             StartUpdates();
-        return peer;
+        return peer.Receiver;
     }
 
     public void PeerDisconnected(ServerPeer serverPeer)
