@@ -26,7 +26,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientSession : MonoBehaviour, ICmdReceiver<ServerState>, ISyncHandler<ClientState, ServerState>
+    public class ClientSession : MonoBehaviour, ISyncHandler<ClientState, ServerState>
     {
         private static readonly Slog.Area _log = new();
 
@@ -41,11 +41,11 @@ namespace Client.Logic
         private IMeta _meta;
         private ITpApi _api;
 
+        private StateSyncer<ClientState, ServerState> _stateSyncer;
+        
         private StdCmdLink<ClientState, ServerState> _cmdLink;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
-
-        private StateSyncer<ClientState, ServerState> _stateSyncer;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -68,6 +68,7 @@ namespace Client.Logic
 
             _workflowOperator = workflowOperator;
 
+            // initialize for connection
             _meta = new MetaClient(webClient, Slog.Factory);
             _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
@@ -78,9 +79,13 @@ namespace Client.Logic
                 Slog.Factory
             );
 
-            _cmdLink = await StdCmdLink<ClientState, ServerState>.Connect(_api, this, cancellationToken);
-            var link = _cmdLink.Link;
+            // connect to server
+            _stateSyncer = new(this);
+            _cmdLink = await StdCmdLink<ClientState, ServerState>.Connect(_api, _stateSyncer, cancellationToken);
+            _stateSyncer.Init(_cmdLink);
 
+            // link diagnostics
+            var link = _cmdLink.Link;
             var handLink = link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
@@ -88,9 +93,7 @@ namespace Client.Logic
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            //var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
-            _stateSyncer = new(this, _cmdLink);
-
+            // enable player input
             clientTap.SetActive(true);
         }
 
@@ -156,7 +159,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             return clientState;
         }
 
-        void ISyncHandler<ClientState, ServerState>.ReceivedRemoteState(ServerState serverState)
+        void ISyncHandler<ClientState, ServerState>.RemoteUpdated(ServerState serverState)
         {
             var count = 0;
             var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
@@ -197,10 +200,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             }
         }
 
-        void ICmdReceiver<ServerState>.CmdReceived(in ServerState cmd)
-            => _stateSyncer.RemoteUpdate(cmd);
-
-        void ICmdReceiver<ServerState>.CmdDisconnected()
+        void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
         {
             _log.Info("notifying handler");
             _workflowOperator.Disconnected();

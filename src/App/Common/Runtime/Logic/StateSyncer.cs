@@ -15,13 +15,15 @@ namespace Common.Logic
     {
         SyncOptions Options { get; }
         TLocal MakeLocalState(int sendIndex);
-        void ReceivedRemoteState(TRemote remoteState);
+
+        void RemoteUpdated(TRemote remoteState);
+        void RemoteDisconnected();
     }
 
-    public class StateSyncer<TLocal, TRemote> : IDisposable
+    public class StateSyncer<TLocal, TRemote> : IDisposable, ICmdReceiver<TRemote>
     {
         private readonly ISyncHandler<TLocal, TRemote> _handler;
-        private readonly ICmdSender<TLocal> _cmdLink;
+        private ICmdSender<TLocal> _cmdLink = null!;
 
         private int _updateSendFrame;
         private float _updateElapsedTime;
@@ -31,11 +33,10 @@ namespace Common.Logic
         public TRemote RemoteState =>
             _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
 
-        public StateSyncer(ISyncHandler<TLocal, TRemote> handler, ICmdSender<TLocal> cmdLink)
-        {
-            _handler = handler;
-            _cmdLink = cmdLink;
-        }
+        public StateSyncer(ISyncHandler<TLocal, TRemote> handler) 
+            => _handler = handler;
+        public void Init(ICmdSender<TLocal> cmdLink) 
+            => _cmdLink = cmdLink;
 
         public void Dispose() { }
 
@@ -57,19 +58,20 @@ namespace Common.Logic
 
             var sendInterval = 1.0f / basicSendRate;
             _updateElapsedTime += deltaTime;
-            if (_updateElapsedTime > sendInterval)
-            {
-                _updateElapsedTime = 0;
-                return true;
-            }
+            if (_updateElapsedTime < sendInterval)
+                return false;
 
-            return false;
+            _updateElapsedTime = 0;
+            return true;
         }
 
-        public void RemoteUpdate(TRemote remoteState)
+        void ICmdReceiver<TRemote>.CmdReceived(in TRemote cmd)
         {
-            _remoteState = remoteState;
-            _handler.ReceivedRemoteState(_remoteState);
+            _remoteState = cmd;
+            _handler.RemoteUpdated(_remoteState);
         }
+
+        void ICmdReceiver<TRemote>.CmdDisconnected() 
+            => _handler.RemoteDisconnected();
     }
 }

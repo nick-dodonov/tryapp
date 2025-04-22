@@ -3,21 +3,20 @@ using Shared.Tp;
 
 namespace Server.Logic;
 
-public sealed class ServerPeer : IDisposable, ICmdReceiver<ClientState>, ISyncHandler<ServerState, ClientState>
+public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientState>
 {
-    //private readonly ILogger _logger;
     private readonly ServerSession _session;
+    private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
     private readonly StdCmdLink<ServerState, ClientState> _cmdLink;
     public ITpReceiver Receiver => _cmdLink;
 
-    private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
-
     public ServerPeer(ServerSession session, ITpLink link)
     {
         _session = session;
-        _cmdLink = new(link, this);
-        _stateSyncer = new(this, _cmdLink);
+        _stateSyncer = new(this);
+        _cmdLink = new(link, _stateSyncer);
+        _stateSyncer.Init(_cmdLink);
     }
 
     public void Dispose()
@@ -26,7 +25,7 @@ public sealed class ServerPeer : IDisposable, ICmdReceiver<ClientState>, ISyncHa
         _cmdLink.Dispose();
     }
 
-    public PeerState GetPeerState() 
+    public PeerState GetPeerState()
         => new()
         {
             Id = _cmdLink.Link.GetRemotePeerId(),
@@ -36,16 +35,13 @@ public sealed class ServerPeer : IDisposable, ICmdReceiver<ClientState>, ISyncHa
     public void Update(float deltaTime)
         => _stateSyncer.LocalUpdate(deltaTime);
 
-    void ICmdReceiver<ClientState>.CmdReceived(in ClientState cmd) 
-        => _stateSyncer.RemoteUpdate(cmd);
-
-    void ICmdReceiver<ClientState>.CmdDisconnected() 
-        => _session.PeerDisconnected(this);
-
     SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
 
-    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex) 
+    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex)
         => _session.GetServerState(sendIndex);
 
-    void ISyncHandler<ServerState, ClientState>.ReceivedRemoteState(ClientState remoteState) { }
+    void ISyncHandler<ServerState, ClientState>.RemoteUpdated(ClientState remoteState) { }
+
+    void ISyncHandler<ServerState, ClientState>.RemoteDisconnected()
+        => _session.PeerDisconnected(this);
 }
