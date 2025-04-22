@@ -7,15 +7,22 @@ using Shared.Log;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandStateProvider<TState>
+    public interface IHandBaseStateProvider<in TState>
+    {
+        string GetLinkId(TState state);
+    }
+    
+    public interface IHandLocalStateProvider<TState> : IHandBaseStateProvider<TState>
     {
         TState ProvideState();
-        string GetLinkId(TState state);
-
         int Serialize(IBufferWriter<byte> writer, TState state);
-        TState Deserialize(ReadOnlySpan<byte> span);
     }
 
+    public interface IHandRemoteStateProvider<TState> : IHandBaseStateProvider<TState>
+    {
+        TState Deserialize(ReadOnlySpan<byte> span);
+    }
+    
     public class HandshakeOptions
     {
         public int TimeoutMs = 5000;
@@ -26,15 +33,15 @@ namespace Shared.Tp.Ext.Hand
         where TLocalState : class
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandStateProvider<TLocalState> _localStateProvider;
-        private readonly IHandStateProvider<TRemoteState> _remoteStateProvider;
+        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
+        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
         public HandApi(
             ITpApi innerApi, 
-            IHandStateProvider<TLocalState> localStateProvider, 
-            IHandStateProvider<TRemoteState> remoteStateProvider, 
+            IHandLocalStateProvider<TLocalState> localStateProvider, 
+            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
             ILoggerFactory loggerFactory) 
             : base(innerApi)
         {

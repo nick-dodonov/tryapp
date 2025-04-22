@@ -22,25 +22,34 @@ namespace Common.Logic
         public override string ToString() => $"ConnectState({LinkId} \"{BuildVersion.ToShortInfo()}\")"; //diagnostics only
     }
     
-    public class StdStateProvider<TState> : IHandStateProvider<TState>
+    public class StdLocalStateProvider<TState> : IHandLocalStateProvider<TState>
     {
         private readonly TState _state;
         private readonly LinkIdProvider _linkIdProvider;
 
         public delegate string LinkIdProvider(TState state);
-        public StdStateProvider(TState state, LinkIdProvider linkIdProvider)
+        public StdLocalStateProvider(TState state, LinkIdProvider linkIdProvider)
         {
             _state = state;
             _linkIdProvider = linkIdProvider;
         }
 
-        TState IHandStateProvider<TState>.ProvideState() => _state;
-        string IHandStateProvider<TState>.GetLinkId(TState state) => _linkIdProvider(state);
-
-        int IHandStateProvider<TState>.Serialize(IBufferWriter<byte> writer, TState state) 
+        string IHandBaseStateProvider<TState>.GetLinkId(TState state) => _linkIdProvider(state);
+        TState IHandLocalStateProvider<TState>.ProvideState() => _state;
+        int IHandLocalStateProvider<TState>.Serialize(IBufferWriter<byte> writer, TState state) 
             => WebSerializer.Default.SerializeTo(writer, state);
+    }
 
-        TState IHandStateProvider<TState>.Deserialize(ReadOnlySpan<byte> span)
+    public class StdRemoteStateProvider<TState> : IHandRemoteStateProvider<TState>
+    {
+        private readonly LinkIdProvider _linkIdProvider;
+
+        public delegate string LinkIdProvider(TState state);
+        public StdRemoteStateProvider(LinkIdProvider linkIdProvider) 
+            => _linkIdProvider = linkIdProvider;
+
+        string IHandBaseStateProvider<TState>.GetLinkId(TState state) => _linkIdProvider(state);
+        TState IHandRemoteStateProvider<TState>.Deserialize(ReadOnlySpan<byte> span)
             => WebSerializer.Default.Deserialize<TState>(span);
     }
 }

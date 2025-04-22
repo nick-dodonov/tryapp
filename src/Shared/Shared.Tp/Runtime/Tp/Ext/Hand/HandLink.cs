@@ -24,8 +24,8 @@ namespace Shared.Tp.Ext.Hand
         private readonly ILoggerFactory _loggerFactory = null!;
         private ILogger _logger = null!;
 
-        private readonly IHandStateProvider<TLocalState> _localStateProvider = null!;
-        private readonly IHandStateProvider<TRemoteState> _remoteStateProvider = null!;
+        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider = null!;
+        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider = null!;
         private TLocalState? _localState;
         private TRemoteState? _remoteState;
 
@@ -48,8 +48,8 @@ namespace Shared.Tp.Ext.Hand
 
         // client side
         public HandLink(HandApi<TLocalState, TRemoteState> api, ITpReceiver receiver, 
-            IHandStateProvider<TLocalState> localStateProvider, 
-            IHandStateProvider<TRemoteState> remoteStateProvider, 
+            IHandLocalStateProvider<TLocalState> localStateProvider, 
+            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
             ILoggerFactory loggerFactory)
             : base(receiver)
         {
@@ -63,8 +63,8 @@ namespace Shared.Tp.Ext.Hand
 
         // server side
         public HandLink(HandApi<TLocalState, TRemoteState> api, ITpLink innerLink, 
-            IHandStateProvider<TLocalState> localStateProvider, 
-            IHandStateProvider<TRemoteState> remoteStateProvider, 
+            IHandLocalStateProvider<TLocalState> localStateProvider, 
+            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
             ILoggerFactory loggerFactory)
             : base(innerLink)
         {
