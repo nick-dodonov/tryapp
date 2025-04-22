@@ -1,17 +1,19 @@
+using System.Reflection;
 using Common.Logic;
 using Common.Meta;
 using Microsoft.Extensions.Options;
 using Server;
 using Server.Logic;
 using Server.Meta;
-using Shared.Audit;
+using Shared.Boot.Asp.Version;
+using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
 
-Slog.Info($">>>> starting server (build {BuildInfo.Timestamp})");
+Slog.Info($">>>> starting {Assembly.GetExecutingAssembly().GetName().Name}: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
 
 //TODO: add custom console formatter with category recolor to simplify debug
@@ -27,9 +29,11 @@ builder.Services
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .Configure<DumpLink.Options>(configuration.GetSection(nameof(DumpLink)))
     .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
-    .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
+    .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
         sp.GetRequiredService<SipRtcService>(), 
-        null,
+        new(AspVersionProvider.BuildVersion),
+        static (_) => "SRV",
+        static (state) => state.PeerId,
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()
@@ -57,12 +61,11 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 app.UseAuthorization();
-// Apply CORS middleware
-app.UseCors();
+app.UseCors(); // Apply CORS middleware
 
 app.MapControllers();
 
-Slog.Info("<<<<");
+Slog.Info("==== running service");
 app.Run();
+Slog.Info("<<<< exiting service");

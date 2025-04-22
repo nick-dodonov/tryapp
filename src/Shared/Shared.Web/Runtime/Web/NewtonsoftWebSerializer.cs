@@ -20,27 +20,32 @@ namespace Shared.Web
         private static readonly JsonSerializerSettings PrettyJsonSettings = new(JsonSettings)
             { Formatting = Formatting.Indented };
 
-        public string Serialize<T>(T obj)
+        string IWebSerializer.Serialize<T>(T obj)
             => JsonConvert.SerializeObject(obj, JsonSettings);
 
-        public string Serialize<T>(T obj, bool pretty)
+        string IWebSerializer.Serialize<T>(T obj, bool pretty)
             => JsonConvert.SerializeObject(obj, pretty ? PrettyJsonSettings : JsonSettings);
 
-        public void Serialize<T>(IBufferWriter<byte> writer, T obj)
+        void IWebSerializer.Serialize<T>(IBufferWriter<byte> writer, T obj)
+            => throw new NotImplementedException();
+        int IWebSerializer.SerializeTo<T>(IBufferWriter<byte> writer, T obj)
             => throw new NotImplementedException();
 
-        public T Deserialize<T>(string json)
+        T IWebSerializer.Deserialize<T>(string json) 
+            => DeserializeFromString<T>(json);
+
+        T IWebSerializer.Deserialize<T>(ReadOnlySpan<byte> spans)
+        {
+            var json = Encoding.UTF8.GetString(spans);
+            return DeserializeFromString<T>(json);
+        }
+
+        private static T DeserializeFromString<T>(string json)
         {
             var obj = JsonConvert.DeserializeObject<T>(json, JsonSettings);
             if (obj == null)
                 throw new SerializationException($"Failed to deserialize {typeof(T).FullName} from json: {json}");
             return obj;
-        }
-
-        public T Deserialize<T>(ReadOnlySpan<byte> spans)
-        {
-            var json = Encoding.UTF8.GetString(spans);
-            return Deserialize<T>(json);
         }
     }
 }

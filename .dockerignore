@@ -1,6 +1,5 @@
 ﻿**/.dockerignore
 **/.env
-**/.git
 **/.gitignore
 **/.project
 **/.settings
@@ -24,7 +23,12 @@
 LICENSE
 README.md
 
-# Shared artifacts
+# Ignore only object (allow to use git for audit during build), empty objects/ folder must exists
+#   TODO: include only required files (HEAD config packed-refs refs/** and empty objects/)
+#**/.git
+**/.git/objects/**
+
+# Shared build artifacts
 **/bin~
 **/obj~
 

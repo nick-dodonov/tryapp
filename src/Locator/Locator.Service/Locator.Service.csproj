@@ -20,6 +20,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" />
+    <ProjectReference Include="..\..\Shared\Shared.Log\Runtime\Shared.Log.csproj" />
     <ProjectReference Include="..\Locator.Api\Locator.Api.csproj" />
   </ItemGroup>
 

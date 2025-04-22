@@ -33,20 +33,27 @@ namespace Shared.Web
             return _cachedUtf8JsonWriter;
         }
 
-        public string Serialize<T>(T obj) => 
+        string IWebSerializer.Serialize<T>(T obj) => 
             JsonSerializer.Serialize(obj, _serializerOptions);
 
-        public string Serialize<T>(T obj, bool pretty) => 
+        string IWebSerializer.Serialize<T>(T obj, bool pretty) => 
             JsonSerializer.Serialize(obj, pretty ? _prettySerializerOptions : _serializerOptions);
 
-        public void Serialize<T>(IBufferWriter<byte> writer, T obj) => 
+        void IWebSerializer.Serialize<T>(IBufferWriter<byte> writer, T obj) => 
             JsonSerializer.Serialize(GetCachedUtf8JsonWriter(writer), obj, _serializerOptions);
 
-        public T Deserialize<T>(string json) =>
+        int IWebSerializer.SerializeTo<T>(IBufferWriter<byte> writer, T obj)
+        {
+            var jsonWriter = GetCachedUtf8JsonWriter(writer);
+            JsonSerializer.Serialize(jsonWriter, obj, _serializerOptions);
+            return (int)jsonWriter.BytesCommitted;
+        }
+
+        T IWebSerializer.Deserialize<T>(string json) =>
             JsonSerializer.Deserialize<T>(json, _serializerOptions)
             ?? ThrowDeserializeFailure<T>(json);
 
-        public T Deserialize<T>(ReadOnlySpan<byte> spans) =>
+        T IWebSerializer.Deserialize<T>(ReadOnlySpan<byte> spans) =>
             JsonSerializer.Deserialize<T>(spans, _serializerOptions)
             ?? ThrowDeserializeFailure<T>(Encoding.UTF8.GetString(spans));
 

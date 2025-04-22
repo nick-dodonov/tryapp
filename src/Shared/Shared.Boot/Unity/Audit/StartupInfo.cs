@@ -1,19 +1,42 @@
-using System.Text;
+using Cysharp.Text;
 using Shared.Log;
 using UnityEngine;
 
-namespace Shared.Audit
+namespace Shared.Boot.Audit
 {
     public static class StartupInfo
     {
         public static void Print()
         {
-            var sb = new StringBuilder();
-            if (!string.IsNullOrEmpty(Application.absoluteURL))
-                sb.Append("absoluteURL: ").AppendLine(Application.absoluteURL);
-            sb.Append("dataPath: ").AppendLine(Application.dataPath);
-            sb.Append("persistentDataPath: ").AppendLine(Application.persistentDataPath);
-            Slog.Info(sb.ToString());
+            string str;
+            var sb = ZString.CreateStringBuilder(true);
+            try
+            {
+                // sb.Append("build: ");
+                // sb.AppendShortInfo(Shared.Boot.Version.UnityVersionProvider.BuildVersion);
+                // sb.AppendLine();
+
+                var absoluteURL = Application.absoluteURL;
+                if (!string.IsNullOrEmpty(absoluteURL))
+                {
+                    sb.Append("absoluteURL: ");
+                    sb.AppendLine(absoluteURL);
+                }
+
+                sb.Append("dataPath: ");
+                sb.AppendLine(Application.dataPath);
+
+                sb.Append("persistentDataPath: ");
+                sb.AppendLine(Application.persistentDataPath);
+
+                str = sb.ToString();
+            }
+            finally
+            {
+                sb.Dispose();
+            }
+
+            Slog.Info(str);
         }
     }
 }

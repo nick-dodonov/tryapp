@@ -1,25 +1,26 @@
 using System;
 using System.Buffers;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
-using Shared.System;
-using Shared.Web;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandConnectState
+    public interface IHandBaseStateProvider<in TState>
     {
-        public string LinkId { get; }
+        string GetLinkId(TState state);
+    }
+    
+    public interface IHandLocalStateProvider<TState> : IHandBaseStateProvider<TState>
+    {
+        TState ProvideState();
+        int Serialize(IBufferWriter<byte> writer, TState state);
     }
 
-    public interface IHandStateProvider
+    public interface IHandRemoteStateProvider<TState> : IHandBaseStateProvider<TState>
     {
-        IHandConnectState ProvideConnectState();
-        void Serialize(IBufferWriter<byte> writer, IHandConnectState connectState);
-        IHandConnectState Deserialize(ReadOnlySpan<byte> span);
+        TState Deserialize(ReadOnlySpan<byte> span);
     }
     
     public class HandshakeOptions
@@ -28,34 +29,40 @@ namespace Shared.Tp.Ext.Hand
         public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
-    public class HandApi : ExtApi<HandLink>
+    public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandStateProvider _stateProvider;
+        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
+        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public HandApi(ITpApi innerApi, IHandStateProvider stateProvider, ILoggerFactory loggerFactory) 
+        public HandApi(
+            ITpApi innerApi, 
+            IHandLocalStateProvider<TLocalState> localStateProvider, 
+            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
-            _stateProvider = stateProvider;
+            _localStateProvider = localStateProvider;
+            _remoteStateProvider = remoteStateProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<HandApi>();
-            logger.Info($"state provider: {stateProvider}");
+            var logger = loggerFactory.CreateLogger<HandApi<TLocalState, TRemoteState>>();
+            logger.Info($"state providers: local={localStateProvider} remote={remoteStateProvider}");
         }
 
-        protected override HandLink CreateClientLink(ITpReceiver receiver) 
-            => new(this, receiver, _stateProvider, _loggerFactory);
+        protected override HandLink<TLocalState, TRemoteState> CreateClientLink(ITpReceiver receiver) 
+            => new(this, receiver, _localStateProvider, _remoteStateProvider, _loggerFactory);
 
-        protected override HandLink CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _stateProvider, _loggerFactory);
+        protected override HandLink<TLocalState, TRemoteState> CreateServerLink(ITpLink innerLink) =>
+            new(this, innerLink, _localStateProvider, _remoteStateProvider, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 
         /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = (HandLink)await base.Connect(receiver, cancellationToken);
+            var link = (HandLink<TLocalState, TRemoteState>)await base.Connect(receiver, cancellationToken);
             await link.Handshake(cancellationToken);
             return link;
         }

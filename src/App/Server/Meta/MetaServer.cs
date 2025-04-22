@@ -1,4 +1,5 @@
 using Common.Meta;
+using Shared.Boot.Asp.Version;
 using Shared.Log;
 using Shared.Tp.Rtc;
 using Shared.Web;
@@ -10,28 +11,19 @@ public sealed class MetaServer(
     ILogger<MetaServer> logger) 
     : IMeta
 {
-    private static readonly string[] RandomNames =
-    [
-        "Tokyo", "Delhi", "Paris", "Washington", "Ottawa", "Berlin", "Beijing", "Canberra", "London", "Moscow",
-        "Brasília", "Madrid", "Rome", "Seoul", "Bangkok", "Jakarta", "Cairo", "Riyadh", "Tehran", "Mexico City",
-        "Pretoria", "Buenos Aires", "Athens", "Kabul", "Hanoi", "Baghdad", "Damascus", "Ankara", "Helsinki", "Oslo",
-        "Stockholm", "Copenhagen", "Wellington", "Luxembourg", "Brussels", "Lisbon", "Dublin", "Warsaw", "Prague", 
-        "Vienna", "Zagreb", "Sofia", "Bucharest", "Belgrade", "Bern", "Reykjavik", "Montevideo", "Doha", "Amman", 
-        "Singapore", "Osaka", "Manila", "Toronto", "Lima", "Cape Town", "Taipei", "Istanbul"
-    ];
     private int _uid;
 
     public void Dispose() { }
 
     IRtcService IMeta.RtcService => rtcService;
 
-    ValueTask<ServerInfo> IMeta.GetInfo(CancellationToken cancellationToken)
+    ValueTask<MetaInfo> IMeta.GetInfo(CancellationToken cancellationToken)
     {
-        var result = new ServerInfo
+        var result = new MetaInfo
         {
             RequestId = ++_uid,
             RequestTime = DateTime.Now,
-            RandomName = RandomNames[new Random().Next(RandomNames.Length)],
+            BuildVersion = AspVersionProvider.BuildVersion
         };
 
         logger.Info(WebSerializer.Default.Serialize(result));

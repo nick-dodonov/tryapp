@@ -3,6 +3,8 @@
     "rootNamespace": "",
     "references": [
         "RuntimeInspector.Runtime",
+        "Shared.Boot",
+        "Shared.Boot.Unity",
         "Shared.Log",
         "Shared.System",
         "Unity.TextMeshPro"
@@ -11,7 +13,9 @@
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "ZString.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

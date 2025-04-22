@@ -8,9 +8,11 @@ using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
 using Microsoft.Extensions.Logging;
+using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
+using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Web;
@@ -30,7 +32,9 @@ namespace Client.Logic
     {
         private static readonly Slog.Area _log = new();
 
+        public DebugControl debugControl;
         public InfoControl infoControl;
+
         public ClientTap clientTap;
         public GameObject peerPrefab;
 
@@ -67,16 +71,23 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _api = CommonSession.CreateApi(
+            _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(GetPeerId()),
-                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
+                static (state) => state.PeerId,
+                static (_) => "SRV",
+                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 
             _link = await _api.Connect(this, cancellationToken);
+
+            var handLink = _link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
+            debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
+
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
             _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
+
             context.dumpLinkStats = _dumpLink.Stats;
 
             var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
@@ -88,6 +99,8 @@ namespace Client.Logic
         public void Finish(string reason)
         {
             _log.Info(reason);
+
+            debugControl.SetServerVersion(null);
 
             foreach (var kv in _peerTaps)
                 Destroy(kv.Value.gameObject);

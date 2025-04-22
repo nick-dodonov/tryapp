@@ -751,6 +751,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c8062624bdcb463887fada8a0a93ec06, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  debugControl: {fileID: 7885380990598071222}
   infoControl: {fileID: 1726573594}
   clientTap: {fileID: 1914052456}
   peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
@@ -1300,10 +1301,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: DebugControl
       objectReference: {fileID: 0}
-    - target: {fileID: 4174049494337692578, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
-      propertyPath: m_fontColor32.rgba
-      value: 4278255560
-      objectReference: {fileID: 0}
     - target: {fileID: 5780822707783327733, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_IsActive
       value: 1
@@ -1410,7 +1407,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5990686352420442097, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 411.66602
+      value: 393.66602
       objectReference: {fileID: 0}
     - target: {fileID: 5990838454373032489, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1493,6 +1490,17 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
+--- !u!114 &7885380990598071222 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 6964947687356838481, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
+  m_PrefabInstance: {fileID: 7885380990598071221}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: be08a9261c96940a1a54ad5b003070b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

@@ -1,15 +1,16 @@
 <Solution>
+  <Folder Name="/App/">
+    <Project Path="src\App\Common\Runtime\Common.csproj" Type="Classic C#" />
+    <Project Path="src\App\Server\Server.csproj" Type="Classic C#" />
+  </Folder>
   <Folder Name="/Locator/">
     <Project Path="src\Locator\Locator.Api\Locator.Api.csproj" Type="Classic C#" />
     <Project Path="src\Locator\Locator.Client\Locator.Client.csproj" Type="Classic C#" />
     <Project Path="src\Locator\Locator.Service\Locator.Service.csproj" Type="Classic C#" />
   </Folder>
-  <Folder Name="/App/">
-    <Project Path="src\App\Common\Runtime\Common.csproj" Type="Classic C#" />
-    <Project Path="src\App\Server\Server.csproj" Type="Classic C#" />
-  </Folder>
   <Folder Name="/Shared/">
     <Project Path="src\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.Boot\Runtime\Shared.Boot.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Log\Runtime\Shared.Log.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Asp~\Shared.System.Asp.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.System\Runtime.Tests\Shared.System.Tests.csproj" Type="Classic C#" />
