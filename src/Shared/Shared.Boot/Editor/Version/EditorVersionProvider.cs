@@ -21,18 +21,23 @@ namespace Shared.Boot.Editor.Version
 
         BuildVersion IVersionProvider.ReadBuildVersion()
         {
-            var sha = Environment.GetEnvironmentVariable("GITHUB_SHA");
-            if (string.IsNullOrEmpty(sha))
-                sha = TryProcessChecked(GitExecutable, "rev-parse HEAD", "<fail>").Trim();
+            var gitSha = Environment.GetEnvironmentVariable("GITHUB_SHA");
+            if (string.IsNullOrEmpty(gitSha))
+                gitSha = TryProcessChecked(GitExecutable, "rev-parse HEAD", "<fail>").Trim();
 
-            var branch = Environment.GetEnvironmentVariable("GITHUB_REF_POINT");
-            if (string.IsNullOrEmpty(branch))
-                branch = TryProcessChecked(GitExecutable, "rev-parse --abbrev-ref HEAD", "<fail>").Trim();
+            //TODO: customize game-ci/unity-builder to obtain more env vars in docker run (for example GITHUB_REF_POINT)
+            //  or prepare build version beforehand GITHUB_REF
+            const string refPrefix = "refs/heads/";
+            var gitRef = Environment.GetEnvironmentVariable("GITHUB_REF");
+            if (string.IsNullOrEmpty(gitRef))
+                gitRef = TryProcessChecked(GitExecutable, "rev-parse --abbrev-ref HEAD", "<fail>").Trim();
+            else if (gitRef.StartsWith(refPrefix))
+                gitRef = gitRef[refPrefix.Length..];
 
             return new()
             {
-                Sha = sha,
-                Branch = branch,
+                Sha = gitSha,
+                Branch = gitRef,
                 Time = DateTime.Now 
             };
         }
