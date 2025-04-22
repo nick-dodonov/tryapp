@@ -1,9 +1,14 @@
+using System.Reflection;
 using Docker.DotNet;
 using Locator.Api;
 using Locator.Service;
 using Locator.Service.Options;
 using Microsoft.Extensions.Options;
+using Shared.Boot.Asp.Version;
+using Shared.Boot.Version;
+using Shared.Log;
 
+Slog.Info($">>>> starting {Assembly.GetExecutingAssembly().GetName().Name}: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.DefaultConfigure<LocatorConfig>(builder.Configuration);
@@ -18,16 +23,10 @@ builder.Services.AddCors(options => options.AddDefaultPolicy(
         .AllowAnyOrigin()
         .AllowAnyMethod()
         .AllowAnyHeader()));
-builder.Services.AddControllers();
-builder.Services.AddOpenApi();
+builder.Services
+    .AddControllers();
 
-var factory = LoggerFactory.Create(
-    builder => builder.AddSimpleConsole(o =>
-    {
-        o.SingleLine = true;
-        o.TimestampFormat = "[HH:mm:ss.ffffff] ";
-        o.UseUtcTimestamp = true;
-    }));
+builder.Services.AddOpenApi();
 
 var app = builder.Build();
 
@@ -35,7 +34,10 @@ app.UseCors();
 app.MapControllers();
 if (app.Environment.IsDevelopment())
     app.MapOpenApi();
-app.MapGet("/info", () => Task.FromResult("TODO: version"));
+app.MapGet("/info", () => Results.Json(AspVersionProvider.BuildVersion, options: new()
+{
+    IncludeFields = true
+}));
 
 app.Run();
 return;
