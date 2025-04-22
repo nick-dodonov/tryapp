@@ -7,17 +7,13 @@ using Shared.Log;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandConnectState
+    public interface IHandStateProvider<TState>
     {
-    }
+        TState ProvideState();
+        string GetLinkId(TState state);
 
-    public interface IHandStateProvider
-    {
-        IHandConnectState ProvideState();
-        string GetLinkId(IHandConnectState state);
-
-        int Serialize(IBufferWriter<byte> writer, IHandConnectState state);
-        IHandConnectState Deserialize(ReadOnlySpan<byte> span);
+        int Serialize(IBufferWriter<byte> writer, TState state);
+        TState Deserialize(ReadOnlySpan<byte> span);
     }
 
     public class HandshakeOptions
@@ -26,26 +22,26 @@ namespace Shared.Tp.Ext.Hand
         public int SynRetryMs = 500; //TODO: incremental retry support
     }
 
-    public class HandApi : ExtApi<HandLink>
+    public class HandApi<TState> : ExtApi<HandLink<TState>> where TState : class
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandStateProvider _stateProvider;
+        private readonly IHandStateProvider<TState> _stateProvider;
 
         public HandshakeOptions HandshakeOptions { get; } = new();
 
-        public HandApi(ITpApi innerApi, IHandStateProvider stateProvider, ILoggerFactory loggerFactory) 
+        public HandApi(ITpApi innerApi, IHandStateProvider<TState> stateProvider, ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
             _stateProvider = stateProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<HandApi>();
+            var logger = loggerFactory.CreateLogger<HandApi<TState>>();
             logger.Info($"state provider: {stateProvider}");
         }
 
-        protected override HandLink CreateClientLink(ITpReceiver receiver) 
+        protected override HandLink<TState> CreateClientLink(ITpReceiver receiver) 
             => new(this, receiver, _stateProvider, _loggerFactory);
 
-        protected override HandLink CreateServerLink(ITpLink innerLink) =>
+        protected override HandLink<TState> CreateServerLink(ITpLink innerLink) =>
             new(this, innerLink, _stateProvider, _loggerFactory);
 
         /// <summary>
@@ -53,7 +49,7 @@ namespace Shared.Tp.Ext.Hand
         /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = (HandLink)await base.Connect(receiver, cancellationToken);
+            var link = (HandLink<TState>)await base.Connect(receiver, cancellationToken);
             await link.Handshake(cancellationToken);
             return link;
         }

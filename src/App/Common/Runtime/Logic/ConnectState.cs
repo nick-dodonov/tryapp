@@ -6,23 +6,8 @@ using Shared.Web;
 
 namespace Common.Logic
 {
-    public class ConnectStateProvider : IHandStateProvider
-    {
-        private readonly ConnectState _state;
-        public ConnectStateProvider(ConnectState state) => _state = state;
-
-        IHandConnectState IHandStateProvider.ProvideState() => _state;
-        public string GetLinkId(IHandConnectState state) => ((ConnectState)state).LinkId;
-
-        int IHandStateProvider.Serialize(IBufferWriter<byte> writer, IHandConnectState state) 
-            => WebSerializer.Default.SerializeTo(writer, (ConnectState)state);
-
-        IHandConnectState IHandStateProvider.Deserialize(ReadOnlySpan<byte> span)
-            => WebSerializer.Default.Deserialize<ConnectState>(span);
-    }
-
     [Serializable]
-    public class ConnectState : IHandConnectState
+    public class ConnectState
     {
         public string LinkId { get; set; } = string.Empty;
         public BuildVersion BuildVersion;
@@ -35,5 +20,20 @@ namespace Common.Logic
         }
 
         public override string ToString() => $"ConnectState({LinkId} \"{BuildVersion.ToShortInfo()}\")"; //diagnostics only
+    }
+    
+    public class ConnectStateProvider : IHandStateProvider<ConnectState>
+    {
+        private readonly ConnectState _state;
+        public ConnectStateProvider(ConnectState state) => _state = state;
+
+        ConnectState IHandStateProvider<ConnectState>.ProvideState() => _state;
+        string IHandStateProvider<ConnectState>.GetLinkId(ConnectState state) => state.LinkId;
+
+        int IHandStateProvider<ConnectState>.Serialize(IBufferWriter<byte> writer, ConnectState state) 
+            => WebSerializer.Default.SerializeTo(writer, state);
+
+        ConnectState IHandStateProvider<ConnectState>.Deserialize(ReadOnlySpan<byte> span)
+            => WebSerializer.Default.Deserialize<ConnectState>(span);
     }
 }

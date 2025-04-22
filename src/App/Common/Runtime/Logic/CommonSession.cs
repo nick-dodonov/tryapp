@@ -14,7 +14,7 @@ namespace Common.Logic
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
-            return new HandApi(
+            return new HandApi<ConnectState>(
                 new TimeLink.Api(
                     new DumpLink.Api(
                         rtcApi,
