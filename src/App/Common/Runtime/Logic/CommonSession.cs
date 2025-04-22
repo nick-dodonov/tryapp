@@ -8,13 +8,15 @@ namespace Common.Logic
 {
     public static class CommonSession
     {
-        public static ITpApi CreateApi(
+        public static ITpApi CreateApi<TLocalState, TRemoteState>(
             ITpApi rtcApi,
-            ConnectState connectState,
+            TLocalState localState,
+            LinkIdProvider<TLocalState> localLinkIdProvider,
+            LinkIdProvider<TRemoteState> remoteLinkIdProvider,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
-            return new HandApi<ConnectState, ConnectState>(
+            return new HandApi<TLocalState, TRemoteState>(
                 new TimeLink.Api(
                     new DumpLink.Api(
                         rtcApi,
@@ -23,8 +25,8 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new StdLocalStateProvider<ConnectState>(connectState, static (state) => state.LinkId),
-                new StdRemoteStateProvider<ConnectState>(static (state) => state.LinkId),
+                new StdLocalStateProvider<TLocalState>(localState, localLinkIdProvider),
+                new StdRemoteStateProvider<TRemoteState>(remoteLinkIdProvider),
                 loggerFactory);
         }
     }

@@ -71,16 +71,18 @@ namespace Client.Logic
             _workflowOperator = workflowOperator;
 
             _meta = new MetaClient(webClient, Slog.Factory);
-            _api = CommonSession.CreateApi(
+            _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
-                new(GetPeerId(), UnityVersionProvider.BuildVersion),
-                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
+                new(GetPeerId()),
+                static (state) => state.PeerId,
+                static (_) => "SRV",
+                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 
             _link = await _api.Connect(this, cancellationToken);
 
-            var handLink = _link.Find<HandLink<ConnectState, ConnectState>>() ?? throw new("HandLink not found");
+            var handLink = _link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
             _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");

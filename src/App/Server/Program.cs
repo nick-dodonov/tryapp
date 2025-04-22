@@ -29,9 +29,11 @@ builder.Services
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
     .Configure<DumpLink.Options>(configuration.GetSection(nameof(DumpLink)))
     .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
-    .AddSingleton<ITpApi>(sp => CommonSession.CreateApi(
+    .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
         sp.GetRequiredService<SipRtcService>(), 
-        new("SRV", version),
+        new(version),
+        static (_) => "SRV",
+        static (state) => state.PeerId,
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()

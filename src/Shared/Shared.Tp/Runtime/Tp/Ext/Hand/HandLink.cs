@@ -15,10 +15,10 @@ namespace Shared.Tp.Ext.Hand
     ///     * server send ack state immediately and resend it with messages until syn-ack flag isn't received
     ///     * client send syn-ack every time ack is received 
     ///
-    /// TODO: speedup to gc-free on one buffer after changing link/receiver API 
-    /// TODO: reconnect support (possibly another wrapper)
+    /// TODO: reconnect support (another underlying wrapper via provider's link id)
+    /// 
     /// </summary>
-    public class HandLink<TLocalState, TRemoteState> : ExtLink where TLocalState : class
+    public class HandLink<TLocalState, TRemoteState> : ExtLink
     {
         private readonly HandApi<TLocalState, TRemoteState> _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
@@ -104,7 +104,7 @@ namespace Shared.Tp.Ext.Hand
                     }, this);
                 } while (await _synState.AwaitResend(cancellationToken));
 
-                _localState = null;
+                _localState = default;
                 _logger.Info("connected");
             }
             catch (Exception e)
@@ -186,7 +186,7 @@ namespace Shared.Tp.Ext.Hand
                     if (_localState != null)
                     {
                         _logger.Info("syn-ack: stop ack with messages");
-                        _localState = null;
+                        _localState = default;
                     }
                     else
                     {

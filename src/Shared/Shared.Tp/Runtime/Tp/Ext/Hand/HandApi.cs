@@ -30,7 +30,6 @@ namespace Shared.Tp.Ext.Hand
     }
 
     public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>
-        where TLocalState : class
     {
         private readonly ILoggerFactory _loggerFactory;
         private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
