@@ -15,8 +15,8 @@ namespace Shared.Tp.Ext.Hand
     public class HandApi<TRemoteState> : ExtApi<HandLink<TRemoteState>>
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IOwnStateWriter _localStateWriter;
-        private readonly IStateReader<TRemoteState> _remoteStateReader;
+        private readonly IOwnWriter _localStateWriter;
+        private readonly IReader<TRemoteState> _remoteStateReader;
 
         private readonly HandLink<TRemoteState>.LinkIdProvider _linkIdProvider;
         
@@ -24,8 +24,8 @@ namespace Shared.Tp.Ext.Hand
 
         public HandApi(
             ITpApi innerApi, 
-            IOwnStateWriter localStateWriter, 
-            IStateReader<TRemoteState> remoteStateReader, 
+            IOwnWriter localStateWriter, 
+            IReader<TRemoteState> remoteStateReader, 
             HandLink<TRemoteState>.LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory) 
             : base(innerApi)

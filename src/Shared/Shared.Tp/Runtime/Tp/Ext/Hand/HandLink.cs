@@ -29,8 +29,8 @@ namespace Shared.Tp.Ext.Hand
 
         private ILogger _logger = null!;
 
-        private readonly IOwnStateWriter _localStateWriter = null!;
-        private readonly IStateReader<TRemoteState> _remoteStateReader = null!;
+        private readonly IOwnWriter _localStateWriter = null!;
+        private readonly IReader<TRemoteState> _remoteStateReader = null!;
         private bool _localStateDelivered; //TODO: interlocked 
         private TRemoteState? _remoteState;
 
@@ -53,8 +53,8 @@ namespace Shared.Tp.Ext.Hand
 
         // client side
         public HandLink(HandApi<TRemoteState> api, ITpReceiver receiver, 
-            IOwnStateWriter localStateWriter, 
-            IStateReader<TRemoteState> remoteStateReader,
+            IOwnWriter localStateWriter, 
+            IReader<TRemoteState> remoteStateReader,
             LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(receiver)
@@ -69,8 +69,8 @@ namespace Shared.Tp.Ext.Hand
 
         // server side
         public HandLink(HandApi<TRemoteState> api, ITpLink innerLink, 
-            IOwnStateWriter localStateWriter, 
-            IStateReader<TRemoteState> remoteStateReader, 
+            IOwnWriter localStateWriter, 
+            IReader<TRemoteState> remoteStateReader, 
             LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(innerLink)
