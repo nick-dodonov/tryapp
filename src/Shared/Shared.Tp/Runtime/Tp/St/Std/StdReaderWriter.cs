@@ -1,10 +1,8 @@
 using System;
 using System.Buffers;
-using Shared.Tp.Ext.Hand;
-using Shared.Tp.St;
 using Shared.Web;
 
-namespace Common.Logic.Shared
+namespace Shared.Tp.St.Std
 {
     public class StdOwnStateWriter<TState> : IOwnStateWriter
     {
