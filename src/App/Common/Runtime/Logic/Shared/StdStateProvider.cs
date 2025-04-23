@@ -12,8 +12,8 @@ namespace Common.Logic.Shared
         public StdLocalStateProvider(TState state) => _state = state;
 
         TState IHandLocalStateProvider<TState>.ProvideState() => _state;
-        int IHandLocalStateProvider<TState>.Serialize(IBufferWriter<byte> writer, TState state) 
-            => WebSerializer.Default.SerializeTo(writer, state);
+        int IHandLocalStateProvider<TState>.Serialize(IBufferWriter<byte> writer) 
+            => WebSerializer.Default.SerializeTo(writer, _state);
     }
 
     public class StdRemoteStateProvider<TState> : IHandRemoteStateProvider<TState>

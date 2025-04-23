@@ -111,7 +111,7 @@ namespace Shared.Tp.Ext.Hand
                     base.Send((writer, @this) =>
                     {
                         writer.Write((byte)Flags.Syn);
-                        @this._localStateProvider.Serialize(writer, @this._localState!);
+                        @this._localStateProvider.Serialize(writer);
                     }, this);
                 } while (await _synState.AwaitResend(cancellationToken));
 
@@ -171,7 +171,7 @@ namespace Shared.Tp.Ext.Hand
                     {
                         @this._logger.Info($"resend ack with message: {localState}");
                         writer.Write((byte)Flags.Ack);
-                        var ackStateSize = @this._localStateProvider.Serialize(writer, localState);
+                        var ackStateSize = @this._localStateProvider.Serialize(writer);
                         s.writeCb(writer, s.state);
                         writer.Write((short)ackStateSize);
                     }
@@ -223,7 +223,7 @@ namespace Shared.Tp.Ext.Hand
                         base.Send(static (writer, @this) =>
                         {
                             writer.Write((byte)Flags.Ack);
-                            var ackStateSize = @this._localStateProvider.Serialize(writer, @this._localState!);
+                            var ackStateSize = @this._localStateProvider.Serialize(writer);
                             writer.Write((short)ackStateSize);
                         }, this);
                     }

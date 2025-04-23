@@ -7,10 +7,10 @@ using Shared.Log;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandLocalStateProvider<TState>
+    public interface IHandLocalStateProvider<out TState>
     {
         TState ProvideState();
-        int Serialize(IBufferWriter<byte> writer, TState state);
+        int Serialize(IBufferWriter<byte> writer);
     }
 
     public interface IHandRemoteStateProvider<out TState>
