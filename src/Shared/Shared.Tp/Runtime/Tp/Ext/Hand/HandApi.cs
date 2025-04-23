@@ -7,9 +7,8 @@ using Shared.Log;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandLocalStateProvider<out TState>
+    public interface IHandLocalStateProvider
     {
-        TState ProvideState();
         int Serialize(IBufferWriter<byte> writer);
     }
 
@@ -27,7 +26,7 @@ namespace Shared.Tp.Ext.Hand
     public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
+        private readonly IHandLocalStateProvider _localStateProvider;
         private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider;
 
         private readonly HandLink<TLocalState, TRemoteState>.LinkIdProvider _linkIdProvider;
@@ -36,7 +35,7 @@ namespace Shared.Tp.Ext.Hand
 
         public HandApi(
             ITpApi innerApi, 
-            IHandLocalStateProvider<TLocalState> localStateProvider, 
+            IHandLocalStateProvider localStateProvider, 
             IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
             HandLink<TLocalState, TRemoteState>.LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory) 
