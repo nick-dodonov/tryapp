@@ -1,22 +1,11 @@
-using System;
-using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Tp.St;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IOwnStateWriter
-    {
-        int Serialize(IBufferWriter<byte> writer);
-    }
-
-    public interface IStateReader<out TState>
-    {
-        TState Deserialize(ReadOnlySpan<byte> span);
-    }
-
     public class HandshakeOptions
     {
         public readonly int TimeoutMs = 5000;
