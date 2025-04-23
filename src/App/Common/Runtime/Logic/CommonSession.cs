@@ -25,8 +25,8 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new StdLocalStateProvider<TLocalState>(localState),
-                new StdRemoteStateProvider<TRemoteState>(),
+                new StdOwnStateWriter<TLocalState>(localState),
+                new StdRemoteStateReader<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
         }

@@ -28,8 +28,8 @@ namespace Shared.Tp.Ext.Hand
 
         private ILogger _logger = null!;
 
-        private readonly IHandLocalStateProvider _localStateProvider = null!;
-        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider = null!;
+        private readonly IOwnStateWriter _localStateWriter = null!;
+        private readonly IStateReader<TRemoteState> _remoteStateReader = null!;
         private bool _localStateDelivered; //TODO: interlocked 
         private TRemoteState? _remoteState;
 
@@ -52,15 +52,15 @@ namespace Shared.Tp.Ext.Hand
 
         // client side
         public HandLink(HandApi<TRemoteState> api, ITpReceiver receiver, 
-            IHandLocalStateProvider localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider,
+            IOwnStateWriter localStateWriter, 
+            IStateReader<TRemoteState> remoteStateReader,
             LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(receiver)
         {
             _api = api;
-            _localStateProvider = localStateProvider;
-            _remoteStateProvider = remoteStateProvider;
+            _localStateWriter = localStateWriter;
+            _remoteStateReader = remoteStateReader;
             _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
             InitLogger();
@@ -68,15 +68,15 @@ namespace Shared.Tp.Ext.Hand
 
         // server side
         public HandLink(HandApi<TRemoteState> api, ITpLink innerLink, 
-            IHandLocalStateProvider localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            IOwnStateWriter localStateWriter, 
+            IStateReader<TRemoteState> remoteStateReader, 
             LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
-            _localStateProvider = localStateProvider;
-            _remoteStateProvider = remoteStateProvider;
+            _localStateWriter = localStateWriter;
+            _remoteStateReader = remoteStateReader;
             _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
             InitLogger();
@@ -103,12 +103,12 @@ namespace Shared.Tp.Ext.Hand
                 do
                 {
                     _logger.Info(_synState.Attempts == 0 
-                        ? $"send syn and wait ack: {_localStateProvider}"
-                        : $"resend syn and wait ack ({_synState.Attempts} attempt): {_localStateProvider}");
+                        ? $"send syn and wait ack: {_localStateWriter}"
+                        : $"resend syn and wait ack ({_synState.Attempts} attempt): {_localStateWriter}");
                     base.Send((writer, @this) =>
                     {
                         writer.Write((byte)Flags.Syn);
-                        @this._localStateProvider.Serialize(writer);
+                        @this._localStateWriter.Serialize(writer);
                     }, this);
                 } while (await _synState.AwaitResend(cancellationToken));
 
@@ -165,10 +165,10 @@ namespace Shared.Tp.Ext.Hand
                     var @this = s.Item3;
                     if (!@this._localStateDelivered) // handle concurrent syn-ack received //TODO: CAS
                     {
-                        var localStateProvider = @this._localStateProvider;
-                        @this._logger.Info($"resend ack with message: {localStateProvider}");
+                        var localStateWriter = @this._localStateWriter;
+                        @this._logger.Info($"resend ack with message: {localStateWriter}");
                         writer.Write((byte)Flags.Ack);
-                        var ackStateSize = localStateProvider.Serialize(writer);
+                        var ackStateSize = localStateWriter.Serialize(writer);
                         s.writeCb(writer, s.state);
                         writer.Write((short)ackStateSize);
                     }
@@ -209,18 +209,18 @@ namespace Shared.Tp.Ext.Hand
                         return;
                     }
 
-                    _remoteState = _remoteStateProvider.Deserialize(span);
+                    _remoteState = _remoteStateReader.Deserialize(span);
                     _logger.Info($"syn state: {_remoteState}");
                     InitLogger(); // reinitialize logger to include remote state now (peer id to simplify diagnostics)
 
                     // notify listener connection is established after a handshake
                     if (_api.CallConnected(this))
                     {
-                        _logger.Info($"send ack: {_localStateProvider}");
+                        _logger.Info($"send ack: {_localStateWriter}");
                         base.Send(static (writer, @this) =>
                         {
                             writer.Write((byte)Flags.Ack);
-                            var ackStateSize = @this._localStateProvider.Serialize(writer);
+                            var ackStateSize = @this._localStateWriter.Serialize(writer);
                             writer.Write((short)ackStateSize);
                         }, this);
                     }
@@ -235,7 +235,7 @@ namespace Shared.Tp.Ext.Hand
                 var ackStateSize = SpanReader.Read<short>(span[^sizeof(short)..]);
                 if (_remoteState == null)
                 {
-                    _remoteState = _remoteStateProvider.Deserialize(span[..ackStateSize]);
+                    _remoteState = _remoteStateReader.Deserialize(span[..ackStateSize]);
                     _logger.Info($"ack state: {_remoteState}");
 
                     if (_synState != null)
