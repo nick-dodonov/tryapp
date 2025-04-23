@@ -12,11 +12,11 @@ namespace Common.Logic
         public static ITpApi CreateApi<TLocalState, TRemoteState>(
             ITpApi rtcApi,
             TLocalState localState,
-            HandLink<TLocalState, TRemoteState>.LinkIdProvider linkIdProvider,
+            HandLink<TRemoteState>.LinkIdProvider linkIdProvider,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
-            return new HandApi<TLocalState, TRemoteState>(
+            return new HandApi<TRemoteState>(
                 new TimeLink.Api(
                     new DumpLink.Api(
                         rtcApi,

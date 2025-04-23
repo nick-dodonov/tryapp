@@ -18,12 +18,12 @@ namespace Shared.Tp.Ext.Hand
     /// TODO: reconnect support (another underlying wrapper via provider's link id)
     /// 
     /// </summary>
-    public class HandLink<TLocalState, TRemoteState> : ExtLink
+    public class HandLink<TRemoteState> : ExtLink
     {
-        private readonly HandApi<TLocalState, TRemoteState> _api = null!;
+        private readonly HandApi<TRemoteState> _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
 
-        public delegate string LinkIdProvider(HandLink<TLocalState, TRemoteState> link);
+        public delegate string LinkIdProvider(HandLink<TRemoteState> link);
         private readonly LinkIdProvider _linkIdProvider = null!;
 
         private ILogger _logger = null!;
@@ -51,7 +51,7 @@ namespace Shared.Tp.Ext.Hand
         public HandLink() { } //empty constructor only for generic usage
 
         // client side
-        public HandLink(HandApi<TLocalState, TRemoteState> api, ITpReceiver receiver, 
+        public HandLink(HandApi<TRemoteState> api, ITpReceiver receiver, 
             IHandLocalStateProvider localStateProvider, 
             IHandRemoteStateProvider<TRemoteState> remoteStateProvider,
             LinkIdProvider linkIdProvider,
@@ -67,7 +67,7 @@ namespace Shared.Tp.Ext.Hand
         }
 
         // server side
-        public HandLink(HandApi<TLocalState, TRemoteState> api, ITpLink innerLink, 
+        public HandLink(HandApi<TRemoteState> api, ITpLink innerLink, 
             IHandLocalStateProvider localStateProvider, 
             IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
             LinkIdProvider linkIdProvider,
@@ -85,7 +85,7 @@ namespace Shared.Tp.Ext.Hand
         private void InitLogger()
         {
             _logger = new IdLogger(
-                _loggerFactory.CreateLogger(nameof(HandLink<TLocalState, TRemoteState>)),
+                _loggerFactory.CreateLogger(nameof(HandLink<TRemoteState>)),
                 _linkIdProvider(this));
         }
         

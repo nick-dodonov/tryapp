@@ -87,7 +87,7 @@ namespace Client.Logic
 
             // link diagnostics
             var link = _cmdLink.Link;
-            var handLink = link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
+            var handLink = link.Find<HandLink<ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
             _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");

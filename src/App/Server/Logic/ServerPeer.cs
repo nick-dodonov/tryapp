@@ -22,7 +22,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
         _cmdLink = new(link, _stateSyncer);
         _stateSyncer.Init(_cmdLink);
         
-        var handLink = link.Find<HandLink<ServerConnectState, ClientConnectState>>() ?? throw new("HandLink not found");
+        var handLink = link.Find<HandLink<ClientConnectState>>() ?? throw new("HandLink not found");
         _peerStateId = handLink.RemoteState?.PeerId ?? throw new("PeerId not found");
         _peerStateId = $"{_peerStateId}/{link.GetRemotePeerId()}";
     }
