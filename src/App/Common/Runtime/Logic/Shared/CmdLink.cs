@@ -23,21 +23,21 @@ namespace Common.Logic.Shared
         , ICmdSender<TSend>
         , ITpReceiver
     {
-        private ITpLink _link;
         private readonly ICmdReceiver<TReceive> _receiver;
+        private ITpLink _link;
 
         public ITpLink Link => _link;
 
-        public StdCmdLink(ITpLink link, ICmdReceiver<TReceive> receiver)
+        public StdCmdLink(ICmdReceiver<TReceive> receiver, ITpLink link)
         {
-            _link = link;
             _receiver = receiver;
+            _link = link;
         }
 
         // client side
-        public static async ValueTask<StdCmdLink<TSend, TReceive>> Connect(ITpApi api, ICmdReceiver<TReceive> receiver, CancellationToken cancellationToken)
+        public static async ValueTask<StdCmdLink<TSend, TReceive>> Connect(ICmdReceiver<TReceive> receiver, ITpApi api, CancellationToken cancellationToken)
         {
-            var cmdLink = new StdCmdLink<TSend, TReceive>(null!, receiver);
+            var cmdLink = new StdCmdLink<TSend, TReceive>(receiver, null!);
             cmdLink._link = await api.Connect(cmdLink, cancellationToken);
             return cmdLink;
         }

@@ -10,17 +10,14 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     private readonly ServerSession _session;
     private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
 
-    private readonly StdCmdLink<ServerState, ClientState> _cmdLink;
-    public ITpReceiver Receiver => _cmdLink;
+    public ITpReceiver Receiver => _stateSyncer.Receiver;
 
     private readonly string _peerStateId;
     
     public ServerPeer(ServerSession session, ITpLink link)
     {
         _session = session;
-        _stateSyncer = new(this);
-        _cmdLink = new(link, _stateSyncer);
-        _stateSyncer.Init(_cmdLink);
+        _stateSyncer = StateSyncer<ServerState, ClientState>.CreateConnected(this, link);
         
         var handLink = link.Find<HandLink<ClientConnectState>>() ?? throw new("HandLink not found");
         _peerStateId = handLink.RemoteState?.PeerId ?? throw new("PeerId not found");
@@ -30,7 +27,6 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     public void Dispose()
     {
         _stateSyncer.Dispose();
-        _cmdLink.Dispose();
     }
 
     public PeerState GetPeerState()

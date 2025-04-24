@@ -43,8 +43,6 @@ namespace Client.Logic
         private ITpApi _api;
 
         private StateSyncer<ClientState, ServerState> _stateSyncer;
-        
-        private StdCmdLink<ClientState, ServerState> _cmdLink;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
 
@@ -64,8 +62,8 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_cmdLink != null)
-                throw new InvalidOperationException("RtcStart: link is already established");
+            if (_stateSyncer != null)
+                throw new InvalidOperationException("Link is already established");
 
             _workflowOperator = workflowOperator;
 
@@ -81,12 +79,10 @@ namespace Client.Logic
             );
 
             // connect to server
-            _stateSyncer = new(this);
-            _cmdLink = await StdCmdLink<ClientState, ServerState>.Connect(_api, _stateSyncer, cancellationToken);
-            _stateSyncer.Init(_cmdLink);
+            _stateSyncer = await StateSyncer<ClientState, ServerState>.CreateAndConnect(this, _api, cancellationToken);
 
             // link diagnostics
-            var link = _cmdLink.Link;
+            var link = _stateSyncer.Link;
             var handLink = link.Find<HandLink<ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
@@ -113,27 +109,22 @@ namespace Client.Logic
             _dumpLink = null;
             _timeLink = null;
 
-            _cmdLink?.Dispose();
-            _cmdLink = null;
+            _stateSyncer?.Dispose();
+            _stateSyncer = null;
 
             _api = null;
             _meta?.Dispose();
             _meta = null;
-
-            // destroy after link to not fail on latest Received
-            _stateSyncer?.Dispose();
-            _stateSyncer = null;
         }
 
         private void Update()
         {
-            if (_cmdLink == null)
+            if (_stateSyncer == null)
                 return;
 
             var sessionMs = _timeLink.RemoteMs;
             {
-                var stats = _dumpLink.Stats;
-                stats.UpdateRates();
+                var stats = _dumpLink.Stats.UpdateRates();
                 infoControl.SetText(@$"session: 
 time: {sessionMs / 1000.0f:F1}sec 
 rtt: {_timeLink.RttMs}ms 
