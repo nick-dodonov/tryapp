@@ -17,8 +17,8 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     public ServerPeer(ServerSession session, ITpLink link)
     {
         _session = session;
-        _stateSyncer = StateSyncer<ServerState, ClientState>.CreateConnected(this, link);
-        
+        _stateSyncer = StateSyncerFactory.CreateConnected(this, link);
+
         var handLink = link.Find<HandLink<ClientConnectState>>() ?? throw new("HandLink not found");
         _peerStateId = handLink.RemoteState?.PeerId ?? throw new("PeerId not found");
         _peerStateId = $"{_peerStateId}/{link.GetRemotePeerId()}";

@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Shared.Tp;
 using UnityEngine;
 using UnityEngine.Scripting;
@@ -28,6 +26,7 @@ namespace Common.Logic.Shared
         private readonly ISyncHandler<TLocal, TRemote> _handler;
 
         private StdCmdLink<TLocal, TRemote> _cmdLink = null!;
+        
         public ITpReceiver Receiver => _cmdLink;
         public ITpLink Link => _cmdLink.Link;
 
@@ -38,26 +37,10 @@ namespace Common.Logic.Shared
         public TRemote RemoteState =>
             _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
 
-        private StateSyncer(ISyncHandler<TLocal, TRemote> handler) 
+        internal StateSyncer(ISyncHandler<TLocal, TRemote> handler) 
             => _handler = handler;
-
-        public static StateSyncer<TLocal, TRemote> CreateConnected(
-            ISyncHandler<TLocal, TRemote> handler, 
-            ITpLink link)
-        {
-            var syncer = new StateSyncer<TLocal, TRemote>(handler);
-            syncer._cmdLink = new(syncer, link);
-            return syncer;
-        }
-        
-        public static async ValueTask<StateSyncer<TLocal, TRemote>> CreateAndConnect(
-            ISyncHandler<TLocal, TRemote> handler,
-            ITpApi api, CancellationToken cancellationToken)
-        {
-            var syncer = new StateSyncer<TLocal, TRemote>(handler);
-            syncer._cmdLink = await StdCmdLink<TLocal, TRemote>.Connect(syncer, api,cancellationToken);
-            return syncer;
-        }
+        internal void SetCmdLink(StdCmdLink<TLocal, TRemote> cmdLink) 
+            => _cmdLink = cmdLink;
 
         public void Dispose()
         {

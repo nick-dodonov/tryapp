@@ -79,7 +79,7 @@ namespace Client.Logic
             );
 
             // connect to server
-            _stateSyncer = await StateSyncer<ClientState, ServerState>.CreateAndConnect(this, _api, cancellationToken);
+            _stateSyncer = await StateSyncerFactory.CreateAndConnect(this, _api, cancellationToken);
 
             // link diagnostics
             var link = _stateSyncer.Link;
