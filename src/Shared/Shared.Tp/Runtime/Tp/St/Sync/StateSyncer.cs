@@ -1,9 +1,9 @@
 using System;
-using Shared.Tp;
+using Shared.Tp.St.Cmd;
 using UnityEngine;
 using UnityEngine.Scripting;
 
-namespace Common.Logic.Shared
+namespace Shared.Tp.St.Sync
 {
     [Serializable]
     public class SyncOptions

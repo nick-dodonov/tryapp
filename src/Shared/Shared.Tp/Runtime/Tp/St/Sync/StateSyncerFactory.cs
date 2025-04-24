@@ -1,8 +1,8 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Shared.Tp;
+using Shared.Tp.St.Cmd;
 
-namespace Common.Logic.Shared
+namespace Shared.Tp.St.Sync
 {
     public static class StateSyncerFactory
     {

@@ -2,10 +2,9 @@ using System;
 using System.Threading;
 using System.Threading.Tasks;
 using Shared.Log;
-using Shared.Tp;
 using Shared.Web;
 
-namespace Common.Logic.Shared
+namespace Shared.Tp.St.Cmd
 {
     public interface ICmdSender<T>
     {

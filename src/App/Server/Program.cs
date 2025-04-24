@@ -1,6 +1,5 @@
 using System.Reflection;
 using Common.Logic;
-using Common.Logic.Shared;
 using Common.Meta;
 using Microsoft.Extensions.Options;
 using Server;
@@ -13,6 +12,7 @@ using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
+using Shared.Tp.St.Sync;
 
 Slog.Info($">>>> starting {Assembly.GetExecutingAssembly().GetName().Name}: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);

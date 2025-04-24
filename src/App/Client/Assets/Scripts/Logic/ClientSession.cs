@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
 using Common.Logic;
-using Common.Logic.Shared;
 using Common.Meta;
 using Diagnostics.Debug;
 using Shared.Log;
@@ -14,6 +13,7 @@ using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
+using Shared.Tp.St.Sync;
 using Shared.Web;
 using UnityEngine;
 

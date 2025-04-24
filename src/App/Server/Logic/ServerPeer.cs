@@ -1,7 +1,7 @@
 using Common.Logic;
-using Common.Logic.Shared;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
+using Shared.Tp.St.Sync;
 
 namespace Server.Logic;
 
