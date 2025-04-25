@@ -6,7 +6,7 @@ using UnityEngine.Scripting;
 
 [assembly: AlwaysLinkAssembly]
 
-namespace Shared.System
+namespace Shared.Sys
 {
     public class UnitySharedSystem : ISharedSystem
     {

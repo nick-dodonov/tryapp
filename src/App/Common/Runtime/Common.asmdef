@@ -4,7 +4,7 @@
     "references": [
         "Shared.Boot",
         "Shared.Log",
-        "Shared.System",
+        "Shared.Sys",
         "Shared.Tp",
         "Shared.Web"
     ],

@@ -1,4 +1,4 @@
-namespace Shared.System;
+namespace Shared.Sys;
 
 public class AspSharedSystem : ISharedSystem
 {

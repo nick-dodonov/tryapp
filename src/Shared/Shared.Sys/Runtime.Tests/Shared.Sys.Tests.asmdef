@@ -1,10 +1,10 @@
 {
-    "name": "Shared.System.Tests",
-    "rootNamespace": "Shared.System.Tests",
+    "name": "Shared.Sys.Tests",
+    "rootNamespace": "Shared.Sys.Tests",
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
-        "Shared.System"
+        "Shared.Sys"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

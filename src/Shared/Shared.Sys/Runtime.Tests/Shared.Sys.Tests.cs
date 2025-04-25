@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using NUnit.Framework;
 
-namespace Shared.System.Tests
+namespace Shared.Sys.Tests
 {
     public class Tests
     {

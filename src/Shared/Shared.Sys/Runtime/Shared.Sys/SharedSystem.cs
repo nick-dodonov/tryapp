@@ -1,6 +1,6 @@
 using System.Diagnostics;
 
-namespace Shared.System
+namespace Shared.Sys
 {
     public static class SharedSystem
     {
@@ -14,11 +14,11 @@ namespace Shared.System
                     return _instance;
 
 #if UNITY_5_6_OR_NEWER
-                Debug.Fail("Shared.System.Unity auto reference failed");
+                Debug.Fail("Shared.Sys.Unity auto reference failed");
 #else
-                var assembly = global::System.Reflection.Assembly.Load("Shared.System.Asp");
+                var assembly = global::System.Reflection.Assembly.Load("Shared.Sys.Asp");
                 Debug.Assert(assembly != null);
-                var type = assembly.GetType("Shared.System.AspSharedSystem");
+                var type = assembly.GetType("Shared.Sys.AspSharedSystem");
                 Debug.Assert(type != null);
                 var instance = global::System.Activator.CreateInstance(type);
                 Debug.Assert(instance != null);

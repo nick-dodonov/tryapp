@@ -4,7 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
-    <RootNamespace>Shared.System.Tests</RootNamespace>
+    <RootNamespace>Shared.Sys.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Runtime\Shared.System.csproj" />
+    <ProjectReference Include="..\Runtime\Shared.Sys.csproj" />
   </ItemGroup>
 
 </Project>

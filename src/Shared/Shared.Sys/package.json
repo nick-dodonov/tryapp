@@ -1,7 +1,7 @@
 {
-  "name": "shared.system",
+  "name": "shared.sys",
   "version": "0.2.0",
-  "displayName": "Shared.System",
+  "displayName": "Shared.Sys",
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.test-framework": "1.5.1",

@@ -11,14 +11,14 @@
     "locator.client": "file:../../../Locator/Locator.Client",
     "shared.boot": "file:../../../Shared/Shared.Boot",
     "shared.log": "file:../../../Shared/Shared.Log",
-    "shared.system": "file:../../../Shared/Shared.System",
+    "shared.sys": "file:../../../Shared/Shared.Sys",
     "shared.tp": "file:../../../Shared/Shared.Tp",
     "shared.web": "file:../../../Shared/Shared.Web",
     "com.unity.modules.audio": "1.0.0",
     "com.unity.modules.physics": "1.0.0"
   },
   "testables": [
-    "shared.system",
+    "shared.sys",
     "shared.tp"
   ],
   "scopedRegistries": [

@@ -3,7 +3,7 @@
     "rootNamespace": "Locator.Client",
     "references": [
         "Locator.Api",
-        "Shared.System",
+        "Shared.Sys",
         "Shared.Web"
     ],
     "includePlatforms": [],

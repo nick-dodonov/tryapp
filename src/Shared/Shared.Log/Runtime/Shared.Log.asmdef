@@ -2,7 +2,7 @@
     "name": "Shared.Log",
     "rootNamespace": "Shared",
     "references": [
-        "Shared.System"
+        "Shared.Sys"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

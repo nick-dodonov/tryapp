@@ -1,7 +1,7 @@
 ﻿using System.Threading;
 using System.Threading.Tasks;
 using Locator.Api;
-using Shared.System;
+using Shared.Sys;
 using Shared.Web;
 
 namespace Locator.Client

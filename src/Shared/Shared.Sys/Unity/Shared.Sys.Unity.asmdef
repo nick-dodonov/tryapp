@@ -1,8 +1,8 @@
 {
-    "name": "Shared.System.Unity",
-    "rootNamespace": "Shared.System",
+    "name": "Shared.Sys.Unity",
+    "rootNamespace": "Shared.Sys",
     "references": [
-        "Shared.System"
+        "Shared.Sys"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

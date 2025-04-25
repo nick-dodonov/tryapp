@@ -8,7 +8,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Shared.System\Asp~\Shared.System.Asp.csproj" />
+        <ProjectReference Include="..\..\Shared.Sys\Asp~\Shared.Sys.Asp.csproj" />
         <ProjectReference Include="..\Runtime\Shared.Tp.csproj" />
     </ItemGroup>
 

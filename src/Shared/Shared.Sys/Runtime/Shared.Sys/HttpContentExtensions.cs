@@ -2,7 +2,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Shared.System
+namespace Shared.Sys
 {
     public static class HttpContentExtensions
     {

@@ -18,7 +18,7 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Shared.System\Runtime\Shared.System.csproj" />
+      <ProjectReference Include="..\..\Shared.Sys\Runtime\Shared.Sys.csproj" />
     </ItemGroup>
 
 </Project>

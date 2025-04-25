@@ -6,6 +6,6 @@
     "org.nuget.microsoft.extensions.logging.abstractions": "9.0.4",
     "org.nuget.microsoft.extensions.logging": "9.0.4",
     "org.nuget.zstring": "2.6.0",
-    "shared.system": "0.1.0"
+    "shared.sys": "0.1.0"
   }
 }

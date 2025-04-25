@@ -7,7 +7,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\Shared\Shared.System\Runtime\Shared.System.csproj" />
+      <ProjectReference Include="..\..\Shared\Shared.Sys\Runtime\Shared.Sys.csproj" />
       <ProjectReference Include="..\..\Shared\Shared.Web\Runtime\Shared.Web.csproj" />
       <ProjectReference Include="..\Locator.Api\Locator.Api.csproj" />
     </ItemGroup>

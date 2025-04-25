@@ -4,7 +4,7 @@
         <TargetFramework>net9.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <RootNamespace>Shared.System</RootNamespace>
+        <RootNamespace>Shared.Sys</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
@@ -12,7 +12,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Runtime\Shared.System.csproj" />
+        <ProjectReference Include="..\Runtime\Shared.Sys.csproj" />
     </ItemGroup>
 
 </Project>
