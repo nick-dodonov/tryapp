@@ -12,3 +12,6 @@ jobs:
       packages: write
       deployments: write
     uses: ./.github/workflows/stand-stack.yml
+
+  client:
+    uses: ./.github/workflows/client-build.yml
