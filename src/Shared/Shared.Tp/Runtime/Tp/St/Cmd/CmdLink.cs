@@ -1,6 +1,4 @@
 using System;
-using System.Threading;
-using System.Threading.Tasks;
 using Shared.Log;
 using Shared.Web;
 
@@ -23,23 +21,14 @@ namespace Shared.Tp.St.Cmd
         , ITpReceiver
     {
         private readonly ICmdReceiver<TReceive> _receiver;
-        private ITpLink _link;
+        private ITpLink _link = null!;
 
         public ITpLink Link => _link;
 
-        public StdCmdLink(ICmdReceiver<TReceive> receiver, ITpLink link)
-        {
-            _receiver = receiver;
-            _link = link;
-        }
-
-        // client side
-        public static async ValueTask<StdCmdLink<TSend, TReceive>> Connect(ICmdReceiver<TReceive> receiver, ITpApi api, CancellationToken cancellationToken)
-        {
-            var cmdLink = new StdCmdLink<TSend, TReceive>(receiver, null!);
-            cmdLink._link = await api.Connect(cmdLink, cancellationToken);
-            return cmdLink;
-        }
+        internal StdCmdLink(ICmdReceiver<TReceive> receiver) 
+            => _receiver = receiver;
+        internal void SetLink(ITpLink link) 
+            => _link = link;
 
         public void Dispose()
         {
