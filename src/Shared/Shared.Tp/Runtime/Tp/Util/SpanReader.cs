@@ -6,6 +6,7 @@ namespace Shared.Tp.Util
 {
     public static class SpanReader
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Read<T>(ReadOnlySpan<byte> span)
             where T : unmanaged
         {

@@ -1,7 +1,8 @@
 using System.Buffers;
-using System.IO;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using Shared.Tp.St;
 
 namespace Shared.Tp.Util
 {
@@ -9,12 +10,15 @@ namespace Shared.Tp.Util
     /// TODO: think to use CommunityToolkit.HighPerformance IBufferWriter extension instead
     /// TODO: add little/big endian writes (prefer little endian to use memcpy instead of shuffle on most client platforms)
     /// TODO: add SequenceReader extensions too
+    /// 
     /// </summary>
     public static class BufferWriterExtensions
     {
         /// <summary>
         /// TODO: CommunityToolkit.HighPerformance IBufferWriter can be used instead
+        /// 
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static void Write(this IBufferWriter<byte> writer, byte value)
         {
             var span = writer.GetSpan(1);
@@ -24,6 +28,7 @@ namespace Shared.Tp.Util
             writer.Advance(1);
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static unsafe void Write<T>(this IBufferWriter<byte> writer, T value)
             where T : unmanaged
         {
@@ -36,9 +41,21 @@ namespace Shared.Tp.Util
             writer.Advance(length);
         }
 
-        // ReSharper disable once UnusedMember.Local
-        private static void ThrowArgumentExceptionForEndOfBuffer(int spanLength, int length)
-            => throw new InternalBufferOverflowException(
-                $"Buffer writer can't contain the requested input data ({spanLength} < {length})");
+        // private static void ThrowArgumentExceptionForEndOfBuffer(int spanLength, int length)
+        //     => throw new global::System.IO.InternalBufferOverflowException(
+        //         $"Buffer writer can't contain the requested input data ({spanLength} < {length})");
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static void PrependSizeWrite(this IBufferWriter<byte> writer, IOwnWriter ownWriter)
+        {
+            using var prependWriter = PrependBufferWriter.Rent(writer, sizeof(short));
+
+            var size = ownWriter.Serialize(prependWriter);
+            Debug.Assert(size == prependWriter.WrittenCount);
+
+            //TODO: use SpanWriter similar to SpanReader
+            ref var r0 = ref MemoryMarshal.GetReference(prependWriter.ReservedSpan);
+            Unsafe.WriteUnaligned(ref r0, (short)size);
+        }
     }
 }

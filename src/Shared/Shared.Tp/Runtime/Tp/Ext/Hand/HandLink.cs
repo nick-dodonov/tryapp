@@ -169,9 +169,7 @@ namespace Shared.Tp.Ext.Hand
                         var localStateWriter = @this._localStateWriter;
                         @this._logger.Info($"resend ack with message: {localStateWriter}");
                         writer.Write((byte)Flags.Ack);
-                        var ackStateSize = localStateWriter.Serialize(writer);
-                        s.writeCb(writer, s.state);
-                        writer.Write((short)ackStateSize);
+                        writer.PrependSizeWrite(localStateWriter);
                     }
                     else
                     {
@@ -221,8 +219,7 @@ namespace Shared.Tp.Ext.Hand
                         base.Send(static (writer, @this) =>
                         {
                             writer.Write((byte)Flags.Ack);
-                            var ackStateSize = @this._localStateWriter.Serialize(writer);
-                            writer.Write((short)ackStateSize);
+                            writer.PrependSizeWrite(@this._localStateWriter);
                         }, this);
                     }
                     else
@@ -233,10 +230,10 @@ namespace Shared.Tp.Ext.Hand
             }
             else if ((flags & Flags.Ack) != 0) // client side
             {
-                var ackStateSize = SpanReader.Read<short>(span[^sizeof(short)..]);
+                var ackStateSize = SpanReader.Read<short>(span[..sizeof(short)]);
                 if (_remoteState == null)
                 {
-                    _remoteState = _remoteStateReader.Deserialize(span[..ackStateSize]);
+                    _remoteState = _remoteStateReader.Deserialize(span.Slice(sizeof(short), ackStateSize));
                     _logger.Info($"ack state: {_remoteState}");
 
                     if (_synState != null)
@@ -253,7 +250,7 @@ namespace Shared.Tp.Ext.Hand
                     _logger.Info("ack duplicate");
                 }
 
-                span = span[ackStateSize..^sizeof(short)];
+                span = span[(sizeof(short) + ackStateSize)..];
             }
 
             if (span.Length <= 0)
