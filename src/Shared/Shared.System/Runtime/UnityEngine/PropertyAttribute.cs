@@ -1,8 +1,7 @@
 #if !UNITY_5_6_OR_NEWER
-using System;
-using UnityEngine.Scripting;
-
 #nullable disable
+using System;
+
 namespace UnityEngine
 {
     /// <summary>
