@@ -6,4 +6,7 @@ on:
 # https://docs.github.com/en/actions/sharing-automations/reusing-workflows
 jobs:
   stand:
+    permissions:
+      packages: write
+      deployments: write
     uses: ./.github/workflows/stand-stack.yml
