@@ -1,5 +1,4 @@
 using System.Buffers;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Shared.Tp.St;
@@ -49,13 +48,11 @@ namespace Shared.Tp.Util
         public static void PrependSizeWrite(this IBufferWriter<byte> writer, IOwnWriter ownWriter)
         {
             using var prependWriter = PrependBufferWriter.Rent(writer, sizeof(short));
-
-            var size = ownWriter.Serialize(prependWriter);
-            Debug.Assert(size == prependWriter.WrittenCount);
+            ownWriter.Serialize(prependWriter);
 
             //TODO: use SpanWriter similar to SpanReader
             ref var r0 = ref MemoryMarshal.GetReference(prependWriter.ReservedSpan);
-            Unsafe.WriteUnaligned(ref r0, (short)size);
+            Unsafe.WriteUnaligned(ref r0, (short)prependWriter.WrittenCount);
         }
     }
 }

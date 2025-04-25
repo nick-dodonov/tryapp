@@ -28,8 +28,6 @@ namespace Shared.Web
 
         void IWebSerializer.Serialize<T>(IBufferWriter<byte> writer, T obj)
             => throw new NotImplementedException();
-        int IWebSerializer.SerializeTo<T>(IBufferWriter<byte> writer, T obj)
-            => throw new NotImplementedException();
 
         T IWebSerializer.Deserialize<T>(string json) 
             => DeserializeFromString<T>(json);

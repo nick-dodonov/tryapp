@@ -4,6 +4,6 @@ namespace Shared.Tp.St
 {
     public interface IOwnWriter
     {
-        int Serialize(IBufferWriter<byte> writer);
+        void Serialize(IBufferWriter<byte> writer);
     }
 }

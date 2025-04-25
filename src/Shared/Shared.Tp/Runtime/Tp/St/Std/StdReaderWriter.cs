@@ -17,8 +17,8 @@ namespace Shared.Tp.St.Std
 
         public override string ToString() => _state!.ToString();
 
-        int IOwnWriter.Serialize(IBufferWriter<byte> writer) 
-            => WebSerializer.Default.SerializeTo(writer, _state);
+        void IOwnWriter.Serialize(IBufferWriter<byte> writer) 
+            => WebSerializer.Default.Serialize(writer, _state);
     }
 
     public class StdReader<TState> : IReader<TState>
