@@ -23,9 +23,6 @@
 LICENSE
 README.md
 
-# Workaround stange GitHub action docker build issue (looks like it has case-insensitive ignores)
-!**/Tp/Obj
-
 # Ignore only object (allow to use git for audit during build), empty objects/ folder must exists
 #   TODO: include only required files (HEAD config packed-refs refs/** and empty objects/)
 #**/.git
