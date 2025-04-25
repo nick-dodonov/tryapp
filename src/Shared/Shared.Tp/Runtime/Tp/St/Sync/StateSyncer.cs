@@ -25,7 +25,7 @@ namespace Shared.Tp.St.Sync
     {
         private readonly ISyncHandler<TLocal, TRemote> _handler;
 
-        private StdCmdLink<TLocal, TRemote> _cmdLink = null!;
+        private CmdLink<TLocal, TRemote> _cmdLink = null!;
         
         public ITpReceiver Receiver => _cmdLink;
         public ITpLink Link => _cmdLink.Link;
@@ -39,7 +39,7 @@ namespace Shared.Tp.St.Sync
 
         internal StateSyncer(ISyncHandler<TLocal, TRemote> handler) 
             => _handler = handler;
-        internal void SetCmdLink(StdCmdLink<TLocal, TRemote> cmdLink) 
+        internal void SetCmdLink(CmdLink<TLocal, TRemote> cmdLink) 
             => _cmdLink = cmdLink;
 
         public void Dispose()

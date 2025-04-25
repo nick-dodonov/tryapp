@@ -21,9 +21,9 @@ namespace Shared.Tp.St.Std
             => WebSerializer.Default.Serialize(writer, _state);
     }
 
-    public class StdReader<TState> : IReader<TState>
+    public class StdObjReader<TState> : IObjReader<TState>
     {
-        TState IReader<TState>.Deserialize(ReadOnlySpan<byte> span)
+        TState IObjReader<TState>.Deserialize(ReadOnlySpan<byte> span)
             => WebSerializer.Default.Deserialize<TState>(span);
     }
 }

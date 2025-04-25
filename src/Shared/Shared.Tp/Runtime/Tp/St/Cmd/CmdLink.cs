@@ -15,7 +15,7 @@ namespace Shared.Tp.St.Cmd
         void CmdDisconnected();
     }
 
-    public class StdCmdLink<TSend, TReceive> 
+    public class CmdLink<TSend, TReceive> 
         : IDisposable
         , ICmdSender<TSend>
         , ITpReceiver
@@ -25,7 +25,7 @@ namespace Shared.Tp.St.Cmd
 
         public ITpLink Link => _link;
 
-        internal StdCmdLink(ICmdReceiver<TReceive> receiver) 
+        internal CmdLink(ICmdReceiver<TReceive> receiver) 
             => _receiver = receiver;
         internal void SetLink(ITpLink link) 
             => _link = link;
