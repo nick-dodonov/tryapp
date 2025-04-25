@@ -34,17 +34,16 @@ RUN ls -lR /repo
 
 WORKDIR "/repo/src/App/Server"
 
-# build separate from publish (with --no-build) because of strange docker dotnet publish issues
-RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-  dotnet build "Server.csproj" \
-  -c $BUILD_CONFIGURATION \
-  -o /app/build
+## build separate from publish (with --no-build) because of strange docker dotnet publish issues
+#RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+#  dotnet build "Server.csproj" \
+#  -c $BUILD_CONFIGURATION \
+#  -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
   dotnet publish "Server.csproj" \
-  --no-build \
   -c $BUILD_CONFIGURATION \
   -o /app/publish \
   /p:UseAppHost=false
