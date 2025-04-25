@@ -12,9 +12,13 @@ namespace Shared.Tp.St.Sync
         public int BasicSendRate { get; set; } = 1;
     }
 
-    public interface ISyncHandler<out TLocal, in TRemote>
+    public interface ISyncHandler<TLocal, TRemote>
     {
         SyncOptions Options { get; }
+
+        IObjWriter<TLocal> LocalWriter { get; }
+        IObjReader<TRemote> RemoteReader { get; }
+
         TLocal MakeLocalState(int sendIndex);
 
         void RemoteUpdated(TRemote remoteState);

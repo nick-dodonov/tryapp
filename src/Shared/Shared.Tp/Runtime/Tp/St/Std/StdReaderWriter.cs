@@ -5,25 +5,31 @@ using Shared.Web;
 
 namespace Shared.Tp.St.Std
 {
-    public class StdOwnWriter<TState> : IOwnWriter
+    public class StdOwnWriter<T> : IOwnWriter
     {
-        private readonly TState _state;
+        private readonly T _obj;
 
-        public StdOwnWriter(TState state)
+        public StdOwnWriter(T obj)
         {
-            Debug.Assert(state != null);
-            _state = state;
+            Debug.Assert(obj != null);
+            _obj = obj;
         }
 
-        public override string ToString() => _state!.ToString();
+        public override string ToString() => _obj!.ToString();
 
         void IOwnWriter.Serialize(IBufferWriter<byte> writer) 
-            => WebSerializer.Default.Serialize(writer, _state);
+            => WebSerializer.Default.Serialize(writer, _obj);
     }
 
-    public class StdObjReader<TState> : IObjReader<TState>
+    public class StdObjReader<T> : IObjReader<T>
     {
-        TState IObjReader<TState>.Deserialize(ReadOnlySpan<byte> span)
-            => WebSerializer.Default.Deserialize<TState>(span);
+        T IObjReader<T>.Deserialize(ReadOnlySpan<byte> span)
+            => WebSerializer.Default.Deserialize<T>(span);
+    }
+
+    public class StdObjWriter<T> : IObjWriter<T>
+    {
+        void IObjWriter<T>.Serialize(IBufferWriter<byte> writer, T obj) 
+            => WebSerializer.Default.Serialize(writer, obj);
     }
 }

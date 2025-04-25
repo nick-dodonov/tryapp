@@ -13,6 +13,8 @@ using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
+using Shared.Tp.St;
+using Shared.Tp.St.Std;
 using Shared.Tp.St.Sync;
 using Shared.Web;
 using UnityEngine;
@@ -138,6 +140,8 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
+        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = new StdObjWriter<ClientState>();
+        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = new StdObjReader<ServerState>();
 
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
         {

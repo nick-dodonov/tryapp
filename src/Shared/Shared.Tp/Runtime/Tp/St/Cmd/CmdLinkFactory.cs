@@ -3,18 +3,27 @@ using System.Threading.Tasks;
 
 namespace Shared.Tp.St.Cmd
 {
-    public static class CmdLinkFactory<TSend, TReceive>
+    public class CmdLinkFactory<TSend, TReceive>
     {
-        public static CmdLink<TSend, TReceive> CreateConnected(ICmdReceiver<TReceive> receiver, ITpLink link)
+        private readonly IObjWriter<TSend> _writer;
+        private readonly IObjReader<TReceive> _reader;
+
+        public CmdLinkFactory(IObjWriter<TSend> writer, IObjReader<TReceive> reader)
         {
-            var cmdLink = new CmdLink<TSend, TReceive>(receiver);
+            _writer = writer;
+            _reader = reader;
+        }
+
+        public CmdLink<TSend, TReceive> CreateConnected(ICmdReceiver<TReceive> receiver, ITpLink link)
+        {
+            var cmdLink = new CmdLink<TSend, TReceive>(receiver, _writer, _reader);
             cmdLink.SetLink(link);
             return cmdLink;
         }
 
-        public static async ValueTask<CmdLink<TSend, TReceive>> CreateAndConnect(ICmdReceiver<TReceive> receiver, ITpApi api, CancellationToken cancellationToken)
+        public async ValueTask<CmdLink<TSend, TReceive>> CreateAndConnect(ICmdReceiver<TReceive> receiver, ITpApi api, CancellationToken cancellationToken)
         {
-            var cmdLink = new CmdLink<TSend, TReceive>(receiver);
+            var cmdLink = new CmdLink<TSend, TReceive>(receiver, _writer, _reader);
             var link = await api.Connect(cmdLink, cancellationToken);
             cmdLink.SetLink(link);
             return cmdLink;

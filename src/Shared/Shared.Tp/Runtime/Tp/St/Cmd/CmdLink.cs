@@ -1,6 +1,5 @@
 using System;
 using Shared.Log;
-using Shared.Web;
 
 namespace Shared.Tp.St.Cmd
 {
@@ -21,12 +20,19 @@ namespace Shared.Tp.St.Cmd
         , ITpReceiver
     {
         private readonly ICmdReceiver<TReceive> _receiver;
+        private readonly IObjWriter<TSend> _writer;
+        private readonly IObjReader<TReceive> _reader;
         private ITpLink _link = null!;
 
         public ITpLink Link => _link;
 
-        internal CmdLink(ICmdReceiver<TReceive> receiver) 
-            => _receiver = receiver;
+        internal CmdLink(ICmdReceiver<TReceive> receiver, IObjWriter<TSend> writer, IObjReader<TReceive> reader)
+        {
+            _receiver = receiver;
+            _writer = writer;
+            _reader = reader;
+        }
+
         internal void SetLink(ITpLink link) 
             => _link = link;
 
@@ -39,7 +45,7 @@ namespace Shared.Tp.St.Cmd
         {
             try
             {
-                _link.Send(WebSerializer.Default.Serialize, in cmd);
+                _link.Send(_writer.Serialize, in cmd);
             }
             catch (Exception e)
             {
@@ -51,7 +57,7 @@ namespace Shared.Tp.St.Cmd
         {
             try
             {
-                var cmd = WebSerializer.Default.Deserialize<TReceive>(span);
+                var cmd = _reader.Deserialize(span);
                 _receiver.CmdReceived(cmd);
             }
             catch (Exception e)

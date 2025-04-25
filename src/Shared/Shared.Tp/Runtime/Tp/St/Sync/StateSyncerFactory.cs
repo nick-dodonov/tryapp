@@ -11,7 +11,8 @@ namespace Shared.Tp.St.Sync
             ITpLink link)
         {
             var syncer = new StateSyncer<TLocal, TRemote>(handler);
-            var cmdLink = CmdLinkFactory<TLocal, TRemote>.CreateConnected(syncer, link);
+            var cmdLinkFactory = new CmdLinkFactory<TLocal, TRemote>(handler.LocalWriter, handler.RemoteReader);;
+            var cmdLink = cmdLinkFactory.CreateConnected(syncer, link);
             syncer.SetCmdLink(cmdLink);
             return syncer;
         }
@@ -21,7 +22,8 @@ namespace Shared.Tp.St.Sync
             ITpApi api, CancellationToken cancellationToken)
         {
             var syncer = new StateSyncer<TLocal, TRemote>(handler);
-            var cmdLink = await CmdLinkFactory<TLocal, TRemote>.CreateAndConnect(syncer, api,cancellationToken);
+            var cmdLinkFactory = new CmdLinkFactory<TLocal, TRemote>(handler.LocalWriter, handler.RemoteReader);;
+            var cmdLink = await cmdLinkFactory.CreateAndConnect(syncer, api,cancellationToken);
             syncer.SetCmdLink(cmdLink);
             return syncer;
         }

@@ -1,6 +1,8 @@
 using Common.Logic;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
+using Shared.Tp.St;
+using Shared.Tp.St.Std;
 using Shared.Tp.St.Sync;
 
 namespace Server.Logic;
@@ -40,6 +42,8 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
         => _stateSyncer.LocalUpdate(deltaTime);
 
     SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
+    IObjWriter<ServerState> ISyncHandler<ServerState, ClientState>.LocalWriter { get; } = new StdObjWriter<ServerState>();
+    IObjReader<ClientState> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } = new StdObjReader<ClientState>();
 
     ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex)
         => _session.GetServerState(sendIndex);
