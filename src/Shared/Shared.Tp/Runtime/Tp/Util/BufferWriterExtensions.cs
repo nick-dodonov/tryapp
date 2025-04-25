@@ -41,7 +41,7 @@ namespace Shared.Tp.Util
         }
 
         // private static void ThrowArgumentExceptionForEndOfBuffer(int spanLength, int length)
-        //     => throw new global::System.IO.InternalBufferOverflowException(
+        //     => throw new System.IO.InternalBufferOverflowException(
         //         $"Buffer writer can't contain the requested input data ({spanLength} < {length})");
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -16,11 +16,11 @@ namespace Shared.Sys
 #if UNITY_5_6_OR_NEWER
                 Debug.Fail("Shared.Sys.Unity auto reference failed");
 #else
-                var assembly = global::System.Reflection.Assembly.Load("Shared.Sys.Asp");
+                var assembly = System.Reflection.Assembly.Load("Shared.Sys.Asp");
                 Debug.Assert(assembly != null);
                 var type = assembly.GetType("Shared.Sys.AspSharedSystem");
                 Debug.Assert(type != null);
-                var instance = global::System.Activator.CreateInstance(type);
+                var instance = System.Activator.CreateInstance(type);
                 Debug.Assert(instance != null);
                 _instance = (ISharedSystem)instance;
 #endif
