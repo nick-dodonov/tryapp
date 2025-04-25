@@ -3,6 +3,7 @@ run-name: Stand ${{ github.sha }}
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 env:
   REGISTRY: ghcr.io

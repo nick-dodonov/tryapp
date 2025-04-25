@@ -1,0 +1,9 @@
+name: App All
+
+on:
+  workflow_dispatch:
+
+# https://docs.github.com/en/actions/sharing-automations/reusing-workflows
+jobs:
+  stand:
+    uses: ./.github/workflows/stand-stack.yml
