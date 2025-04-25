@@ -34,19 +34,20 @@ COPY . .
 
 WORKDIR "/repo/src/App/Server"
 
-#exclude build as it's built again on publish
-# RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-#     dotnet build "Server.csproj" \
-#     -c $BUILD_CONFIGURATION \
-#     -o /app/build
+# build separate from publish (with --no-build) because of strange docker dotnet publish issues
+RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
+  dotnet build "Server.csproj" \
+  -c $BUILD_CONFIGURATION \
+  -o /app/build
 
 FROM build AS publish
 ARG BUILD_CONFIGURATION=Release
 RUN --mount=type=cache,id=nuget,target=/root/.nuget/packages \
-    dotnet publish "Server.csproj" \
-    -c $BUILD_CONFIGURATION \
-    -o /app/publish \
-    /p:UseAppHost=false
+  dotnet publish "Server.csproj" \
+  --no-build \
+  -c $BUILD_CONFIGURATION \
+  -o /app/publish \
+  /p:UseAppHost=false
 
 FROM base AS final
 WORKDIR /app
