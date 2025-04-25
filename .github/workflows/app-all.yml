@@ -1,4 +1,5 @@
 name: App All
+run-name: App ${{ github.sha }}
 
 on:
   workflow_dispatch:
@@ -7,6 +8,7 @@ on:
 jobs:
   stand:
     permissions:
+      contents: read
       packages: write
       deployments: write
     uses: ./.github/workflows/stand-stack.yml
