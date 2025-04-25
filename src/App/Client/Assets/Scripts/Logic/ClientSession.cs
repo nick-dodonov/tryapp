@@ -7,14 +7,15 @@ using Client.UI;
 using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
-using Microsoft.Extensions.Logging;
-using Shared.Boot.Version;
 using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.Obj;
+using Shared.Tp.Obj.Web;
 using Shared.Tp.Rtc;
+using Shared.Tp.St.Sync;
 using Shared.Web;
 using UnityEngine;
 
@@ -28,7 +29,7 @@ namespace Client.Logic
     /// <summary>
     /// Custom logic stub that begin/finish session and send/recieve data
     /// </summary>
-    public class ClientSession : MonoBehaviour, ITpReceiver, ISyncHandler<ClientState, ServerState>
+    public class ClientSession : MonoBehaviour, ISyncHandler<ClientState, ServerState>
     {
         private static readonly Slog.Area _log = new();
 
@@ -43,11 +44,9 @@ namespace Client.Logic
         private IMeta _meta;
         private ITpApi _api;
 
-        private ITpLink _link;
+        private StateSyncer<ClientState, ServerState> _stateSyncer;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
-        
-        private StateSyncer<ClientState, ServerState> _stateSyncer;
 
         private readonly Dictionary<string, PeerTap> _peerTaps = new();
 
@@ -65,34 +64,35 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_link != null)
-                throw new InvalidOperationException("RtcStart: link is already established");
+            if (_stateSyncer != null)
+                throw new InvalidOperationException("Link is already established");
 
             _workflowOperator = workflowOperator;
 
+            // initialize for connection
             _meta = new MetaClient(webClient, Slog.Factory);
+            var peerId = GetPeerId();
             _api = CommonSession.CreateApi<ClientConnectState, ServerConnectState>(
                 RtcApiFactory.CreateApi(_meta.RtcService),
-                new(GetPeerId()),
-                static (state) => state.PeerId,
-                static (_) => "SRV",
-                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
+                new(peerId),
+                (_) => $"{peerId}",
+                new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
 
-            _link = await _api.Connect(this, cancellationToken);
+            // connect to server
+            _stateSyncer = await StateSyncerFactory.CreateAndConnect(this, _api, cancellationToken);
 
-            var handLink = _link.Find<HandLink<ClientConnectState, ServerConnectState>>() ?? throw new("HandLink not found");
+            // link diagnostics
+            var link = _stateSyncer.Link;
+            var handLink = link.Find<HandLink<ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
-            _timeLink = _link.Find<TimeLink>() ?? throw new("TimeLink not found");
-            _dumpLink = _link.Find<DumpLink>() ?? throw new("DumpLink not found");
-
+            _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");
+            _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            var logger = Slog.Factory.CreateLogger<StateSyncer<ClientState, ServerState>>();
-            _stateSyncer = new(this, _link, logger);
-
+            // enable player input
             clientTap.SetActive(true);
         }
 
@@ -110,27 +110,23 @@ namespace Client.Logic
 
             _dumpLink = null;
             _timeLink = null;
-            _link?.Dispose();
-            _link = null;
+
+            _stateSyncer?.Dispose();
+            _stateSyncer = null;
 
             _api = null;
             _meta?.Dispose();
             _meta = null;
-
-            // destroy after link to not fail on latest Received
-            _stateSyncer?.Dispose();
-            _stateSyncer = null;
         }
 
         private void Update()
         {
-            if (_link == null)
+            if (_stateSyncer == null)
                 return;
 
             var sessionMs = _timeLink.RemoteMs;
             {
-                var stats = _dumpLink.Stats;
-                stats.UpdateRates();
+                var stats = _dumpLink.Stats.UpdateRates();
                 infoControl.SetText(@$"session: 
 time: {sessionMs / 1000.0f:F1}sec 
 rtt: {_timeLink.RttMs}ms 
@@ -144,6 +140,8 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
+        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = new WebObjWriter<ClientState>();
+        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = new WebObjReader<ServerState>();
 
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
         {
@@ -157,7 +155,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             return clientState;
         }
 
-        void ISyncHandler<ClientState, ServerState>.ReceivedRemoteState(ServerState serverState)
+        void ISyncHandler<ClientState, ServerState>.RemoteUpdated(ServerState serverState)
         {
             var count = 0;
             var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
@@ -198,10 +196,7 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             }
         }
 
-        void ITpReceiver.Received(ITpLink link, ReadOnlySpan<byte> span) => 
-            _stateSyncer.RemoteUpdate(span);
-
-        void ITpReceiver.Disconnected(ITpLink link)
+        void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
         {
             _log.Info("notifying handler");
             _workflowOperator.Disconnected();

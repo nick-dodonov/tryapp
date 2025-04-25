@@ -12,6 +12,7 @@ using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
 using Shared.Tp.Rtc.Sip;
+using Shared.Tp.St.Sync;
 
 Slog.Info($">>>> starting {Assembly.GetExecutingAssembly().GetName().Name}: {AspVersionProvider.BuildVersion.ToShortInfo()}");
 var builder = WebApplication.CreateBuilder(args);
@@ -30,10 +31,9 @@ builder.Services
     .Configure<DumpLink.Options>(configuration.GetSection(nameof(DumpLink)))
     .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
-        sp.GetRequiredService<SipRtcService>(), 
+        sp.GetRequiredService<SipRtcService>(),
         new(AspVersionProvider.BuildVersion),
-        static (_) => "SRV",
-        static (state) => state.PeerId,
+        static (link) => $"{link.RemoteState?.PeerId}/{link.InnerLink.GetRemotePeerId()}",
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()

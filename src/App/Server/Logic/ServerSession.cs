@@ -6,13 +6,13 @@ using Server.Logic.Virtual;
 using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.St.Sync;
 
 namespace Server.Logic;
 
 public sealed class ServerSession : IDisposable, IHostedService, ITpListener
 {
     private readonly ILogger _logger;
-    private readonly ILoggerFactory _loggerFactory;
 
     private readonly ITpApi _tpApi;
     private readonly TimeLink.Api _timeApi;
@@ -31,7 +31,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
     private Task? _looperShutdownTask;
 
     private int _peerCount;
-    private readonly ConcurrentDictionary<ITpLink, ServerPeer> _peers = new();
+    private readonly ConcurrentDictionary<ServerPeer, ITpLink> _peers = new();
 
     private readonly IVirtualPeer[] _virtualPeers =
     [
@@ -45,7 +45,6 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         ITpApi tpApi, 
         ILoggerFactory loggerFactory)
     {
-        _loggerFactory = loggerFactory;
         _logger = loggerFactory.CreateLogger<ServerSession>();
 
         _tpApi = tpApi;
@@ -80,18 +79,17 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
 
     ITpReceiver ITpListener.Connected(ITpLink link)
     {
-        _logger.Info($"{link}");
-        var peer = new ServerPeer(this, link, _loggerFactory);
-        _peers.TryAdd(link, peer);
+        _logger.Info($"peer connecting: {link}");
+        var peer = new ServerPeer(this, link);
+        _peers.TryAdd(peer, link);
         if (Interlocked.Increment(ref _peerCount) == 1)
             StartUpdates();
-        return peer;
+        return peer.Receiver;
     }
 
-    public void PeerDisconnected(ServerPeer serverPeer)
+    public void PeerDisconnected(ServerPeer peer)
     {
-        var link = serverPeer.Link;
-        if (_peers.TryRemove(link, out var peer))
+        if (_peers.TryRemove(peer, out var link))
         {
             _logger.Info($"peer disconnected: {link}");
             peer.Dispose();
@@ -99,7 +97,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
                 StopUpdates();
         }
         else
-            _logger.Warn($"peer not found: {link}");
+            _logger.Warn($"peer not found: {peer}");
     }
 
     private async void StartUpdates()
@@ -164,7 +162,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         //_logger.Info($"{ctx.CurrentFrame} - {deltaTime}");
 
         //TODO: share virtual/server peer interfaces
-        foreach (var peer in _peers.Values)
+        foreach (var peer in _peers.Keys)
             peer.Update(deltaTime);
         foreach (var virtualPeer in _virtualPeers)
             virtualPeer.Update(deltaTime);
@@ -176,7 +174,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
     {
         var sessionMs = _timeApi.LocalMs;
         var peerStates = _peers
-            .Select(x => x.Value.GetPeerState())
+            .Select(x => x.Key.GetPeerState())
             .Concat(_virtualPeers.Select(x => x.GetPeerState(frame, sessionMs)))
             .ToArray();
         return new()

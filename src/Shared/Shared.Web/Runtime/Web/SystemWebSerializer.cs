@@ -42,13 +42,6 @@ namespace Shared.Web
         void IWebSerializer.Serialize<T>(IBufferWriter<byte> writer, T obj) => 
             JsonSerializer.Serialize(GetCachedUtf8JsonWriter(writer), obj, _serializerOptions);
 
-        int IWebSerializer.SerializeTo<T>(IBufferWriter<byte> writer, T obj)
-        {
-            var jsonWriter = GetCachedUtf8JsonWriter(writer);
-            JsonSerializer.Serialize(jsonWriter, obj, _serializerOptions);
-            return (int)jsonWriter.BytesCommitted;
-        }
-
         T IWebSerializer.Deserialize<T>(string json) =>
             JsonSerializer.Deserialize<T>(json, _serializerOptions)
             ?? ThrowDeserializeFailure<T>(json);

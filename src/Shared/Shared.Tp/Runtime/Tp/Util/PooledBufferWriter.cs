@@ -90,7 +90,7 @@ namespace Shared.Tp.Util
             if (sizeHint > availableSpace)
             {
                 var growBy = Math.Max(sizeHint, _buffer.Length);
-                var newSize = checked(_buffer.Length + growBy);
+                var newSize = checked(_buffer.Length + growBy); //TODO: hmm.. maybe _index + growBy because now buffer isn't just doubled but quadruple with sizeHint=capacity+1 
                 var oldBuffer = _buffer;
 
                 _buffer = _bufferPool.Rent(newSize);

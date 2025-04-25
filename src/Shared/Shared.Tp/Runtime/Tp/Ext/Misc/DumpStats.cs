@@ -47,11 +47,12 @@ namespace Shared.Tp.Ext.Misc
         public Dir Out;
 
         //TODO: think to update on every Add 
-        public void UpdateRates(int updateIntervalMs = 1000)
+        public DumpStats UpdateRates(int updateIntervalMs = 1000)
         {
             var ticks = DateTime.UtcNow.Ticks;
             In.UpdateRate(ticks, updateIntervalMs);
             Out.UpdateRate(ticks, updateIntervalMs);
+            return this;
         }
     }
 }

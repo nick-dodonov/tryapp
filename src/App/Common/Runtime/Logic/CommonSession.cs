@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.Obj.Web;
 
 namespace Common.Logic
 {
@@ -11,12 +12,11 @@ namespace Common.Logic
         public static ITpApi CreateApi<TLocalState, TRemoteState>(
             ITpApi rtcApi,
             TLocalState localState,
-            LinkIdProvider<TLocalState> localLinkIdProvider,
-            LinkIdProvider<TRemoteState> remoteLinkIdProvider,
+            HandLink<TRemoteState>.LinkIdProvider linkIdProvider,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
-            return new HandApi<TLocalState, TRemoteState>(
+            return new HandApi<TRemoteState>(
                 new TimeLink.Api(
                     new DumpLink.Api(
                         rtcApi,
@@ -25,8 +25,9 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new StdLocalStateProvider<TLocalState>(localState, localLinkIdProvider),
-                new StdRemoteStateProvider<TRemoteState>(remoteLinkIdProvider),
+                new WebOwnWriter<TLocalState>(localState),
+                new WebObjReader<TRemoteState>(),
+                linkIdProvider,
                 loggerFactory);
         }
     }

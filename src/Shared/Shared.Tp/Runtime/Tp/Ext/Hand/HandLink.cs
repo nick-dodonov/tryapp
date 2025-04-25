@@ -4,6 +4,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Log.Asp;
+using Shared.Tp.Obj;
+using Shared.Tp.St;
 using Shared.Tp.Util;
 
 namespace Shared.Tp.Ext.Hand
@@ -18,18 +20,22 @@ namespace Shared.Tp.Ext.Hand
     /// TODO: reconnect support (another underlying wrapper via provider's link id)
     /// 
     /// </summary>
-    public class HandLink<TLocalState, TRemoteState> : ExtLink
+    public class HandLink<TRemoteState> : ExtLink
     {
-        private readonly HandApi<TLocalState, TRemoteState> _api = null!;
+        private readonly HandApi<TRemoteState> _api = null!;
         private readonly ILoggerFactory _loggerFactory = null!;
+
+        public delegate string LinkIdProvider(HandLink<TRemoteState> link);
+        private readonly LinkIdProvider _linkIdProvider = null!;
+
         private ILogger _logger = null!;
 
-        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider = null!;
-        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider = null!;
-        private TLocalState? _localState;
+        private readonly IOwnWriter _localStateWriter = null!;
+        private readonly IObjReader<TRemoteState> _remoteStateReader = null!;
+        private bool _localStateDelivered; //TODO: interlocked 
         private TRemoteState? _remoteState;
 
-        public TRemoteState RemoteState => _remoteState!;
+        public TRemoteState? RemoteState => _remoteState;
 
         /// <summary>
         /// Flags required for initial reliable state handshaking
@@ -47,64 +53,68 @@ namespace Shared.Tp.Ext.Hand
         public HandLink() { } //empty constructor only for generic usage
 
         // client side
-        public HandLink(HandApi<TLocalState, TRemoteState> api, ITpReceiver receiver, 
-            IHandLocalStateProvider<TLocalState> localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+        public HandLink(HandApi<TRemoteState> api, ITpReceiver receiver, 
+            IOwnWriter localStateWriter, 
+            IObjReader<TRemoteState> remoteStateReader,
+            LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(receiver)
         {
             _api = api;
-            _localStateProvider = localStateProvider;
-            _remoteStateProvider = remoteStateProvider;
-            _localState = _localStateProvider.ProvideState();
+            _localStateWriter = localStateWriter;
+            _remoteStateReader = remoteStateReader;
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), _localStateProvider.GetLinkId(_localState));
+            InitLogger();
         }
 
         // server side
-        public HandLink(HandApi<TLocalState, TRemoteState> api, ITpLink innerLink, 
-            IHandLocalStateProvider<TLocalState> localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+        public HandLink(HandApi<TRemoteState> api, ITpLink innerLink, 
+            IOwnWriter localStateWriter, 
+            IObjReader<TRemoteState> remoteStateReader, 
+            LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory)
             : base(innerLink)
         {
             _api = api;
-            _localStateProvider = localStateProvider;
-            _remoteStateProvider = remoteStateProvider;
-            _localState = _localStateProvider.ProvideState();
+            _localStateWriter = localStateWriter;
+            _remoteStateReader = remoteStateReader;
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            _logger = new IdLogger(loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), GetRemotePeerId());
+            InitLogger();
         }
 
+        private void InitLogger()
+        {
+            _logger = new IdLogger(
+                _loggerFactory.CreateLogger(nameof(HandLink<TRemoteState>)),
+                _linkIdProvider(this));
+        }
+        
         protected override void Close(string reason)
         {
             _logger.Info(reason);
             base.Close(reason);
         }
 
-        private string? _remotePeerId; // cached value, invalidated when remote state changed
-        public sealed override string GetRemotePeerId() 
-            => _remotePeerId ??= $"{(_remoteState != null ? _remoteStateProvider.GetLinkId(_remoteState): null)}/{InnerLink.GetRemotePeerId()}";
-
         public async Task Handshake(CancellationToken cancellationToken)
         {
-            var synState = _localState!;
             try
             {
                 _synState = new(_api.HandshakeOptions);
                 do
                 {
                     _logger.Info(_synState.Attempts == 0 
-                        ? $"send syn and wait ack: {synState}"
-                        : $"resend syn and wait ack ({_synState.Attempts} attempt): {synState}");
+                        ? $"send syn and wait ack: {_localStateWriter}"
+                        : $"resend syn and wait ack ({_synState.Attempts} attempt): {_localStateWriter}");
                     base.Send((writer, @this) =>
                     {
                         writer.Write((byte)Flags.Syn);
-                        @this._localStateProvider.Serialize(writer, @this._localState!);
+                        @this._localStateWriter.Serialize(writer);
                     }, this);
                 } while (await _synState.AwaitResend(cancellationToken));
 
-                _localState = default;
+                _localStateDelivered = true;
                 _logger.Info("connected");
             }
             catch (Exception e)
@@ -121,7 +131,7 @@ namespace Shared.Tp.Ext.Hand
         private int _resendSynAck = (byte)Flags.Zero;
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
-            if (_localState == null)
+            if (_localStateDelivered)
             {
                 if (_resendSynAck == 0)
                 {
@@ -155,14 +165,12 @@ namespace Shared.Tp.Ext.Hand
                 base.Send(static (writer, s) =>
                 {
                     var @this = s.Item3;
-                    var localState = @this._localState;
-                    if (localState != null) // handle concurrent syn-ack received //TODO: CAS
+                    if (!@this._localStateDelivered) // handle concurrent syn-ack received //TODO: CAS
                     {
-                        @this._logger.Info($"resend ack with message: {localState}");
+                        var localStateWriter = @this._localStateWriter;
+                        @this._logger.Info($"resend ack with message: {localStateWriter}");
                         writer.Write((byte)Flags.Ack);
-                        var ackStateSize = @this._localStateProvider.Serialize(writer, localState);
-                        s.writeCb(writer, s.state);
-                        writer.Write((short)ackStateSize);
+                        writer.PrependSizeWrite(localStateWriter);
                     }
                     else
                     {
@@ -183,10 +191,10 @@ namespace Shared.Tp.Ext.Hand
             {
                 if ((flags & Flags.Ack) != 0)
                 {
-                    if (_localState != null)
+                    if (!_localStateDelivered)
                     {
                         _logger.Info("syn-ack: stop ack with messages");
-                        _localState = default;
+                        _localStateDelivered = true;
                     }
                     else
                     {
@@ -201,20 +209,18 @@ namespace Shared.Tp.Ext.Hand
                         return;
                     }
 
-                    _remoteState = _remoteStateProvider.Deserialize(span);
-                    _remotePeerId = null;
+                    _remoteState = _remoteStateReader.Deserialize(span);
                     _logger.Info($"syn state: {_remoteState}");
-                    _logger = new IdLogger(_loggerFactory.CreateLogger<HandLink<TLocalState, TRemoteState>>(), GetRemotePeerId());
+                    InitLogger(); // reinitialize logger to include remote state now (peer id to simplify diagnostics)
 
                     // notify listener connection is established after a handshake
                     if (_api.CallConnected(this))
                     {
-                        _logger.Info($"send ack: {_localState}");
+                        _logger.Info($"send ack: {_localStateWriter}");
                         base.Send(static (writer, @this) =>
                         {
                             writer.Write((byte)Flags.Ack);
-                            var ackStateSize = @this._localStateProvider.Serialize(writer, @this._localState!);
-                            writer.Write((short)ackStateSize);
+                            writer.PrependSizeWrite(@this._localStateWriter);
                         }, this);
                     }
                     else
@@ -225,11 +231,10 @@ namespace Shared.Tp.Ext.Hand
             }
             else if ((flags & Flags.Ack) != 0) // client side
             {
-                var ackStateSize = SpanReader.Read<short>(span[^sizeof(short)..]);
+                var ackStateSize = SpanReader.Read<short>(span[..sizeof(short)]);
                 if (_remoteState == null)
                 {
-                    _remoteState = _remoteStateProvider.Deserialize(span[..ackStateSize]);
-                    _remotePeerId = null;
+                    _remoteState = _remoteStateReader.Deserialize(span.Slice(sizeof(short), ackStateSize));
                     _logger.Info($"ack state: {_remoteState}");
 
                     if (_synState != null)
@@ -246,7 +251,7 @@ namespace Shared.Tp.Ext.Hand
                     _logger.Info("ack duplicate");
                 }
 
-                span = span[ackStateSize..^sizeof(short)];
+                span = span[(sizeof(short) + ackStateSize)..];
             }
 
             if (span.Length <= 0)

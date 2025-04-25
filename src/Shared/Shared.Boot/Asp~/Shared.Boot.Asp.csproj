@@ -21,9 +21,9 @@
             <BuildVersionTime>$([System.DateTime]::Now.ToString(O))</BuildVersionTime>
             <BuildVersionSha Condition="'$(BuildVersionSha)' == ''">unknown</BuildVersionSha>
             <BuildVersionRef Condition="'$(BuildVersionRef)' == ''">unknown</BuildVersionRef>
-            <!--<MSBuildProjectDependenciesTargets>-->
-            <!--    $(MSBuildProjectDependenciesTargets);EmbedBuildVersion-->
-            <!--</MSBuildProjectDependenciesTargets>-->
+            <MSBuildProjectDependenciesTargets>
+                $(MSBuildProjectDependenciesTargets);EmbedBuildVersion
+            </MSBuildProjectDependenciesTargets>
         </PropertyGroup>
 
         <Message Text="EmbedBuildVersion: $(BuildVersionEmbedPath)

@@ -1,68 +1,55 @@
-using System;
-using System.Buffers;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Shared.Log;
+using Shared.Tp.Obj;
+using Shared.Tp.St;
 
 namespace Shared.Tp.Ext.Hand
 {
-    public interface IHandBaseStateProvider<in TState>
-    {
-        string GetLinkId(TState state);
-    }
-    
-    public interface IHandLocalStateProvider<TState> : IHandBaseStateProvider<TState>
-    {
-        TState ProvideState();
-        int Serialize(IBufferWriter<byte> writer, TState state);
-    }
-
-    public interface IHandRemoteStateProvider<TState> : IHandBaseStateProvider<TState>
-    {
-        TState Deserialize(ReadOnlySpan<byte> span);
-    }
-    
     public class HandshakeOptions
     {
-        public int TimeoutMs = 5000;
-        public int SynRetryMs = 500; //TODO: incremental retry support
+        public readonly int TimeoutMs = 5000;
+        public readonly int SynRetryMs = 500; //TODO: incremental retry support
     }
 
-    public class HandApi<TLocalState, TRemoteState> : ExtApi<HandLink<TLocalState, TRemoteState>>
+    public class HandApi<TRemoteState> : ExtApi<HandLink<TRemoteState>>
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly IHandLocalStateProvider<TLocalState> _localStateProvider;
-        private readonly IHandRemoteStateProvider<TRemoteState> _remoteStateProvider;
+        private readonly IOwnWriter _localStateWriter;
+        private readonly IObjReader<TRemoteState> _remoteStateReader;
 
+        private readonly HandLink<TRemoteState>.LinkIdProvider _linkIdProvider;
+        
         public HandshakeOptions HandshakeOptions { get; } = new();
 
         public HandApi(
             ITpApi innerApi, 
-            IHandLocalStateProvider<TLocalState> localStateProvider, 
-            IHandRemoteStateProvider<TRemoteState> remoteStateProvider, 
+            IOwnWriter localStateWriter, 
+            IObjReader<TRemoteState> remoteStateReader, 
+            HandLink<TRemoteState>.LinkIdProvider linkIdProvider,
             ILoggerFactory loggerFactory) 
             : base(innerApi)
         {
-            _localStateProvider = localStateProvider;
-            _remoteStateProvider = remoteStateProvider;
+            _localStateWriter = localStateWriter;
+            _remoteStateReader = remoteStateReader;
+            _linkIdProvider = linkIdProvider;
             _loggerFactory = loggerFactory;
-            var logger = loggerFactory.CreateLogger<HandApi<TLocalState, TRemoteState>>();
-            logger.Info($"state providers: local={localStateProvider} remote={remoteStateProvider}");
+            Slog.Info($"state providers: local={localStateWriter} remote={remoteStateReader}");
         }
 
-        protected override HandLink<TLocalState, TRemoteState> CreateClientLink(ITpReceiver receiver) 
-            => new(this, receiver, _localStateProvider, _remoteStateProvider, _loggerFactory);
+        protected override HandLink<TRemoteState> CreateClientLink(ITpReceiver receiver) 
+            => new(this, receiver, _localStateWriter, _remoteStateReader, _linkIdProvider, _loggerFactory);
 
-        protected override HandLink<TLocalState, TRemoteState> CreateServerLink(ITpLink innerLink) =>
-            new(this, innerLink, _localStateProvider, _remoteStateProvider, _loggerFactory);
+        protected override HandLink<TRemoteState> CreateServerLink(ITpLink innerLink) =>
+            new(this, innerLink, _localStateWriter, _remoteStateReader,_linkIdProvider, _loggerFactory);
 
         /// <summary>
         /// Connect is overriden to delay link return until handshake isn't complete 
         /// </summary>
         public override async ValueTask<ITpLink> Connect(ITpReceiver receiver, CancellationToken cancellationToken)
         {
-            var link = (HandLink<TLocalState, TRemoteState>)await base.Connect(receiver, cancellationToken);
+            var link = (HandLink<TRemoteState>)await base.Connect(receiver, cancellationToken);
             await link.Handshake(cancellationToken);
             return link;
         }
