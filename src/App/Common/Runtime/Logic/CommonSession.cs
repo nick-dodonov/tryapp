@@ -3,7 +3,7 @@ using Microsoft.Extensions.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
-using Shared.Tp.St.Std;
+using Shared.Tp.Obj.Web;
 
 namespace Common.Logic
 {
@@ -25,8 +25,8 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new StdOwnWriter<TLocalState>(localState),
-                new StdObjReader<TRemoteState>(),
+                new WebOwnWriter<TLocalState>(localState),
+                new WebObjReader<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
         }
