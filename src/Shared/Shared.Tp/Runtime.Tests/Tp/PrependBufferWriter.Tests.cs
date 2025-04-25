@@ -16,7 +16,7 @@ namespace Shared.Tests.Tp
             var initCapacity = host.Capacity;
 
             {
-                using var overlay = new PrependBufferWriter(host, reservedBytes.Length);
+                using var overlay = PrependBufferWriter.Rent(host, reservedBytes.Length);
                 reservedBytes.AsSpan().CopyTo(overlay.ReservedSpan);
                 Assert.Zero(host.WrittenCount);
 
@@ -29,7 +29,7 @@ namespace Shared.Tests.Tp
             Assert.AreEqual(reservedBytes.Length, host.WrittenCount);
             Assert.That(host.WrittenSpan.SequenceEqual(reservedBytes));
         }
-        
+
         [Test]
         public void OnlyAdvanced_And_Resize()
         {
@@ -39,7 +39,7 @@ namespace Shared.Tests.Tp
             Assert.Zero(host.WrittenCount);
 
             {
-                using var overlay = new PrependBufferWriter(host, 0);
+                using var overlay = PrependBufferWriter.Rent(host, 0);
                 Assert.Zero(host.WrittenCount);
                 advancedBytes.AsSpan().CopyTo(overlay.GetSpan(advancedBytes.Length));
                 overlay.Advance(advancedBytes.Length);
