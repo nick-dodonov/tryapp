@@ -28,6 +28,14 @@
       "scopes": [
         "org.nuget"
       ]
+    },
+    {
+      "name": "TryApp NuGet",
+      "url": "http://localhost:5050/",
+      "scopes": [
+        "org.nuget.memorypack"
+      ],
+      "overrideBuiltIns": true
     }
   ]
 }
