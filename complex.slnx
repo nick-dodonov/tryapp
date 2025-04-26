@@ -16,6 +16,7 @@
     <Project Path="src\Shared\Shared.Sys\Runtime.Tests\Shared.Sys.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Sys\Runtime\Shared.Sys.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Tp\Asp~\Shared.Tp.Asp.csproj" Type="Classic C#" />
+    <Project Path="src\Shared\Shared.Tp\Data.Web\Shared.Tp.Data.Web.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Tp\Runtime.Tests\Shared.Tp.Tests.csproj" Type="Classic C#" />
     <Project Path="src\Shared\Shared.Tp\Runtime\Shared.Tp.csproj" Type="Classic C#" />

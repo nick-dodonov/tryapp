@@ -1,0 +1,16 @@
+{
+    "name": "Shared.Tp.Data.Web",
+    "rootNamespace": "Shared.Tp.Data.Web",
+    "references": [
+        "Shared.Web"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
