@@ -3,8 +3,7 @@
     "rootNamespace": "Shared.Tp",
     "references": [
         "Shared.Log",
-        "Shared.Sys",
-        "Shared.Web"
+        "Shared.Sys"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

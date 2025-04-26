@@ -10,7 +10,6 @@
     <ItemGroup>
       <ProjectReference Include="..\..\Shared.Log\Runtime\Shared.Log.csproj" />
       <ProjectReference Include="..\..\Shared.Sys\Runtime\Shared.Sys.csproj" />
-      <ProjectReference Include="..\..\Shared.Web\Runtime\Shared.Web.csproj" />
     </ItemGroup>
 
 </Project>

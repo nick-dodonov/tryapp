@@ -6,6 +6,7 @@
         "Shared.Log",
         "Shared.Sys",
         "Shared.Tp",
+        "Shared.Tp.Data.Web",
         "Shared.Tp.Rtc",
         "Shared.Web"
     ],

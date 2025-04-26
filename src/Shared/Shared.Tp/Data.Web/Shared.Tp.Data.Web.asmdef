@@ -2,6 +2,7 @@
     "name": "Shared.Tp.Data.Web",
     "rootNamespace": "Shared.Tp.Data.Web",
     "references": [
+        "Shared.Tp",
         "Shared.Web"
     ],
     "includePlatforms": [],

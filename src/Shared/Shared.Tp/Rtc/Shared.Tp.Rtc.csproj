@@ -15,6 +15,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\Runtime\Shared.Tp.csproj" />
+        <ProjectReference Include="..\..\Shared.Web\Runtime\Shared.Web.csproj"/>
     </ItemGroup>
 
 </Project>
