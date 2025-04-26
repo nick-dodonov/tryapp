@@ -366,8 +366,7 @@
       "source": "local",
       "dependencies": {
         "shared.sys": "0.1.0",
-        "org.nuget.memorypack.core": "1.21.4",
-        "com.cysharp.memorypack": "1.21.4"
+        "org.nuget.memorypack.core": "1.21.4"
       }
     },
     "shared.web": {
