@@ -4,12 +4,11 @@
         <TargetFramework>net9.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
-        <RootNamespace>Shared.Tp.Asp</RootNamespace>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\Shared.Sys\Asp~\Shared.Sys.Asp.csproj" />
-        <ProjectReference Include="..\Runtime\Shared.Tp.csproj" />
+        <ProjectReference Include="..\Rtc\Shared.Tp.Rtc.csproj" />
     </ItemGroup>
 
 </Project>

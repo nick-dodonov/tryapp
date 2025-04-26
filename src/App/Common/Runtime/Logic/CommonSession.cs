@@ -1,9 +1,9 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Tp;
+using Shared.Tp.Data.Web;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
-using Shared.Tp.Obj.Web;
 
 namespace Common.Logic
 {

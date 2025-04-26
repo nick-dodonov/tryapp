@@ -1,0 +1,21 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <LangVersion>9</LangVersion>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Shared.Tp.Rtc</RootNamespace>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <!--<ProjectReference Include="..\..\..\ext\sipsorcery\src\SIPSorcery.csproj"/>-->
+        <PackageReference Include="SIPSorcery" Version="8.0.11" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\Runtime\Shared.Tp.csproj" />
+        <ProjectReference Include="..\..\Shared.Web\Runtime\Shared.Web.csproj"/>
+    </ItemGroup>
+
+</Project>

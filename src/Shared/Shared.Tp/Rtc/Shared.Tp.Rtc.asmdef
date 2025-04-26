@@ -1,18 +1,20 @@
 {
-    "name": "Shared.Tp",
-    "rootNamespace": "Shared.Tp",
+    "name": "Shared.Tp.Rtc",
+    "rootNamespace": "Shared.Tp.Rtc",
     "references": [
+        "UniTask",
+        "Unity.WebRTC",
         "Shared.Log",
-        "Shared.Sys"
+        "Shared.Tp",
+        "Shared.Sys",
+        "Shared.Web"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": true,
     "overrideReferences": true,
     "precompiledReferences": [
-        "Microsoft.Extensions.Logging.Abstractions.dll",
-        "Microsoft.Extensions.Options.dll",
-        "System.Runtime.CompilerServices.Unsafe.dll"
+        "Microsoft.Extensions.Logging.Abstractions.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

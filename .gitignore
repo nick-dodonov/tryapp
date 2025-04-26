@@ -16,9 +16,6 @@
 # dotnet artifacts
 obj/
 bin/
-# workaround issue with useful Obj namespace and case-insensitive git ignore
-# TODO: try find another good one
-!**/Runtime/Tp/Obj/
 
 # macOS specifics
 .DS_Store
