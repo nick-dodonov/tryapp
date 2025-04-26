@@ -16,6 +16,7 @@ namespace Common.Logic
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
+            CommonData.Initialize();
             return new HandApi<TRemoteState>(
                 new TimeLink.Api(
                     new DumpLink.Api(

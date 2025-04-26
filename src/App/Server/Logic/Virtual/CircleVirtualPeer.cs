@@ -1,4 +1,4 @@
-using Common.Logic;
+using Common.Data;
 
 namespace Server.Logic.Virtual;
 

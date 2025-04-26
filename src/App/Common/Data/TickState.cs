@@ -4,7 +4,7 @@
 
 using MemoryPack;
 
-namespace Common.Logic
+namespace Common.Data
 {
     /// <summary>
     /// Client/server state stub
