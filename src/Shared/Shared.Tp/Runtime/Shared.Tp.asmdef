@@ -2,8 +2,6 @@
     "name": "Shared.Tp",
     "rootNamespace": "Shared",
     "references": [
-        "UniTask",
-        "Unity.WebRTC",
         "Shared.Log",
         "Shared.Sys",
         "Shared.Web"

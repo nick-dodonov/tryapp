@@ -2,7 +2,12 @@
     "name": "Shared.Tp.Rtc",
     "rootNamespace": "Shared.Tp.Rtc",
     "references": [
-        "Shared.Tp"
+        "UniTask",
+        "Unity.WebRTC",
+        "Shared.Log",
+        "Shared.Tp",
+        "Shared.Sys",
+        "Shared.Web"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

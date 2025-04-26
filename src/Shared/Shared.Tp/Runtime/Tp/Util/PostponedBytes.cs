@@ -10,7 +10,7 @@ namespace Shared.Tp.Util
     /// 
     /// TODO: thread-safe with CAS interlocked (it isn't required now because of known nature of current impls) 
     /// </summary>
-    internal struct PostponedBytes
+    public struct PostponedBytes
     {
         private int _count;
         private int[]? _lengths;
