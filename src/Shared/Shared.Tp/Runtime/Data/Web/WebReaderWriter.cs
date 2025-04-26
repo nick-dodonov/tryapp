@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Diagnostics;
 using Shared.Web;
 
-namespace Shared.Tp.Obj.Web
+namespace Shared.Tp.Data.Web
 {
     public class WebOwnWriter<T> : IOwnWriter
     {

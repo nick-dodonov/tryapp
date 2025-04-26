@@ -1,6 +1,6 @@
 {
     "name": "Shared.Tp",
-    "rootNamespace": "Shared",
+    "rootNamespace": "Shared.Tp",
     "references": [
         "Shared.Log",
         "Shared.Sys",

@@ -1,6 +1,6 @@
 using System.Buffers;
 
-namespace Shared.Tp.Obj
+namespace Shared.Tp.Data
 {
     public interface IObjWriter<in T>
     {

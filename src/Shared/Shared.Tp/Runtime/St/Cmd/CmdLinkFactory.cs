@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using Shared.Tp.Obj;
+using Shared.Tp.Data;
 
 namespace Shared.Tp.St.Cmd
 {

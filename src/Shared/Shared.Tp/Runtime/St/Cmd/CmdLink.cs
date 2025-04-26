@@ -1,6 +1,6 @@
 using System;
 using Shared.Log;
-using Shared.Tp.Obj;
+using Shared.Tp.Data;
 
 namespace Shared.Tp.St.Cmd
 {

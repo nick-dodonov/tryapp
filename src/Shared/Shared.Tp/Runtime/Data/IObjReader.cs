@@ -1,6 +1,6 @@
 using System;
 
-namespace Shared.Tp.Obj
+namespace Shared.Tp.Data
 {
     public interface IObjReader<out T>
     {
