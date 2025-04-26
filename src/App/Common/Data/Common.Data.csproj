@@ -1,8 +1,11 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <!--
+        Using several target frameworks as it's requirement of MemoryPack usage with netstandard2.1 libraries
+            https://github.com/Cysharp/MemoryPack?tab=readme-ov-file#target-framework-dependency
+        -->
         <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
-        <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -12,17 +15,36 @@
     </ItemGroup>
 
     <!--
-    TODO: MemoryPack source generation to repo (SG MemoryPack.Generator isn't included in Unity):
+    MemoryPack source generation to repo (SG MemoryPack.Generator isn't included in Unity):
+        https://andrewlock.net/creating-a-source-generator-part-6-saving-source-generator-output-in-source-control/#splitting-by-target-framework
     * Simplify debugging and generated code introspection while stabilize
+    * Workaround for the wrong Unity 6 behaviour: it doesn't include SG in build (only in playmode)
+    TODO: get rid when Unity player build will be fixed
     -->
-    <!--<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">-->
-    <!--    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
-    <!--    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
-    <!--</PropertyGroup>-->
-    <!--<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">-->
-    <!--    <Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
-    <!--    <AdditionalFiles Include="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
-    <!--</ItemGroup>-->
+    <PropertyGroup>
+        <GeneratedFolder>Generated</GeneratedFolder>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>
+        <CompilerGeneratedFilesOutputPath>$(GeneratedFolder)\$(TargetFramework)</CompilerGeneratedFilesOutputPath>
+    </PropertyGroup>
+    <ItemGroup>
+        <Compile Remove="$(GeneratedFolder)/**/*.cs" />
+        <!--<Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
+        <!--<AdditionalFiles Include="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
+    </ItemGroup>
+    <!--
+    Using different language version because it's used in generator and emmiting code need to be compiled in unity.
+    Unfortunatelly cannot enable C#9 because for net9.0 generated code isn't compiled and
+        cannot disable net9.0 as MemoryPack.Core uses its features (https://github.com/Cysharp/MemoryPack?tab=readme-ov-file#target-framework-dependency).
+    TODO: get rid in case of MemoryPack.Core/MemoryPack.Generator customization (that will use same SG in net9) or disabling emit
+    -->
+    <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+        <LangVersion>9</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'net9.0'">
+        <LangVersion>11.0</LangVersion>
+    </PropertyGroup>
 
     <ItemGroup>
         <!--<PackageReference Include="MemoryPack.Core" Version="1.21.4"/>-->
@@ -32,6 +54,10 @@
             ReferenceOutputAssembly="false"
             PrivateAssets="all"
         />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Generated\" />
     </ItemGroup>
 
 </Project>

@@ -5,7 +5,7 @@
         "Shared.Tp",
         "Shared.Tp.Data.Web",
         "Shared.Tp.Data.Mem",
-        "MemoryPack.Generator_Unity"
+        "MemoryPack.Generator_Unity-DISABLED-AS-EMIT-UNTIL-UNITY-BUILD-BUG"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
