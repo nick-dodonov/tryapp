@@ -1,12 +1,18 @@
 {
     "name": "Common.Data",
     "rootNamespace": "Common.Data",
-    "references": [],
+    "references": [
+        "Shared.Tp",
+        "Shared.Tp.Data.Web",
+        "Shared.Tp.Data.Mem"
+    ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "MemoryPack.Core.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

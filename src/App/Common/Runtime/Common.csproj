@@ -8,30 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
+        <ProjectReference Include="..\Data\Common.Data.csproj" />
         <ProjectReference Include="..\..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj"/>
         <ProjectReference Include="..\..\..\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj"/>
-        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Data.Web\Shared.Tp.Data.Web.csproj"/>
-        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Data.Mem\Shared.Tp.Data.Mem.csproj"/>
     </ItemGroup>
 
-    <!--
-    MemoryPack source generation to repo (SG MemoryPack.Generator isn't included in Unity):
-    * Simplify debugging and generated code introspection while stabilize
-    -->
-    <!--<PropertyGroup>-->
-    <!--    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
-    <!--    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
-    <!--</PropertyGroup>-->
-    <!--<ItemGroup>-->
-    <!--    <Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
-    <!--    <AdditionalFiles Include="$(CompilerGeneratedFilesOutputPath)\**\*.cs" />-->
-    <!--</ItemGroup>-->
-    <!--<ItemGroup>-->
-    <!--    <PackageReference Include="MemoryPack.Core" Version="1.21.4"/>-->
-    <!--    <PackageReference-->
-    <!--        Include="MemoryPack.Generator" Version="1.21.4"-->
-    <!--        OutputItemType="Analyzer"-->
-    <!--        ReferenceOutputAssembly="false">-->
-    <!--    </PackageReference>-->
-    <!--</ItemGroup>-->
 </Project>
