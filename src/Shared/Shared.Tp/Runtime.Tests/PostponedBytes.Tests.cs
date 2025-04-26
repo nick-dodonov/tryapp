@@ -3,7 +3,7 @@ using System.Text;
 using NUnit.Framework;
 using Shared.Tp.Util;
 
-namespace Shared.Tests.Tp
+namespace Shared.Tp.Tests
 {
     public class PostponedBytesTests
     {
