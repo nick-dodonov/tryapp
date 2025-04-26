@@ -37,7 +37,7 @@ MonoBehaviour:
     m_ConfigSource: 4
   - m_Id: scoped:project:TryApp NuGet
     m_Name: TryApp NuGet
-    m_Url: https://unitynuget-894749166912.europe-west4.run.app
+    m_Url: https://unitynuget.tryapp.org
     m_Scopes:
     - org.nuget.memorypack
     m_IsDefault: 0

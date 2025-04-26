@@ -32,7 +32,7 @@
     },
     {
       "name": "TryApp NuGet",
-      "url": "https://unitynuget-894749166912.europe-west4.run.app",
+      "url": "https://unitynuget.tryapp.org",
       "scopes": [
         "org.nuget.memorypack"
       ],
