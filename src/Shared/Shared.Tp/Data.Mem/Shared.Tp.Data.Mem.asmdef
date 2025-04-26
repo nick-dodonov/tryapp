@@ -1,0 +1,16 @@
+{
+    "name": "Shared.Tp.Data.Mem",
+    "rootNamespace": "Shared.Tp.Data.Mem",
+    "references": [
+        "Shared.Tp"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
