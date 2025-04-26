@@ -12,12 +12,8 @@
     "overrideReferences": true,
     "precompiledReferences": [
         "Microsoft.Extensions.Logging.Abstractions.dll",
-        "Microsoft.Extensions.Logging.dll",
         "Microsoft.Extensions.Options.dll",
-        "System.Runtime.CompilerServices.Unsafe.dll",
-        "System.Text.Json.dll",
-        "Newtonsoft.Json.dll",
-        "ZString.dll"
+        "System.Runtime.CompilerServices.Unsafe.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
