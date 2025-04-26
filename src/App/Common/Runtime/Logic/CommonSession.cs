@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Tp;
+using Shared.Tp.Data;
 using Shared.Tp.Data.Web;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
@@ -25,7 +26,7 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new WebOwnWriter<TLocalState>(localState),
+                new OwnWriter<TLocalState>(localState, new WebObjWriter<TLocalState>()),
                 new WebObjReader<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
