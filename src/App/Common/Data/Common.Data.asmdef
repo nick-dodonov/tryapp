@@ -1,15 +1,19 @@
 {
-    "name": "Shared.Tp.Data.Web",
-    "rootNamespace": "Shared.Tp.Data.Web",
+    "name": "Common.Data",
+    "rootNamespace": "Common.Data",
     "references": [
         "Shared.Tp",
-        "Shared.Web"
+        "Shared.Tp.Data.Web",
+        "Shared.Tp.Data.Mem",
+        "MemoryPack.Generator_Unity-DISABLED-AS-EMIT-UNTIL-UNITY-BUILD-BUG"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "MemoryPack.Core.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],

@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj" />
-        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Data.Web\Shared.Tp.Data.Web.csproj" />
+        <ProjectReference Include="..\Data\Common.Data.csproj" />
+        <ProjectReference Include="..\..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj"/>
     </ItemGroup>
 
 </Project>

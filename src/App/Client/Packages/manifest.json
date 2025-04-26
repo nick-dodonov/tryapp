@@ -28,6 +28,24 @@
       "scopes": [
         "org.nuget"
       ]
+    },
+    {
+      "name": "TryApp NuGet",
+      "url": "https://unitynuget.tryapp.org",
+      "scopes": [
+        "org.nuget.memorypack"
+      ],
+      "overrideBuiltIns": true
+    },
+    {
+      "name": "OpenUPM",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.cysharp.unitask",
+        "com.cysharp.memorypack",
+        "com.playeveryware.eos"
+      ],
+      "overrideBuiltIns": true
     }
   ]
 }

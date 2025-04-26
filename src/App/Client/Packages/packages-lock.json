@@ -121,6 +121,23 @@
         "locator.api": "0.1.0"
       }
     },
+    "org.nuget.memorypack.core": {
+      "version": "1.21.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {
+        "org.nuget.system.collections.immutable": "6.0.0",
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
+      },
+      "url": "https://unitynuget.tryapp.org"
+    },
+    "org.nuget.memorypack.generator": {
+      "version": "1.21.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
+      "url": "https://unitynuget.tryapp.org"
+    },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
       "version": "9.0.4",
       "depth": 2,
@@ -202,6 +219,16 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
+      "url": "https://unitynuget-registry.openupm.com"
+    },
+    "org.nuget.system.collections.immutable": {
+      "version": "6.0.0",
+      "depth": 2,
+      "source": "registry",
+      "dependencies": {
+        "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0",
+        "org.nuget.system.memory": "4.5.4"
+      },
       "url": "https://unitynuget-registry.openupm.com"
     },
     "org.nuget.system.componentmodel.annotations": {
@@ -338,7 +365,9 @@
       "depth": 0,
       "source": "local",
       "dependencies": {
-        "shared.sys": "0.1.0"
+        "shared.sys": "0.1.0",
+        "org.nuget.memorypack.core": "1.21.4",
+        "org.nuget.memorypack.generator": "1.21.4"
       }
     },
     "shared.web": {

@@ -3,6 +3,8 @@
   "version": "0.1.0",
   "displayName": "Shared.Tp",
   "dependencies": {
-    "shared.sys": "0.1.0"
+    "shared.sys": "0.1.0",
+    "org.nuget.memorypack.core": "1.21.4",
+    "org.nuget.memorypack.generator": "1.21.4"
   }
 }

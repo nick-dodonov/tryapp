@@ -1,15 +1,20 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedField.Global
 // ReSharper disable NotAccessedField.Global
-namespace Common.Logic
+
+using MemoryPack;
+
+namespace Common.Data
 {
     /// <summary>
     /// Client/server state stub
     /// TODO: try mempack in webgl
     /// TODO: state diff support
-    /// TODO: derived support 
+    /// TODO: derived support
+    /// 
     /// </summary>
-    public struct ClientState
+    [MemoryPackable]
+    public partial struct ClientState
     {
         public int Frame;
         public int Ms;
@@ -19,13 +24,15 @@ namespace Common.Logic
         public uint Color;
     }
 
-    public struct PeerState
+    [MemoryPackable]
+    public partial struct PeerState
     {
         public string Id;
         public ClientState ClientState;
     }
 
-    public struct ServerState
+    [MemoryPackable]
+    public partial struct ServerState
     {
         public int Frame;
         public int Ms;

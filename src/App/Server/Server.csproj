@@ -15,8 +15,8 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj" />
         <ProjectReference Include="..\Common\Runtime\Common.csproj"/>
+        <ProjectReference Include="..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.Boot\Asp~\Shared.Boot.Asp.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.Sys\Asp~\Shared.Sys.Asp.csproj" />
         <ProjectReference Include="..\..\Shared\Shared.Tp\Asp~\Shared.Tp.Asp.csproj" />

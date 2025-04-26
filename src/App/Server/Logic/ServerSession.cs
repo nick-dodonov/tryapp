@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using Common.Logic;
+using Common.Data;
 using Cysharp.Threading;
 using Microsoft.Extensions.Options;
 using Server.Logic.Virtual;

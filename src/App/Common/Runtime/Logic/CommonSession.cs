@@ -1,7 +1,7 @@
+using Common.Data;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Tp;
-using Shared.Tp.Data.Web;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 
@@ -16,6 +16,7 @@ namespace Common.Logic
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
+            CommonData.Initialize();
             return new HandApi<TRemoteState>(
                 new TimeLink.Api(
                     new DumpLink.Api(
@@ -25,8 +26,8 @@ namespace Common.Logic
                     ),
                     loggerFactory
                 ),
-                new WebOwnWriter<TLocalState>(localState),
-                new WebObjReader<TRemoteState>(),
+                HandStateFactory.CreateOwnWriter(localState),
+                HandStateFactory.CreateObjReader<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
         }
