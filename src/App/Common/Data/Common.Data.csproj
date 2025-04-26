@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.1</TargetFramework>
+        <LangVersion>9</LangVersion>
+        <Nullable>enable</Nullable>
+        <RootNamespace>Common</RootNamespace>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Data.Web\Shared.Tp.Data.Web.csproj"/>
+        <ProjectReference Include="..\..\..\Shared\Shared.Tp\Data.Mem\Shared.Tp.Data.Mem.csproj"/>
+    </ItemGroup>
+
+</Project>

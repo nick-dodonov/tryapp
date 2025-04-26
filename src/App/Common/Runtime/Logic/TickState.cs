@@ -10,7 +10,8 @@ namespace Common.Logic
     /// Client/server state stub
     /// TODO: try mempack in webgl
     /// TODO: state diff support
-    /// TODO: derived support 
+    /// TODO: derived support
+    /// 
     /// </summary>
     //[MemoryPackable]
     public partial struct ClientState
