@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
+using Common.Data;
 using Common.Logic;
 using Common.Meta;
 using Diagnostics.Debug;
@@ -11,7 +12,6 @@ using Shared.Log;
 using Shared.Options;
 using Shared.Tp;
 using Shared.Tp.Data;
-using Shared.Tp.Data.Web;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc;
@@ -140,8 +140,8 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
-        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = new WebObjWriter<ClientState>();
-        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = new WebObjReader<ServerState>();
+        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = TickStateFactory.CreateObjWriter<ClientState>();
+        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = TickStateFactory.CreateObjReader<ServerState>();
 
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
         {
