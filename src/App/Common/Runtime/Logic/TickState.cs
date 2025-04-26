@@ -1,6 +1,9 @@
 // ReSharper disable UnusedMember.Global
 // ReSharper disable UnassignedField.Global
 // ReSharper disable NotAccessedField.Global
+
+using MemoryPack;
+
 namespace Common.Logic
 {
     /// <summary>
@@ -9,7 +12,8 @@ namespace Common.Logic
     /// TODO: state diff support
     /// TODO: derived support 
     /// </summary>
-    public struct ClientState
+    //[MemoryPackable]
+    public partial struct ClientState
     {
         public int Frame;
         public int Ms;
@@ -19,13 +23,15 @@ namespace Common.Logic
         public uint Color;
     }
 
-    public struct PeerState
+    // [MemoryPackable]
+    public partial struct PeerState
     {
         public string Id;
         public ClientState ClientState;
     }
 
-    public struct ServerState
+    // [MemoryPackable]
+    public partial struct ServerState
     {
         public int Frame;
         public int Ms;
