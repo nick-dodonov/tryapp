@@ -11,7 +11,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "MemoryPack.Core.dll"
+        "MemoryPack.Core.dll",
+        "MemoryPack.Generator.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],

@@ -1,12 +1,5 @@
 {
   "dependencies": {
-    "com.cysharp.memorypack": {
-      "version": "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/MemoryPack.Unity#1.21.4",
-      "depth": 0,
-      "source": "git",
-      "dependencies": {},
-      "hash": "0f2fe0827907940768293b7bb81b9605a7d8cba8"
-    },
     "com.cysharp.unitask": {
       "version": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
       "depth": 0,
@@ -136,6 +129,13 @@
         "org.nuget.system.collections.immutable": "6.0.0",
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
       },
+      "url": "https://unitynuget.tryapp.org"
+    },
+    "org.nuget.memorypack.generator": {
+      "version": "1.21.4",
+      "depth": 1,
+      "source": "registry",
+      "dependencies": {},
       "url": "https://unitynuget.tryapp.org"
     },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
@@ -366,7 +366,8 @@
       "source": "local",
       "dependencies": {
         "shared.sys": "0.1.0",
-        "org.nuget.memorypack.core": "1.21.4"
+        "org.nuget.memorypack.core": "1.21.4",
+        "org.nuget.memorypack.generator": "1.21.4"
       }
     },
     "shared.web": {

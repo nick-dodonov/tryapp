@@ -13,7 +13,7 @@ namespace Common.Logic
     /// TODO: derived support
     /// 
     /// </summary>
-    //[MemoryPackable]
+    [MemoryPackable]
     public partial struct ClientState
     {
         public int Frame;

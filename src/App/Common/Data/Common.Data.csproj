@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>netstandard2.1</TargetFramework>
-        <LangVersion>9</LangVersion>
+        <TargetFrameworks>netstandard2.1;net9.0</TargetFrameworks>
+        <LangVersion>11</LangVersion>
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
@@ -12,24 +12,26 @@
     </ItemGroup>
 
     <!--
-MemoryPack source generation to repo (SG MemoryPack.Generator isn't included in Unity):
-* Simplify debugging and generated code introspection while stabilize
--->
-    <!--<PropertyGroup>-->
+    TODO: MemoryPack source generation to repo (SG MemoryPack.Generator isn't included in Unity):
+    * Simplify debugging and generated code introspection while stabilize
+    -->
+    <!--<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">-->
     <!--    <EmitCompilerGeneratedFiles>true</EmitCompilerGeneratedFiles>-->
     <!--    <CompilerGeneratedFilesOutputPath>Generated</CompilerGeneratedFilesOutputPath>-->
     <!--</PropertyGroup>-->
-    <!--<ItemGroup>-->
+    <!--<ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">-->
     <!--    <Compile Remove="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
-    <!--    <AdditionalFiles Include="$(CompilerGeneratedFilesOutputPath)\**\*.cs" />-->
+    <!--    <AdditionalFiles Include="$(CompilerGeneratedFilesOutputPath)\**\*.cs"/>-->
     <!--</ItemGroup>-->
-    <!--<ItemGroup>-->
-    <!--    <PackageReference Include="MemoryPack.Core" Version="1.21.4"/>-->
-    <!--    <PackageReference-->
-    <!--        Include="MemoryPack.Generator" Version="1.21.4"-->
-    <!--        OutputItemType="Analyzer"-->
-    <!--        ReferenceOutputAssembly="false">-->
-    <!--    </PackageReference>-->
-    <!--</ItemGroup>-->
+
+    <ItemGroup>
+        <!--<PackageReference Include="MemoryPack.Core" Version="1.21.4"/>-->
+        <PackageReference
+            Include="MemoryPack.Generator" Version="1.21.4"
+            OutputItemType="Analyzer"
+            ReferenceOutputAssembly="false"
+            PrivateAssets="all"
+        />
+    </ItemGroup>
 
 </Project>
