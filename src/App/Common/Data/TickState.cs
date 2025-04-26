@@ -24,14 +24,14 @@ namespace Common.Logic
         public uint Color;
     }
 
-    // [MemoryPackable]
+    [MemoryPackable]
     public partial struct PeerState
     {
         public string Id;
         public ClientState ClientState;
     }
 
-    // [MemoryPackable]
+    [MemoryPackable]
     public partial struct ServerState
     {
         public int Frame;

@@ -1,13 +1,18 @@
+using Common.Logic;
 using Shared.Tp.Data;
-using Shared.Tp.Data.Web;
+using Shared.Tp.Data.Mem;
 
 namespace Common.Data
 {
     public static class TickStateFactory
     {
         public static IObjWriter<T> CreateObjWriter<T>()
-            => new WebObjWriter<T>();
+            => new MemObjWriter<T>();
+
         public static IObjReader<T> CreateObjReader<T>()
-            => new WebObjReader<T>();
+        {
+            //ServerState.RegisterFormatter();
+            return new MemObjReader<T>();
+        }
     }
 }

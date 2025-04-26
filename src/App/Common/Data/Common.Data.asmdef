@@ -4,15 +4,15 @@
     "references": [
         "Shared.Tp",
         "Shared.Tp.Data.Web",
-        "Shared.Tp.Data.Mem"
+        "Shared.Tp.Data.Mem",
+        "MemoryPack.Generator_Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "MemoryPack.Core.dll",
-        "MemoryPack.Generator.dll"
+        "MemoryPack.Core.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
