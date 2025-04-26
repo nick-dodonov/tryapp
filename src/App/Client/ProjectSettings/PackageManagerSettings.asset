@@ -37,7 +37,7 @@ MonoBehaviour:
     m_ConfigSource: 4
   - m_Id: scoped:project:TryApp NuGet
     m_Name: TryApp NuGet
-    m_Url: http://localhost:5050
+    m_Url: https://unitynuget-894749166912.europe-west4.run.app
     m_Scopes:
     - org.nuget.memorypack
     m_IsDefault: 0
@@ -53,7 +53,7 @@ MonoBehaviour:
     m_IsDefault: 0
     m_Capabilities: 0
     m_ConfigSource: 4
-  m_UserSelectedRegistryName: OpenUPM
+  m_UserSelectedRegistryName: TryApp NuGet
   m_UserAddingNewScopedRegistry: 0
   m_RegistryInfoDraft:
     m_Modified: 0

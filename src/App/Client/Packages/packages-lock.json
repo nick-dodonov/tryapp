@@ -136,7 +136,7 @@
         "org.nuget.system.collections.immutable": "6.0.0",
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
       },
-      "url": "http://localhost:5050"
+      "url": "https://unitynuget-894749166912.europe-west4.run.app"
     },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
       "version": "9.0.4",

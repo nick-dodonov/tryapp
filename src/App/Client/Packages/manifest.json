@@ -1,7 +1,7 @@
 {
   "dependencies": {
-    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
     "com.cysharp.memorypack": "https://github.com/Cysharp/MemoryPack.git?path=src/MemoryPack.Unity/Assets/MemoryPack.Unity#1.21.4",
+    "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
     "com.unity.ide.rider": "3.0.36",
     "com.unity.inputsystem": "1.14.0",
     "com.unity.ugui": "2.0.0",
@@ -32,7 +32,7 @@
     },
     {
       "name": "TryApp NuGet",
-      "url": "http://localhost:5050/",
+      "url": "https://unitynuget-894749166912.europe-west4.run.app",
       "scopes": [
         "org.nuget.memorypack"
       ],
