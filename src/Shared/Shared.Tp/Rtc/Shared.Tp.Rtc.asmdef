@@ -1,0 +1,16 @@
+{
+    "name": "Shared.Tp.Rtc",
+    "rootNamespace": "Shared.Tp.Rtc",
+    "references": [
+        "Shared.Tp"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
