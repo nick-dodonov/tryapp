@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Shared.Tp.Rtc;
 
-namespace Shared.Controllers;
+namespace Shared.Tp.Asp.Controllers;
 
 [ApiController]
 [Route("api/[action]")]

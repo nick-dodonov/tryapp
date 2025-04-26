@@ -9,7 +9,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\..\..\Shared\Shared.Boot\Runtime\Shared.Boot.csproj" />
-      <ProjectReference Include="..\..\..\Shared\Shared.Tp\Runtime\Shared.Tp.csproj" />
+      <ProjectReference Include="..\..\..\Shared\Shared.Tp\Rtc\Shared.Tp.Rtc.csproj" />
     </ItemGroup>
 
 </Project>
