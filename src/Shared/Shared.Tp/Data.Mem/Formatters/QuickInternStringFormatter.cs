@@ -19,8 +19,6 @@ namespace Shared.Tp.Data.Mem.Formatters
         public static readonly QuickInternStringFormatter Default = new();
         private static readonly Dictionary<ulong, List<string>> _interned = new();
 
-        private static readonly Dictionary<Memory<char>, string> _interned2 = new();
-
         [Preserve]
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,

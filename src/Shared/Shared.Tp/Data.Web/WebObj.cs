@@ -14,5 +14,8 @@ namespace Shared.Tp.Data.Web
     {
         T IObjReader<T>.Deserialize(ReadOnlySpan<byte> span)
             => WebSerializer.Default.Deserialize<T>(span);
+
+        public void Deserialize(ReadOnlySpan<byte> span, ref T value)
+            => WebSerializer.Default.Deserialize<T>(span, ref value);
     }
 }

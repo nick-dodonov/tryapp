@@ -86,12 +86,12 @@ namespace Shared.Tp.Rtc.Unity
             _peerConnection.OnDataChannel = channel =>
             {
                 Log.Info($"OnDataChannel: {Describe(channel)}");
-                _dataChannel = channel;
-                _dataChannelTcs.TrySetResult(channel);
                 channel.OnMessage = CallReceived;
                 channel.OnOpen = () => Log.Info($"OnDataChannel: OnOpen: {channel}");
                 channel.OnClose = () => Log.Info($"OnDataChannel: OnClose: {channel}");
                 channel.OnError = error => Log.Info($"OnDataChannel: OnError: {error}");
+                _dataChannel = channel;
+                _dataChannelTcs.TrySetResult(channel);
             };
 
             Log.Info($"setting remote sdp: {offerSdp.type}\n{offerSdp.sdp}");
