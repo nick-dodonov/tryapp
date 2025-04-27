@@ -24,7 +24,9 @@ namespace Common.Data
     [MemoryPackable]
     public partial struct PeerState
     {
+        [InternStringFormatter]
         public string Id;
+
         public ClientState ClientState;
     }
 

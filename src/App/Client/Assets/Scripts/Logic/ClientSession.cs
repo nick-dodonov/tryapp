@@ -154,7 +154,7 @@ namespace Client.Logic
                 sb.Append(_timeLink.RttMs, "00");
                 sb.AppendLine(" ms");
 
-                infoControl.SetText(sb.ToString());
+                infoControl.SetText(sb.AsArraySegment());
             }
             finally
             {

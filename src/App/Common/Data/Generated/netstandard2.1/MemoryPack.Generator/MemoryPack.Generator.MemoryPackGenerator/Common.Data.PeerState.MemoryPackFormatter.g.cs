@@ -31,6 +31,7 @@ namespace Common.Data {
 /// </remarks>
 partial struct PeerState : IMemoryPackable<PeerState>
 {
+    static readonly global::MemoryPack.Formatters.InternStringFormatter __IdFormatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<global::MemoryPack.InternStringFormatterAttribute>(typeof(global::Common.Data.PeerState).GetField("Id", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();
 
     static partial void StaticConstructor();
 
@@ -61,7 +62,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
 
 
         writer.WriteObjectHeader(2);
-        writer.WriteString(value.@Id);
+        writer.WriteValueWithFormatter(__IdFormatter, value.@Id);
         writer.WriteUnmanaged(value.@ClientState);
 
     END:
@@ -89,7 +90,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
         {
             
             {
-                __Id = reader.ReadString();
+                __Id = reader.ReadValueWithFormatter<global::MemoryPack.Formatters.InternStringFormatter, string>(__IdFormatter);
                 reader.ReadUnmanaged(out __ClientState);
 
 
@@ -100,7 +101,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
                 __Id = value.@Id;
                 __ClientState = value.@ClientState;
 
-                __Id = reader.ReadString();
+                reader.ReadValueWithFormatter(__IdFormatter, ref __Id);
                 reader.ReadUnmanaged(out __ClientState);
 
                 goto SET;
@@ -127,7 +128,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
 #endif
 
             if (count == 0) goto SKIP_READ;
-            __Id = reader.ReadString(); if (count == 1) goto SKIP_READ;
+            reader.ReadValueWithFormatter(__IdFormatter, ref __Id); if (count == 1) goto SKIP_READ;
             reader.ReadUnmanaged(out __ClientState); if (count == 2) goto SKIP_READ;
 
     SKIP_READ:

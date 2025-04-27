@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using Shared.Log;
 using Shared.Tp.Data;
 
@@ -46,7 +47,10 @@ namespace Shared.Tp.St.Cmd
         {
             try
             {
-                _link.Send(_writer.Serialize, in cmd);
+                _link.Send(static (writer, s) =>
+                {
+                    s._writer.Serialize(writer, s.cmd);
+                }, (_writer, cmd));
             }
             catch (Exception e)
             {
