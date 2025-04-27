@@ -7,6 +7,7 @@ using Client.UI;
 using Common.Data;
 using Common.Logic;
 using Common.Meta;
+using Cysharp.Text;
 using Diagnostics.Debug;
 using Shared.Log;
 using Shared.Options;
@@ -124,19 +125,41 @@ namespace Client.Logic
             if (_stateSyncer == null)
                 return;
 
-            var sessionMs = _timeLink.RemoteMs;
-            {
-                var stats = _dumpLink.Stats.UpdateRates();
-                infoControl.SetText(@$"session: 
-time: {sessionMs / 1000.0f:F1}sec 
-rtt: {_timeLink.RttMs}ms 
-in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
-            }
+            UpdateInfoControl();
 
             _stateSyncer.LocalUpdate(Time.deltaTime);
-
             foreach (var kv in _peerTaps)
-                kv.Value.UpdateSessionMs(sessionMs);
+                kv.Value.UpdateSessionMs(_timeLink.RemoteMs);
+        }
+
+        private void UpdateInfoControl()
+        {
+            var stats = _dumpLink.Stats.UpdateRates();
+            var sb = ZString.CreateStringBuilder(true);
+            try
+            {
+                sb.Append("session-sec: ");
+                sb.Append(_timeLink.RemoteMs / 1000.0f, "F1");
+                sb.AppendLine(" sec");
+
+                sb.Append("out: ");
+                sb.AppendStatDir(stats.Out);
+                sb.AppendLine();
+
+                sb.Append("in: ");
+                sb.AppendStatDir(stats.In);
+                sb.AppendLine();
+
+                sb.Append("rtt: ");
+                sb.Append(_timeLink.RttMs, "00");
+                sb.AppendLine(" ms");
+
+                infoControl.SetText(sb.ToString());
+            }
+            finally
+            {
+                sb.Dispose();
+            }
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
@@ -214,6 +237,27 @@ in/out: {stats.In.Rate}/{stats.Out.Rate} bytes/sec");
             else
                 peerId = peerId[..8].ToUpper(); //tmp short to simplify diagnostics
             return peerId;
+        }
+    }
+
+    public static class DumpStatsExtensions
+    {
+        public static void AppendStatDir(this ref Utf16ValueStringBuilder sb, in DumpStats.Dir dir)
+        {
+            var bytesRate = dir.BytesRate;
+            sb.Append(bytesRate);
+
+            var countRate = dir.CountRate;
+            if (countRate > 0)
+            {
+                sb.Append(" (");
+                sb.Append(bytesRate / countRate);
+                sb.Append(" * ");
+                sb.Append(countRate);
+                sb.Append(")");
+            }
+
+            sb.Append(" b/sec");
         }
     }
 }

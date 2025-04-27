@@ -8,18 +8,23 @@ namespace Shared.Tp.Ext.Misc
         [Serializable]
         public struct Dir
         {
-            public int Count;
-            public int Bytes;
-            public int Rate;
+            public int CountTotal;
+            public int BytesTotal;
+
+            public int CountRate;
+            public int BytesRate;
 
             private long _startTicks;
-            private int _bytes;
+            private int _intervalCount;
+            private int _intervalBytes;
                 
             public void Add(int bytes)
             {
-                _bytes += bytes;
-                Bytes += bytes;
-                Count++;
+                BytesTotal += bytes;
+                ++CountTotal;
+
+                _intervalBytes += bytes;
+                ++_intervalCount;
             }
 
             public void UpdateRate(long ticks, int updateIntervalMs)
@@ -27,7 +32,7 @@ namespace Shared.Tp.Ext.Misc
                 if (_startTicks == 0)
                 {
                     _startTicks = ticks;
-                    _bytes = 0;
+                    _intervalCount = _intervalBytes = 0;
                 }
                 else
                 {
@@ -35,8 +40,9 @@ namespace Shared.Tp.Ext.Misc
                     var delta = ticks - _startTicks;
                     if (delta >= updateIntervalTicks)
                     {
-                        Rate = (int)(updateIntervalTicks * _bytes / delta);
-                        _bytes = 0;
+                        CountRate = _intervalCount;
+                        BytesRate = _intervalBytes; //(int)(updateIntervalTicks * _intervalBytes / delta);
+                        _intervalCount = _intervalBytes = 0;
                         _startTicks = ticks;
                     }
                 }
