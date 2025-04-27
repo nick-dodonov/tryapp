@@ -45,12 +45,14 @@ namespace Shared.Tp.St.Sync
         private float _updateElapsedTime;
 
         private TRemote? _remoteState;
+
         public TRemote RemoteState =>
             _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
 
-        internal StateSyncer(ISyncHandler<TLocal, TRemote> handler) 
+        internal StateSyncer(ISyncHandler<TLocal, TRemote> handler)
             => _handler = handler;
-        internal void SetCmdLink(CmdLink<StCmd<TLocal>, StCmd<TRemote>> cmdLink) 
+
+        internal void SetCmdLink(CmdLink<StCmd<TLocal>, StCmd<TRemote>> cmdLink)
             => _cmdLink = cmdLink;
 
         public void Dispose()
@@ -65,7 +67,7 @@ namespace Shared.Tp.St.Sync
 
             var localSt = new StCmd<TLocal>
             {
-                Frame = _updateSendFrame, 
+                Frame = _updateSendFrame++,
                 Value = _handler.MakeLocalState()
             };
             _cmdLink.CmdSend(in localSt);
@@ -93,7 +95,7 @@ namespace Shared.Tp.St.Sync
             _handler.RemoteUpdated(_remoteState);
         }
 
-        void ICmdReceiver<StCmd<TRemote>>.CmdDisconnected() 
+        void ICmdReceiver<StCmd<TRemote>>.CmdDisconnected()
             => _handler.RemoteDisconnected();
     }
 }
