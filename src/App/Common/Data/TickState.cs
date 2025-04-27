@@ -3,6 +3,8 @@
 // ReSharper disable NotAccessedField.Global
 
 using MemoryPack;
+using Shared.Tp.Data.Mem;
+using Shared.Tp.Data.Mem.Formatters;
 
 namespace Common.Data
 {
@@ -24,7 +26,7 @@ namespace Common.Data
     [MemoryPackable]
     public partial struct PeerState
     {
-        [InternStringFormatter]
+        [QuickInternStringFormatter]
         public string Id;
 
         public ClientState ClientState;

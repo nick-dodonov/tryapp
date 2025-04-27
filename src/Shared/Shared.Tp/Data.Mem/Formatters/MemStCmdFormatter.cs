@@ -1,20 +1,24 @@
+using System.Runtime.CompilerServices;
 using MemoryPack;
 using MemoryPack.Internal;
 using Shared.Tp.St.Sync;
 
-namespace Shared.Tp.Data.Mem
+#pragma warning disable CS9074 // UNITY: The 'scoped' modifier of parameter doesn't match overridden or implemented member.
+
+namespace Shared.Tp.Data.Mem.Formatters
 {
     [Preserve]
     public sealed class MemStCmdFormatter<T> : MemoryPackFormatter<StCmd<T>>
     {
         [Preserve]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Serialize<TBufferWriter>(ref MemoryPackWriter<TBufferWriter> writer,
 #if !UNITY_2020_1_OR_NEWER
             scoped
 #endif
                 ref StCmd<T> value)
         {
-            if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
                 writer.DangerousWriteUnmanaged(value);
                 return;
@@ -24,13 +28,14 @@ namespace Shared.Tp.Data.Mem
         }
 
         [Preserve]
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public override void Deserialize(ref MemoryPackReader reader,
 #if !UNITY_2020_1_OR_NEWER
             scoped
 #endif
                 ref StCmd<T> value)
         {
-            if (!System.Runtime.CompilerServices.RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
             {
                 reader.DangerousReadUnmanaged(out value);
                 return;

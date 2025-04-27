@@ -31,7 +31,7 @@ namespace Common.Data {
 /// </remarks>
 partial struct PeerState : IMemoryPackable<PeerState>
 {
-    static readonly global::MemoryPack.Formatters.InternStringFormatter __IdFormatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<global::MemoryPack.InternStringFormatterAttribute>(typeof(global::Common.Data.PeerState).GetField("Id", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();
+    static readonly global::Shared.Tp.Data.Mem.Formatters.QuickInternStringFormatter __IdFormatter = System.Reflection.CustomAttributeExtensions.GetCustomAttribute<global::Shared.Tp.Data.Mem.Formatters.QuickInternStringFormatterAttribute>(typeof(global::Common.Data.PeerState).GetField("Id", System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)).GetFormatter();
 
     static partial void StaticConstructor();
 
@@ -90,7 +90,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
         {
             
             {
-                __Id = reader.ReadValueWithFormatter<global::MemoryPack.Formatters.InternStringFormatter, string>(__IdFormatter);
+                __Id = reader.ReadValueWithFormatter<global::Shared.Tp.Data.Mem.Formatters.QuickInternStringFormatter, string>(__IdFormatter);
                 reader.ReadUnmanaged(out __ClientState);
 
 

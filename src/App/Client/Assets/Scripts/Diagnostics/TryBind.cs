@@ -1,7 +1,9 @@
 using System;
 using System.Runtime.InteropServices;
 using AOT;
+using Diagnostics.Debug;
 using Shared.Log;
+using UnityEngine.Scripting;
 
 namespace Diagnostics
 {
@@ -25,7 +27,23 @@ namespace Diagnostics
             [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.U1, SizeParamIndex = 1)]
             byte[] bytes, int length) =>
             Slog.Info($"[{string.Join(',', bytes)}]");
+
+        private static readonly byte[] _bytes = new byte[] { 1, 2, 3, 4, 5 };
         
+        [DllImport("__Internal")]
+        private static extern void TestBytes(byte[] bytes, int size);
+        [Preserve, DebugAction]
+        public static void TestBytes() => TestBytes(_bytes, _bytes.Length);
+
+        [DllImport("__Internal")]
+        private static extern unsafe void TestSpan(byte* bytes, int size);
+        [Preserve, DebugAction]
+        public static unsafe void TestSpan()
+        {
+            fixed (byte* bytes = _bytes)
+                TestSpan(bytes, _bytes.Length);
+        }
+
         //[Preserve, DebugAction]
         public static void TestCallbacks()
         {
