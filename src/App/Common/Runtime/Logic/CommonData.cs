@@ -1,5 +1,3 @@
-using Common.Data;
-
 namespace Common.Logic
 {
     public static class CommonData
@@ -8,7 +6,7 @@ namespace Common.Logic
         {
 #if UNITY_5_6_OR_NEWER
             // workaround for the wrong static ctr strip in unity build //TODO: possibly via RuntimeInitializeOnLoadMethod
-            ServerState.RegisterFormatter();
+            Common.Data.ServerState.RegisterFormatter();
 #endif
         }
     }

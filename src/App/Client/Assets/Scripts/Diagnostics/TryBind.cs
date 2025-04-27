@@ -1,9 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using AOT;
-using Diagnostics.Debug;
 using Shared.Log;
-using UnityEngine.Scripting;
 
 namespace Diagnostics
 {

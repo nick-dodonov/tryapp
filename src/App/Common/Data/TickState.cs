@@ -8,9 +8,7 @@ namespace Common.Data
 {
     /// <summary>
     /// Client/server state stub
-    /// TODO: try mempack in webgl
     /// TODO: state diff support
-    /// TODO: derived support
     /// 
     /// </summary>
     [MemoryPackable]
