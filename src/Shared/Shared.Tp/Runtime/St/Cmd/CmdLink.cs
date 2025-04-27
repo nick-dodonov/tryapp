@@ -1,5 +1,4 @@
 using System;
-using System.Buffers;
 using Shared.Log;
 using Shared.Tp.Data;
 
@@ -16,16 +15,20 @@ namespace Shared.Tp.St.Cmd
         void CmdDisconnected();
     }
 
-    public class CmdLink<TSend, TReceive> 
+    public class CmdLink<TSend, TReceive>
         : IDisposable
         , ICmdSender<TSend>
         , ITpReceiver
+        where TReceive : struct
     {
         private readonly ICmdReceiver<TReceive> _receiver;
+
         private readonly IObjWriter<TSend> _writer;
         private readonly IObjReader<TReceive> _reader;
-        private ITpLink _link = null!;
 
+        private TReceive _received;
+
+        private ITpLink _link = null!;
         public ITpLink Link => _link;
 
         internal CmdLink(ICmdReceiver<TReceive> receiver, IObjWriter<TSend> writer, IObjReader<TReceive> reader)
@@ -35,7 +38,7 @@ namespace Shared.Tp.St.Cmd
             _reader = reader;
         }
 
-        internal void SetLink(ITpLink link) 
+        internal void SetLink(ITpLink link)
             => _link = link;
 
         public void Dispose()
@@ -47,10 +50,7 @@ namespace Shared.Tp.St.Cmd
         {
             try
             {
-                _link.Send(static (writer, s) =>
-                {
-                    s._writer.Serialize(writer, s.cmd);
-                }, (_writer, cmd));
+                _link.Send(static (writer, s) => { s._writer.Serialize(writer, s.cmd); }, (_writer, cmd));
             }
             catch (Exception e)
             {
@@ -62,8 +62,8 @@ namespace Shared.Tp.St.Cmd
         {
             try
             {
-                var cmd = _reader.Deserialize(span);
-                _receiver.CmdReceived(cmd);
+                _reader.Deserialize(span, ref _received);
+                _receiver.CmdReceived(_received);
             }
             catch (Exception e)
             {
