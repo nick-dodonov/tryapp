@@ -163,8 +163,10 @@ namespace Client.Logic
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
-        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = TickStateFactory.CreateObjWriter<ClientState>();
-        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = TickStateFactory.CreateObjReader<ServerState>();
+        IObjWriter<StCmd<ClientState>> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } 
+            = TickStateFactory.CreateObjWriter<StCmd<ClientState>>();
+        IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
+            = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
         {

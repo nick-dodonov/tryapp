@@ -42,8 +42,10 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
         => _stateSyncer.LocalUpdate(deltaTime);
 
     SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
-    IObjWriter<ServerState> ISyncHandler<ServerState, ClientState>.LocalWriter { get; } = TickStateFactory.CreateObjWriter<ServerState>();
-    IObjReader<ClientState> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } = TickStateFactory.CreateObjReader<ClientState>();
+    IObjWriter<StCmd<ServerState>> ISyncHandler<ServerState, ClientState>.LocalWriter { get; } 
+        = TickStateFactory.CreateObjWriter<StCmd<ServerState>>();
+    IObjReader<StCmd<ClientState>> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } 
+        = TickStateFactory.CreateObjReader<StCmd<ClientState>>();
 
     ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex)
         => _session.GetServerState(sendIndex);
