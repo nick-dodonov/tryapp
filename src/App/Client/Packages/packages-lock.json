@@ -122,21 +122,21 @@
       }
     },
     "org.nuget.memorypack.core": {
-      "version": "1.21.4",
-      "depth": 1,
-      "source": "registry",
+      "version": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.core",
+      "depth": 0,
+      "source": "git",
       "dependencies": {
         "org.nuget.system.collections.immutable": "6.0.0",
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0"
       },
-      "url": "https://unitynuget.tryapp.org"
+      "hash": "ed2111b5b5e0372889b13cb31754c530e7e1e0b5"
     },
     "org.nuget.memorypack.generator": {
-      "version": "1.21.4",
-      "depth": 1,
-      "source": "registry",
+      "version": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.generator",
+      "depth": 0,
+      "source": "git",
       "dependencies": {},
-      "url": "https://unitynuget.tryapp.org"
+      "hash": "ed2111b5b5e0372889b13cb31754c530e7e1e0b5"
     },
     "org.nuget.microsoft.bcl.asyncinterfaces": {
       "version": "9.0.4",
@@ -223,7 +223,7 @@
     },
     "org.nuget.system.collections.immutable": {
       "version": "6.0.0",
-      "depth": 2,
+      "depth": 1,
       "source": "registry",
       "dependencies": {
         "org.nuget.system.runtime.compilerservices.unsafe": "6.0.0",
