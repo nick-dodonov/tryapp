@@ -25,7 +25,6 @@ namespace Common.Data {
 /// <remarks>
 /// MemoryPack GenerateType: Object<br/>
 /// <code>
-/// <b>int</b> Frame<br/>
 /// <b>int</b> Ms<br/>
 /// <b>Common.Data.PeerState[]</b> Peers<br/>
 /// </code>
@@ -65,7 +64,7 @@ partial struct ServerState : IMemoryPackable<ServerState>
 
 
 
-        writer.WriteUnmanagedWithObjectHeader(3, value.@Frame, value.@Ms);
+        writer.WriteUnmanagedWithObjectHeader(2, value.@Ms);
         writer.WritePackableArray(value.@Peers);
 
     END:
@@ -85,16 +84,15 @@ partial struct ServerState : IMemoryPackable<ServerState>
 
 
 
-        int __Frame;
         int __Ms;
         global::Common.Data.PeerState[] __Peers;
 
         
-        if (count == 3)
+        if (count == 2)
         {
             
             {
-                reader.ReadUnmanaged(out __Frame, out __Ms);
+                reader.ReadUnmanaged(out __Ms);
                 __Peers = reader.ReadPackableArray<global::Common.Data.PeerState>();
 
 
@@ -102,11 +100,9 @@ partial struct ServerState : IMemoryPackable<ServerState>
             }
 #if false
             {
-                __Frame = value.@Frame;
                 __Ms = value.@Ms;
                 __Peers = value.@Peers;
 
-                reader.ReadUnmanaged(out __Frame);
                 reader.ReadUnmanaged(out __Ms);
                 reader.ReadPackableArray(ref __Peers);
 
@@ -114,31 +110,28 @@ partial struct ServerState : IMemoryPackable<ServerState>
             }
 #endif
         }
-        else if (count > 3)
+        else if (count > 2)
         {
-            MemoryPackSerializationException.ThrowInvalidPropertyCount(typeof(ServerState), 3, count);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount(typeof(ServerState), 2, count);
             goto READ_END;
         }
         else
         {
             
             {
-               __Frame = default!;
                __Ms = default!;
                __Peers = default!;
             }
 #if false
             {
-               __Frame = value.@Frame;
                __Ms = value.@Ms;
                __Peers = value.@Peers;
             }
 #endif
 
             if (count == 0) goto SKIP_READ;
-            reader.ReadUnmanaged(out __Frame); if (count == 1) goto SKIP_READ;
-            reader.ReadUnmanaged(out __Ms); if (count == 2) goto SKIP_READ;
-            reader.ReadPackableArray(ref __Peers); if (count == 3) goto SKIP_READ;
+            reader.ReadUnmanaged(out __Ms); if (count == 1) goto SKIP_READ;
+            reader.ReadPackableArray(ref __Peers); if (count == 2) goto SKIP_READ;
 
     SKIP_READ:
             
@@ -154,7 +147,6 @@ partial struct ServerState : IMemoryPackable<ServerState>
 
     SET:
         
-        value.@Frame = __Frame;
         value.@Ms = __Ms;
         value.@Peers = __Peers;
         goto READ_END;
@@ -162,7 +154,6 @@ partial struct ServerState : IMemoryPackable<ServerState>
     NEW:
         value = new ServerState()
         {
-            @Frame = __Frame,
             @Ms = __Ms,
             @Peers = __Peers
         };

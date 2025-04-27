@@ -47,8 +47,8 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     IObjReader<StCmd<ClientState>> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } 
         = TickStateFactory.CreateObjReader<StCmd<ClientState>>();
 
-    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex)
-        => _session.GetServerState(sendIndex);
+    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState()
+        => _session.GetServerState();
 
     void ISyncHandler<ServerState, ClientState>.RemoteUpdated(ClientState remoteState) { }
 

@@ -26,7 +26,7 @@ namespace Shared.Tp.St.Sync
         IObjWriter<StCmd<TLocal>> LocalWriter { get; }
         IObjReader<StCmd<TRemote>> RemoteReader { get; }
 
-        TLocal MakeLocalState(int sendIndex);
+        TLocal MakeLocalState();
 
         void RemoteUpdated(TRemote remoteState);
         void RemoteDisconnected();
@@ -66,7 +66,7 @@ namespace Shared.Tp.St.Sync
             var localSt = new StCmd<TLocal>
             {
                 Frame = _updateSendFrame, 
-                Value = _handler.MakeLocalState(_updateSendFrame++)
+                Value = _handler.MakeLocalState()
             };
             _cmdLink.CmdSend(in localSt);
         }

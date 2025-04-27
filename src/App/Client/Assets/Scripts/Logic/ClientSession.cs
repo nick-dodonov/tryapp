@@ -168,12 +168,11 @@ namespace Client.Logic
         IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
             = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
-        ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
+        ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
             var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState
             {
-                Frame = sendIndex,
                 Ms = sessionMs
             };
             clientTap.Fill(ref clientState);
