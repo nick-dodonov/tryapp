@@ -11,7 +11,7 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         private TimeLink _timeLink;
-        private readonly Dictionary<string, PeerTap> _peerTaps = new();
+        private readonly Dictionary<string, PeerView> _peerViews = new();
 
         public void Init(TimeLink timeLink)
         {
@@ -20,16 +20,16 @@ namespace Client.Logic
 
         private void OnDisable()
         {
-            foreach (var (_, peerTap) in _peerTaps)
-                Destroy(peerTap.gameObject);
-            _peerTaps.Clear();
+            foreach (var (_, peerView) in _peerViews)
+                Destroy(peerView.gameObject);
+            _peerViews.Clear();
         }
 
         private void Update()
         {
             var sessionMs = _timeLink.RemoteMs;
-            foreach (var (_, peerTap) in _peerTaps)
-                peerTap.UpdateSessionMs(sessionMs);
+            foreach (var (_, peerView) in _peerViews)
+                peerView.UpdateSessionMs(sessionMs);
         }
 
         public void RemoteUpdated(ServerState serverState)
@@ -37,11 +37,11 @@ namespace Client.Logic
             var sessionMs = _timeLink.RemoteMs;
 
             var count = 0;
-            var pool = SlimMemoryPool<KeyValuePair<string, PeerTap>>.Shared;
-            using var owner = pool.Rent(_peerTaps.Count);
+            var pool = SlimMemoryPool<KeyValuePair<string, PeerView>>.Shared;
+            using var owner = pool.Rent(_peerViews.Count);
             var span = owner.Memory.Span;
 
-            foreach (var kv in _peerTaps)
+            foreach (var kv in _peerViews)
             {
                 span[count++] = kv;
                 kv.Value.SetChanged(false);
@@ -50,24 +50,24 @@ namespace Client.Logic
             foreach (var peerState in serverState.Peers)
             {
                 var peerId = peerState.Id;
-                if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                if (!_peerViews.TryGetValue(peerId, out var peerView))
                 {
                     var peerGameObject = Instantiate(peerPrefab, transform);
-                    peerTap = peerGameObject.GetComponent<PeerTap>();
-                    _peerTaps.Add(peerId, peerTap);
+                    peerView = peerGameObject.GetComponent<PeerView>();
+                    _peerViews.Add(peerId, peerView);
                 }
 
-                peerTap.ApplyState(peerState);
-                peerTap.UpdateSessionMs(sessionMs);
+                peerView.ApplyState(peerState);
+                peerView.UpdateSessionMs(sessionMs);
             }
 
-            //remove peer taps that don't exist anymore
-            foreach (var (id, peerTap) in span[..count])
+            //remove peer views that don't exist anymore
+            foreach (var (id, peerView) in span[..count])
             {
-                if (peerTap.Changed)
+                if (peerView.Changed)
                     continue;
-                _peerTaps.Remove(id);
-                Destroy(peerTap.gameObject);
+                _peerViews.Remove(id);
+                Destroy(peerView.gameObject);
             }
         }
     }

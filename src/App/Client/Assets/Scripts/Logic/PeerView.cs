@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 namespace Client.Logic
 {
-    public class PeerTap : MonoBehaviour
+    public class PeerView : MonoBehaviour
     {
         public Image image;
         public TMP_Text idText;
