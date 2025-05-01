@@ -1,6 +1,4 @@
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
@@ -38,7 +36,7 @@ namespace Client.Logic
         public InfoControl infoControl;
 
         public ClientTap clientTap;
-        public GameObject peerPrefab;
+        public PeersView peersView;
 
         public ClientContext context;
 
@@ -49,11 +47,10 @@ namespace Client.Logic
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
 
-        private readonly Dictionary<string, PeerTap> _peerTaps = new();
-
         private void OnEnable()
         {
-            clientTap.SetActive(false);
+            peersView.gameObject.SetActive(false);
+            clientTap.gameObject.SetActive(false);
             RuntimePanel.SetInspectorContext(context);
         }
 
@@ -93,22 +90,21 @@ namespace Client.Logic
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            // enable player input
-            clientTap.SetActive(true);
+            // enable peers view / player input
+            peersView.Init(_timeLink);
+            peersView.gameObject.SetActive(true);
+            clientTap.gameObject.SetActive(true); 
         }
 
         public void Finish(string reason)
         {
             _log.Info(reason);
 
+            clientTap.gameObject.SetActive(false);
+            peersView.gameObject.SetActive(false);
+
             debugControl.SetServerVersion(null);
-
-            foreach (var kv in _peerTaps)
-                Destroy(kv.Value.gameObject);
-            _peerTaps.Clear();
-
-            clientTap.SetActive(false);
-
+            
             _dumpLink = null;
             _timeLink = null;
 
@@ -128,8 +124,6 @@ namespace Client.Logic
             UpdateInfoControl();
 
             _stSync.LocalUpdate(Time.deltaTime);
-            foreach (var kv in _peerTaps)
-                kv.Value.UpdateSessionMs(_timeLink.RemoteMs);
         }
 
         private void UpdateInfoControl()
@@ -181,43 +175,7 @@ namespace Client.Logic
 
         void ISyncHandler<ClientState, ServerState>.RemoteUpdated(ServerState serverState)
         {
-            var count = 0;
-            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
-            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
-            try
-            {
-                foreach (var kv in _peerTaps)
-                {
-                    peerKvs[count++] = kv;
-                    kv.Value.SetChanged(false);
-                }
-
-                foreach (var peerState in serverState.Peers)
-                {
-                    var peerId = peerState.Id;
-                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
-                    {
-                        var peerGameObject = Instantiate(peerPrefab, transform);
-                        peerTap = peerGameObject.GetComponent<PeerTap>();
-                        _peerTaps.Add(peerId, peerTap);
-                    }
-
-                    peerTap.Apply(peerState);
-                }
-
-                //remove peer taps that don't exist anymore
-                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
-                {
-                    if (peerTap.Changed)
-                        continue;
-                    _peerTaps.Remove(id);
-                    Destroy(peerTap.gameObject);
-                }
-            }
-            finally
-            {
-                peerKvsPool.Return(peerKvs);
-            }
+            peersView.RemoteUpdated(serverState);
         }
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()

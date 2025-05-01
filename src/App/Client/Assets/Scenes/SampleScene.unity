@@ -599,6 +599,55 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 0ec0ba5b5f0cf409f83b3c2091539ba1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!1 &1777960838
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1777960840}
+  - component: {fileID: 1777960839}
+  m_Layer: 5
+  m_Name: PeersView
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1777960839
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777960838}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 345e1cc7abd34240a8920fb3952058d8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
+--- !u!224 &1777960840
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1777960838}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1987657742}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
 --- !u!224 &1914052453 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 2499867095098393968, guid: 760f07c710e6a46afa609143e4ad66bb, type: 3}
@@ -731,6 +780,7 @@ RectTransform:
   - {fileID: 123827046}
   - {fileID: 106520928}
   - {fileID: 1914052453}
+  - {fileID: 1777960840}
   - {fileID: 2044501385}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
@@ -754,7 +804,7 @@ MonoBehaviour:
   debugControl: {fileID: 7885380990598071222}
   infoControl: {fileID: 1726573594}
   clientTap: {fileID: 1914052456}
-  peerPrefab: {fileID: 4664928934530149095, guid: 554d47b7a31f042f08efabf655ecdae6, type: 3}
+  peersView: {fileID: 1777960839}
   context: {fileID: 11400000, guid: 001f744c9ee894ffa9a3e7b9fed24330, type: 2}
 --- !u!224 &2044501385 stripped
 RectTransform:
@@ -1307,11 +1357,11 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5883166150115120311, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_Size
-      value: 0.41666666
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5883166150115120311, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_Value
-      value: -39.715485
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 5989886781313739213, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.y
@@ -1407,7 +1457,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5990686352420442097, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 393.66602
+      value: 400
       objectReference: {fileID: 0}
     - target: {fileID: 5990838454373032489, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.x

@@ -55,12 +55,6 @@ namespace Client.Logic
             }
         }
 
-        public void SetActive(bool active)
-        {
-            Slog.Info($"{gameObject.name}: {active}");
-            gameObject.SetActive(active);
-        }
-
         public void Fill(ref ClientState state)
         {
             state.UpdatePosition(transform);
