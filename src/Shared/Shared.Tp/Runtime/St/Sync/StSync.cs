@@ -1,53 +1,26 @@
 using System;
-using Shared.Tp.Data;
 using Shared.Tp.St.Cmd;
-using UnityEngine;
-using UnityEngine.Scripting;
 
 namespace Shared.Tp.St.Sync
 {
-    [Serializable]
-    public class SyncOptions
-    {
-        [field: SerializeField] [RequiredMember]
-        public int BasicSendRate { get; set; } = 1;
-    }
-
-    public struct StCmd<T>
-    {
-        public int Frame;
-        public T Value; // to be changed
-    }
-
-    public interface ISyncHandler<TLocal, TRemote>
-    {
-        SyncOptions Options { get; }
-
-        IObjWriter<StCmd<TLocal>> LocalWriter { get; }
-        IObjReader<StCmd<TRemote>> RemoteReader { get; }
-
-        TLocal MakeLocalState();
-
-        void RemoteUpdated(TRemote remoteState);
-        void RemoteDisconnected();
-    }
-
     public class StSync<TLocal, TRemote> : IDisposable, ICmdReceiver<StCmd<TRemote>>
     {
         private readonly ISyncHandler<TLocal, TRemote> _handler;
-
         private CmdLink<StCmd<TLocal>, StCmd<TRemote>> _cmdLink = null!;
 
         public ITpReceiver Receiver => _cmdLink;
         public ITpLink Link => _cmdLink.Link;
 
-        private int _updateSendFrame;
-        private float _updateElapsedTime;
+        private int _localFrame;
+        private float _localElapsedToSend;
 
-        private TRemote? _remoteState;
+        private readonly HistoryQueue<TLocal> _localHistory = new();
+        private readonly HistoryQueue<TRemote> _remoteHistory = new();
 
-        public TRemote RemoteState =>
-            _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
+        public TRemote RemoteState => _remoteHistory.LastValue;
+
+        public int LocalHistoryCount => _localHistory.Count;
+        public int RemoteHistoryCount => _remoteHistory.Count;
 
         internal StSync(ISyncHandler<TLocal, TRemote> handler)
             => _handler = handler;
@@ -55,22 +28,25 @@ namespace Shared.Tp.St.Sync
         internal void SetCmdLink(CmdLink<StCmd<TLocal>, StCmd<TRemote>> cmdLink)
             => _cmdLink = cmdLink;
 
-        public void Dispose()
-        {
-            _cmdLink.Dispose();
-        }
+        public void Dispose() 
+            => _cmdLink.Dispose();
 
         public void LocalUpdate(float deltaTime)
         {
             if (!CanSend(deltaTime))
                 return;
 
-            var localSt = new StCmd<TLocal>
+            var cmd = new StCmd<TLocal>
             {
-                Frame = _updateSendFrame++,
-                Value = _handler.MakeLocalState()
+                From = _localHistory.FirstFrame,
+                To = ++_localFrame,
+                Known = _remoteHistory.LastFrame,
+
+                Value = _handler.MakeLocalState() //TODO: From->To
             };
-            _cmdLink.CmdSend(in localSt);
+            _localHistory.AddValue(cmd.To, cmd.Value);
+            
+            _cmdLink.CmdSend(in cmd);
         }
 
         private bool CanSend(float deltaTime)
@@ -81,18 +57,22 @@ namespace Shared.Tp.St.Sync
                 return true;
 
             var sendInterval = 1.0f / basicSendRate;
-            _updateElapsedTime += deltaTime;
-            if (_updateElapsedTime < sendInterval)
+            _localElapsedToSend += deltaTime;
+            if (_localElapsedToSend < sendInterval)
                 return false;
 
-            _updateElapsedTime = 0;
+            _localElapsedToSend = 0;
             return true;
         }
 
         void ICmdReceiver<StCmd<TRemote>>.CmdReceived(in StCmd<TRemote> cmd)
         {
-            _remoteState = cmd.Value;
-            _handler.RemoteUpdated(_remoteState);
+            _localHistory.ClearUntil(cmd.Known);
+
+            _remoteHistory.ClearUntil(cmd.From);
+            _remoteHistory.AddValue(cmd.To, cmd.Value); //TODO: From->To
+
+            _handler.RemoteUpdated(RemoteState);
         }
 
         void ICmdReceiver<StCmd<TRemote>>.CmdDisconnected()

@@ -98,6 +98,11 @@ namespace Client.Logic
 
         public void Finish(string reason)
         {
+            if (_meta == null)
+            {
+                _log.Info($"skip: {reason}");
+                return;
+            }
             _log.Info(reason);
 
             player.gameObject.SetActive(false);
@@ -114,6 +119,8 @@ namespace Client.Logic
             _api = null;
             _meta?.Dispose();
             _meta = null;
+
+            _log.Info("completed");
         }
 
         private void Update()
@@ -132,9 +139,15 @@ namespace Client.Logic
             var sb = ZString.CreateStringBuilder(true);
             try
             {
-                sb.Append("session-sec: ");
+                sb.Append("session: ");
                 sb.Append(_timeLink.RemoteMs / 1000.0f, "F1");
                 sb.AppendLine(" sec");
+
+                sb.Append("st-hist: ");
+                sb.Append(_stSync.LocalHistoryCount);
+                sb.Append("/");
+                sb.Append(_stSync.RemoteHistoryCount);
+                sb.AppendLine(" l/r");
 
                 sb.Append("out: ");
                 sb.AppendStatDir(stats.Out);

@@ -10,6 +10,8 @@ namespace Client.Logic
         public Image image;
         public MeshRenderer meshRenderer;
         public TMP_Text idText;
+        
+        public LineRenderer lineRenderer;
 
         private bool _changed;
         public bool Changed => _changed;
@@ -22,7 +24,11 @@ namespace Client.Logic
         {
             var state = peerState.ClientState;
             _applySessionMs = state.Ms;
+            
+            lineRenderer.positionCount = 2;
+            lineRenderer.SetPosition(0, transform.position);
             transform.position = state.LoadPosition();
+            lineRenderer.SetPosition(1, transform.position);
 
             // Convert back from uint to Color32 and assign it to image.color
             var colorU = state.Color;
