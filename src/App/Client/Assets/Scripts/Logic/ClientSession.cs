@@ -45,7 +45,7 @@ namespace Client.Logic
         private IMeta _meta;
         private ITpApi _api;
 
-        private StateSyncer<ClientState, ServerState> _stateSyncer;
+        private StSync<ClientState, ServerState> _stSync;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
 
@@ -65,7 +65,7 @@ namespace Client.Logic
             CancellationToken cancellationToken)
         {
             _log.Info(".");
-            if (_stateSyncer != null)
+            if (_stSync != null)
                 throw new InvalidOperationException("Link is already established");
 
             _workflowOperator = workflowOperator;
@@ -82,10 +82,10 @@ namespace Client.Logic
             );
 
             // connect to server
-            _stateSyncer = await StateSyncerFactory.CreateAndConnect(this, _api, cancellationToken);
+            _stSync = await StSyncFactory.CreateAndConnect(this, _api, cancellationToken);
 
             // link diagnostics
-            var link = _stateSyncer.Link;
+            var link = _stSync.Link;
             var handLink = link.Find<HandLink<ServerConnectState>>() ?? throw new("HandLink not found");
             debugControl.SetServerVersion(handLink.RemoteState.BuildVersion);
 
@@ -112,8 +112,8 @@ namespace Client.Logic
             _dumpLink = null;
             _timeLink = null;
 
-            _stateSyncer?.Dispose();
-            _stateSyncer = null;
+            _stSync?.Dispose();
+            _stSync = null;
 
             _api = null;
             _meta?.Dispose();
@@ -122,12 +122,12 @@ namespace Client.Logic
 
         private void Update()
         {
-            if (_stateSyncer == null)
+            if (_stSync == null)
                 return;
 
             UpdateInfoControl();
 
-            _stateSyncer.LocalUpdate(Time.deltaTime);
+            _stSync.LocalUpdate(Time.deltaTime);
             foreach (var kv in _peerTaps)
                 kv.Value.UpdateSessionMs(_timeLink.RemoteMs);
         }
@@ -154,7 +154,7 @@ namespace Client.Logic
                 sb.Append(_timeLink.RttMs, "00");
                 sb.AppendLine(" ms");
 
-                infoControl.SetText(sb.ToString());
+                infoControl.SetText(sb.AsArraySegment());
             }
             finally
             {
@@ -163,15 +163,16 @@ namespace Client.Logic
         }
 
         SyncOptions ISyncHandler<ClientState, ServerState>.Options => context.syncOptions;
-        IObjWriter<ClientState> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } = TickStateFactory.CreateObjWriter<ClientState>();
-        IObjReader<ServerState> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } = TickStateFactory.CreateObjReader<ServerState>();
+        IObjWriter<StCmd<ClientState>> ISyncHandler<ClientState, ServerState>.LocalWriter { get; } 
+            = TickStateFactory.CreateObjWriter<StCmd<ClientState>>();
+        IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
+            = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
-        ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState(int sendIndex)
+        ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
             var sessionMs = _timeLink.RemoteMs;
             var clientState = new ClientState
             {
-                Frame = sendIndex,
                 Ms = sessionMs
             };
             clientTap.Fill(ref clientState);

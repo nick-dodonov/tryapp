@@ -4,7 +4,8 @@ using Shared.Tp.Data;
 
 namespace Shared.Tp.St.Cmd
 {
-    public class CmdLinkFactory<TSend, TReceive>
+    public class CmdLinkFactory<TSend, TReceive> 
+        where TReceive : struct
     {
         private readonly IObjWriter<TSend> _writer;
         private readonly IObjReader<TReceive> _reader;

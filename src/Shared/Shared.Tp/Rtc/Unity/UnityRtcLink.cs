@@ -86,12 +86,12 @@ namespace Shared.Tp.Rtc.Unity
             _peerConnection.OnDataChannel = channel =>
             {
                 Log.Info($"OnDataChannel: {Describe(channel)}");
-                _dataChannel = channel;
-                _dataChannelTcs.TrySetResult(channel);
                 channel.OnMessage = CallReceived;
                 channel.OnOpen = () => Log.Info($"OnDataChannel: OnOpen: {channel}");
                 channel.OnClose = () => Log.Info($"OnDataChannel: OnClose: {channel}");
                 channel.OnError = error => Log.Info($"OnDataChannel: OnError: {error}");
+                _dataChannel = channel;
+                _dataChannelTcs.TrySetResult(channel);
             };
 
             Log.Info($"setting remote sdp: {offerSdp.type}\n{offerSdp.sdp}");
@@ -135,11 +135,14 @@ namespace Shared.Tp.Rtc.Unity
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        private void Send(ReadOnlySpan<byte> span)
+        private unsafe void Send(ReadOnlySpan<byte> span)
         {
             //Slog.Info($"UnityRtcLink: Send: {bytes.Length} bytes");
             if (_dataChannel != null)
-                _dataChannel.Send(span.ToArray()); //TODO: speedup: ask Unity.WebRTC to support spans 
+                fixed (byte* ptr = span)
+                {
+                    _dataChannel.Send(ptr, span.Length); 
+                }
             else
                 Log.Error("no data channel yet (TODO: wait on connect)");
         }

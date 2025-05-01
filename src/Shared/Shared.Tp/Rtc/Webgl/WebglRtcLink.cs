@@ -49,18 +49,15 @@ namespace Shared.Tp.Rtc.Webgl
         //TODO: some remote peer id variant (maybe _peerConnection.RemoteDescription.UsernameFragment)
         public override string GetRemotePeerId() => throw new NotImplementedException();
 
-        private void Send(ReadOnlySpan<byte> span)
-        {
-            //Log.Info($"{bytes.Length} bytes");
-            var bytes = span.ToArray(); //TODO: speedup: make try to pass span
-            WebglRtcNative.RtcSend(_nativeHandle, bytes, bytes.Length);
-        }
-
-        public override void Send<T>(TpWriteCb<T> writeCb, in T state)
+        public override unsafe void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
             using var writer = PooledBufferWriter.Rent();
             writeCb(writer, state);
-            Send(writer.WrittenSpan);
+
+            //Log.Info($"{bytes.Length} bytes");
+            var span = writer.WrittenSpan;
+            fixed (byte* bytes = span)
+                WebglRtcNative.RtcSend(_nativeHandle, bytes, span.Length);
         }
 
         public async Task Connect(CancellationToken cancellationToken)

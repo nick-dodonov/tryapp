@@ -32,10 +32,16 @@ namespace Shared.Web
         T IWebSerializer.Deserialize<T>(string json) 
             => DeserializeFromString<T>(json);
 
-        T IWebSerializer.Deserialize<T>(ReadOnlySpan<byte> spans)
+        T IWebSerializer.Deserialize<T>(ReadOnlySpan<byte> span)
         {
-            var json = Encoding.UTF8.GetString(spans);
+            var json = Encoding.UTF8.GetString(span);
             return DeserializeFromString<T>(json);
+        }
+
+        void IWebSerializer.Deserialize<T>(ReadOnlySpan<byte> span, ref T obj)
+        {
+            var json = Encoding.UTF8.GetString(span);
+            obj = DeserializeFromString<T>(json);
         }
 
         private static T DeserializeFromString<T>(string json)

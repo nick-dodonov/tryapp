@@ -170,16 +170,15 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         return true;
     }
     
-    public ServerState GetServerState(int frame)
+    public ServerState GetServerState()
     {
         var sessionMs = _timeApi.LocalMs;
         var peerStates = _peers
             .Select(x => x.Key.GetPeerState())
-            .Concat(_virtualPeers.Select(x => x.GetPeerState(frame, sessionMs)))
+            .Concat(_virtualPeers.Select(x => x.GetPeerState(sessionMs)))
             .ToArray();
         return new()
         {
-            Frame = frame,
             Ms = sessionMs,
             Peers = peerStates
         };

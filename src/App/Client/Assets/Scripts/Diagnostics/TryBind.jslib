@@ -1,4 +1,15 @@
 mergeInto(LibraryManager.library, {
+    TestBytes: function(bytes, size) {
+        console.log("TestBytes: 1:", bytes, size);
+        const data = new Uint8Array(HEAPU8.buffer, bytes, size);
+        console.log("TestBytes: 1:", data);
+    },
+    TestSpan: function(bytes, size) {
+        console.log("TestSpan: 1:", bytes, size);
+        const data = new Uint8Array(HEAPU8.buffer, bytes, size);
+        console.log("TestSpan: 1:", data);
+    },
+
     SetupTestCallbackString: function(message, callback) {
         console.log("SetupTestCallbackString:", message);
         var stringMessage = UTF8ToString(message);

@@ -7,7 +7,7 @@ public class CircleVirtualPeer(
     float initRadians, float radius, int circleTimeMs, int direction) 
     : IVirtualPeer
 {
-    PeerState IVirtualPeer.GetPeerState(int frame, int sessionMs)
+    PeerState IVirtualPeer.GetPeerState(int sessionMs)
     {
         var angle = (float)(2 * Math.PI * (sessionMs % circleTimeMs) / circleTimeMs) * direction;
         angle += initRadians;
@@ -18,7 +18,6 @@ public class CircleVirtualPeer(
             Id = id,
             ClientState = new()
             {
-                Frame = frame,
                 Ms = sessionMs,
                 X = x,
                 Y = y,

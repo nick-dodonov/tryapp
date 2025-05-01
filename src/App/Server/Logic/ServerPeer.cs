@@ -10,16 +10,16 @@ namespace Server.Logic;
 public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientState>
 {
     private readonly ServerSession _session;
-    private readonly StateSyncer<ServerState, ClientState> _stateSyncer;
+    private readonly StSync<ServerState, ClientState> _stSync;
 
-    public ITpReceiver Receiver => _stateSyncer.Receiver;
+    public ITpReceiver Receiver => _stSync.Receiver;
 
     private readonly string _peerStateId;
     
     public ServerPeer(ServerSession session, ITpLink link)
     {
         _session = session;
-        _stateSyncer = StateSyncerFactory.CreateConnected(this, link);
+        _stSync = StSyncFactory.CreateConnected(this, link);
 
         var handLink = link.Find<HandLink<ClientConnectState>>() ?? throw new("HandLink not found");
         _peerStateId = handLink.RemoteState?.PeerId ?? throw new("PeerId not found");
@@ -28,25 +28,27 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
 
     public void Dispose()
     {
-        _stateSyncer.Dispose();
+        _stSync.Dispose();
     }
 
     public PeerState GetPeerState()
         => new()
         {
             Id = _peerStateId,
-            ClientState = _stateSyncer.RemoteState
+            ClientState = _stSync.RemoteState
         };
 
     public void Update(float deltaTime)
-        => _stateSyncer.LocalUpdate(deltaTime);
+        => _stSync.LocalUpdate(deltaTime);
 
     SyncOptions ISyncHandler<ServerState, ClientState>.Options => _session.SyncOptions;
-    IObjWriter<ServerState> ISyncHandler<ServerState, ClientState>.LocalWriter { get; } = TickStateFactory.CreateObjWriter<ServerState>();
-    IObjReader<ClientState> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } = TickStateFactory.CreateObjReader<ClientState>();
+    IObjWriter<StCmd<ServerState>> ISyncHandler<ServerState, ClientState>.LocalWriter { get; } 
+        = TickStateFactory.CreateObjWriter<StCmd<ServerState>>();
+    IObjReader<StCmd<ClientState>> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } 
+        = TickStateFactory.CreateObjReader<StCmd<ClientState>>();
 
-    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState(int sendIndex)
-        => _session.GetServerState(sendIndex);
+    ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState()
+        => _session.GetServerState();
 
     void ISyncHandler<ServerState, ClientState>.RemoteUpdated(ClientState remoteState) { }
 

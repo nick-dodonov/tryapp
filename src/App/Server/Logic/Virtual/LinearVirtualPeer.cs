@@ -9,14 +9,13 @@ public class LinearVirtualPeer(string id, uint color, Vector2 initPos, Vector2 i
     private Vector2 _pos = initPos;
     private Vector2 _speed = initSpeed;
 
-    PeerState IVirtualPeer.GetPeerState(int frame, int sessionMs)
+    PeerState IVirtualPeer.GetPeerState(int sessionMs)
     {
         return new()
         {
             Id = id,
             ClientState = new()
             {
-                Frame = frame,
                 Ms = sessionMs,
                 X = _pos.X,
                 Y = _pos.Y,

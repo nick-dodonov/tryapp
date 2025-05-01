@@ -27,6 +27,6 @@ namespace Shared.Tp.Rtc.Webgl
         public static extern void RtcClose(int nativeHandle);
 
         [DllImport("__Internal")]
-        public static extern void RtcSend(int nativeHandle, byte[] bytes, int size);
+        public static extern unsafe void RtcSend(int nativeHandle, byte* bytes, int size);
     }
 }

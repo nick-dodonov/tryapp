@@ -100,18 +100,19 @@ namespace Shared.Tp.Ext.Hand
         {
             try
             {
-                _synState = new(_api.HandshakeOptions);
+                // local var synState as _synState can be changed concurrently (it's used as a flag) //TODO: replace with interlocked flags
+                var synState = _synState = new(_api.HandshakeOptions);
                 do
                 {
-                    _logger.Info(_synState.Attempts == 0 
+                    _logger.Info(synState.Attempts == 0 
                         ? $"send syn and wait ack: {_localStateWriter}"
-                        : $"resend syn and wait ack ({_synState.Attempts} attempt): {_localStateWriter}");
+                        : $"resend syn and wait ack ({synState.Attempts} attempt): {_localStateWriter}");
                     base.Send((writer, @this) =>
                     {
                         writer.Write((byte)Flags.Syn);
                         @this._localStateWriter.Serialize(writer);
                     }, this);
-                } while (await _synState.AwaitResend(cancellationToken));
+                } while (await synState.AwaitResend(cancellationToken));
 
                 _localStateDelivered = true;
                 _logger.Info("connected");
