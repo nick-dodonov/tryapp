@@ -4,7 +4,7 @@ using UnityEngine;
 namespace Client.Logic
 {
     /// <summary>
-    /// Helper for current coordinate system ([-1,1] box to simplify diagnostics and custom impls)
+    /// Helper for the current coordinate system ([-1,1] box to simplify diagnostics and custom impls)
     /// </summary>
     public static class StateExtensions
     {
