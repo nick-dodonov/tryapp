@@ -8,6 +8,7 @@ namespace Client.Logic
     public class Player : MonoBehaviour
     {
         public Image image;
+        public MeshRenderer meshRenderer;
 
         // private Canvas _canvas;
         // private RectTransform _canvasTransform;
@@ -47,8 +48,9 @@ namespace Client.Logic
                 0.3f, 1.0f, //saturation (white->color)
                 0.4f, 1.0f //value (black->color)
             );
+
             image.color = color;
-            
+            meshRenderer.material.color = color;
 
             var color32 = (Color32)color;
             _clientColor = (uint)((color32.r << 16) | (color32.g << 8) | color32.b);

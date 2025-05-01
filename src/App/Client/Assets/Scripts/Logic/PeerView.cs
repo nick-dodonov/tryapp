@@ -8,6 +8,7 @@ namespace Client.Logic
     public class PeerView : MonoBehaviour
     {
         public Image image;
+        public MeshRenderer meshRenderer;
         public TMP_Text idText;
 
         private bool _changed;
@@ -15,6 +16,7 @@ namespace Client.Logic
         public void SetChanged(bool changed) => _changed = changed;
 
         private float _applySessionMs;
+        private Color _applyColor;
 
         public void ApplyState(in PeerState peerState)
         {
@@ -23,13 +25,16 @@ namespace Client.Logic
             transform.position = state.LoadPosition();
 
             // Convert back from uint to Color32 and assign it to image.color
-            var color = state.Color;
-            image.color = new Color32(
-                (byte)((color >> 16) & 0xFF),
-                (byte)((color >> 8) & 0xFF),
-                (byte)(color & 0xFF),
+            var colorU = state.Color;
+            var color32 = new Color32(
+                (byte)((colorU >> 16) & 0xFF),
+                (byte)((colorU >> 8) & 0xFF),
+                (byte)(colorU & 0xFF),
                 0xFF);
+            _applyColor = color32;
 
+            ApplyColor();
+            
             idText.text = peerState.Id;
 
             _changed = true;
@@ -42,8 +47,15 @@ namespace Client.Logic
         {
             var t = (sessionMs - _applySessionMs) / FadeAlphaSec / 1000.0f;
             var alpha = Mathf.Lerp(1, FadeAlphaMin, t);
-            var color = image.color;
-            image.color = new(color.r, color.g, color.b, alpha);
+            _applyColor.a = alpha;
+
+            ApplyColor();
+        }
+        
+        private void ApplyColor()
+        {
+            image.color = _applyColor;
+            meshRenderer.material.color = _applyColor;
         }
     }
 }
