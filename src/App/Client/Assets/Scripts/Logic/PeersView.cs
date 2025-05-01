@@ -1,8 +1,7 @@
-using System;
-using System.Buffers;
 using System.Collections.Generic;
 using Common.Data;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.Util;
 using UnityEngine;
 
 namespace Client.Logic
@@ -38,41 +37,37 @@ namespace Client.Logic
             var sessionMs = _timeLink.RemoteMs;
 
             var count = 0;
-            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
-            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
-            try
+            var pool = SlimMemoryPool<KeyValuePair<string, PeerTap>>.Shared;
+            using var owner = pool.Rent(_peerTaps.Count);
+            var span = owner.Memory.Span;
+
+            foreach (var kv in _peerTaps)
             {
-                foreach (var kv in _peerTaps)
-                {
-                    peerKvs[count++] = kv;
-                    kv.Value.SetChanged(false);
-                }
-
-                foreach (var peerState in serverState.Peers)
-                {
-                    var peerId = peerState.Id;
-                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
-                    {
-                        var peerGameObject = Instantiate(peerPrefab, transform);
-                        peerTap = peerGameObject.GetComponent<PeerTap>();
-                        _peerTaps.Add(peerId, peerTap);
-                    }
-
-                    peerTap.Apply(peerState, sessionMs);
-                }
-
-                //remove peer taps that don't exist anymore
-                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
-                {
-                    if (peerTap.Changed)
-                        continue;
-                    _peerTaps.Remove(id);
-                    Destroy(peerTap.gameObject);
-                }
+                span[count++] = kv;
+                kv.Value.SetChanged(false);
             }
-            finally
+
+            foreach (var peerState in serverState.Peers)
             {
-                peerKvsPool.Return(peerKvs);
+                var peerId = peerState.Id;
+                if (!_peerTaps.TryGetValue(peerId, out var peerTap))
+                {
+                    var peerGameObject = Instantiate(peerPrefab, transform);
+                    peerTap = peerGameObject.GetComponent<PeerTap>();
+                    _peerTaps.Add(peerId, peerTap);
+                }
+
+                peerTap.ApplyState(peerState);
+                peerTap.UpdateSessionMs(sessionMs);
+            }
+
+            //remove peer taps that don't exist anymore
+            foreach (var (id, peerTap) in span[..count])
+            {
+                if (peerTap.Changed)
+                    continue;
+                _peerTaps.Remove(id);
+                Destroy(peerTap.gameObject);
             }
         }
     }
