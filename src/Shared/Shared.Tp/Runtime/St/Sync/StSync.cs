@@ -32,7 +32,7 @@ namespace Shared.Tp.St.Sync
         void RemoteDisconnected();
     }
 
-    public class StateSyncer<TLocal, TRemote> : IDisposable, ICmdReceiver<StCmd<TRemote>>
+    public class StSync<TLocal, TRemote> : IDisposable, ICmdReceiver<StCmd<TRemote>>
     {
         private readonly ISyncHandler<TLocal, TRemote> _handler;
 
@@ -49,7 +49,7 @@ namespace Shared.Tp.St.Sync
         public TRemote RemoteState =>
             _remoteState ?? throw new InvalidOperationException("Remote state is not received yet");
 
-        internal StateSyncer(ISyncHandler<TLocal, TRemote> handler)
+        internal StSync(ISyncHandler<TLocal, TRemote> handler)
             => _handler = handler;
 
         internal void SetCmdLink(CmdLink<StCmd<TLocal>, StCmd<TRemote>> cmdLink)
