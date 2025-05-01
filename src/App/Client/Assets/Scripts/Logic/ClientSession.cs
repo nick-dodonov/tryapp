@@ -35,7 +35,7 @@ namespace Client.Logic
         public DebugControl debugControl;
         public InfoControl infoControl;
 
-        public ClientTap clientTap;
+        public Player player;
         public PeersView peersView;
 
         public ClientContext context;
@@ -50,7 +50,7 @@ namespace Client.Logic
         private void OnEnable()
         {
             peersView.gameObject.SetActive(false);
-            clientTap.gameObject.SetActive(false);
+            player.gameObject.SetActive(false);
             RuntimePanel.SetInspectorContext(context);
         }
 
@@ -93,14 +93,14 @@ namespace Client.Logic
             // enable peers view / player input
             peersView.Init(_timeLink);
             peersView.gameObject.SetActive(true);
-            clientTap.gameObject.SetActive(true); 
+            player.gameObject.SetActive(true); 
         }
 
         public void Finish(string reason)
         {
             _log.Info(reason);
 
-            clientTap.gameObject.SetActive(false);
+            player.gameObject.SetActive(false);
             peersView.gameObject.SetActive(false);
 
             debugControl.SetServerVersion(null);
@@ -169,7 +169,7 @@ namespace Client.Logic
             {
                 Ms = sessionMs
             };
-            clientTap.Fill(ref clientState);
+            player.Fill(ref clientState);
             return clientState;
         }
 

@@ -20,7 +20,7 @@ namespace Client.Logic
         {
             var state = peerState.ClientState;
             _applySessionMs = state.Ms;
-            state.AssignPosition(transform);
+            transform.position = state.LoadPosition();
 
             // Convert back from uint to Color32 and assign it to image.color
             var color = state.Color;
