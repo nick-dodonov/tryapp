@@ -16,7 +16,7 @@ namespace Client.Logic
 
         private float _applySessionMs;
 
-        public void Apply(in PeerState peerState)
+        public void Apply(in PeerState peerState, int sessionMs)
         {
             var state = peerState.ClientState;
             _applySessionMs = state.Ms;
@@ -31,8 +31,9 @@ namespace Client.Logic
                 0xFF);
 
             idText.text = peerState.Id;
-            
+
             _changed = true;
+            UpdateSessionMs(sessionMs);
         }
 
         private const float FadeAlphaMin = 0.1f;

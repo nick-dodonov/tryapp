@@ -28,12 +28,15 @@ namespace Client.Logic
 
         private void Update()
         {
+            var sessionMs = _timeLink.RemoteMs;
             foreach (var (_, peerTap) in _peerTaps)
-                peerTap.UpdateSessionMs(_timeLink.RemoteMs);
+                peerTap.UpdateSessionMs(sessionMs);
         }
 
         public void RemoteUpdated(ServerState serverState)
         {
+            var sessionMs = _timeLink.RemoteMs;
+
             var count = 0;
             var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
             var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
@@ -55,7 +58,7 @@ namespace Client.Logic
                         _peerTaps.Add(peerId, peerTap);
                     }
 
-                    peerTap.Apply(peerState);
+                    peerTap.Apply(peerState, sessionMs);
                 }
 
                 //remove peer taps that don't exist anymore
