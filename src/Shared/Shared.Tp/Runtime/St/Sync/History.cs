@@ -52,8 +52,15 @@ namespace Shared.Tp.St.Sync
         {
             if (_count >= _capacity)
             {
-                _capacity *= 2;
-                Array.Resize(ref _array, _capacity);
+                var capacity = _capacity * 2;
+                Array.Resize(ref _array, capacity);
+
+                // copy to the end of the array to handle the case resize on cycle
+                var offset = capacity - _capacity;
+                Array.Copy(_array, 0, _array, offset, _capacity);
+
+                _capacity = capacity;
+                _first += offset;
             }
 
             ++_count;
@@ -62,6 +69,48 @@ namespace Shared.Tp.St.Sync
             return ref lastItemRef.value;
         }
 
+        public struct ReverseRefValueEnumerator
+        {
+            private readonly History<T> _history;
+            private int _iterated;
+
+            internal ReverseRefValueEnumerator(History<T> history)
+            {
+                _history = history;
+                _iterated = 0;
+            }
+
+            public ReverseRefValueEnumerator GetEnumerator() => this;
+
+            public ref T Current 
+                => ref _history._array[(_history._first + _history._count - _iterated) % _history._capacity].value;
+
+            public bool MoveNext() => _iterated++ < _history._count;
+        }
+
+        public ReverseRefValueEnumerator ReverseRefValues => new(this);
+
+        public struct ReverseRefItemEnumerator
+        {
+            private readonly History<T> _history;
+            private int _iterated;
+
+            internal ReverseRefItemEnumerator(History<T> history)
+            {
+                _history = history;
+                _iterated = 0;
+            }
+
+            public ReverseRefItemEnumerator GetEnumerator() => this;
+
+            public ref (int frame, T value) Current 
+                => ref _history._array[(_history._first + _history._count - _iterated) % _history._capacity];
+
+            public bool MoveNext() => _iterated++ < _history._count;
+        }
+
+        public ReverseRefItemEnumerator ReverseRefItems => new(this);
+        
         private static void ThrowInvalidOperation(string message) =>
             throw new InvalidOperationException(message);
     }
