@@ -180,11 +180,7 @@ namespace Client.Logic
         int ISyncHandler<ClientState, ServerState>.TimeMs => _timeLink.RemoteMs;
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
-            var sessionMs = _timeLink.RemoteMs;
-            var clientState = new ClientState
-            {
-                Ms = sessionMs
-            };
+            var clientState = new ClientState();
             player.Fill(ref clientState);
             return clientState;
         }

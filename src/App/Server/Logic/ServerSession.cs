@@ -180,7 +180,6 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
             .ToArray();
         return new()
         {
-            Ms = sessionMs,
             Peers = peerStates
         };
     }

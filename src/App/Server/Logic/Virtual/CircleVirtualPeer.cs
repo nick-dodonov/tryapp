@@ -19,7 +19,6 @@ public class CircleVirtualPeer(
             Ms = sessionMs,
             ClientState = new()
             {
-                Ms = sessionMs,
                 X = x,
                 Y = y,
                 Color = color

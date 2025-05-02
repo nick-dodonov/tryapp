@@ -25,7 +25,6 @@ namespace Common.Data {
 /// <remarks>
 /// MemoryPack GenerateType: unmanaged<br/>
 /// <code>
-/// <b>int</b> Ms<br/>
 /// <b>float</b> X<br/>
 /// <b>float</b> Y<br/>
 /// <b>uint</b> Color<br/>

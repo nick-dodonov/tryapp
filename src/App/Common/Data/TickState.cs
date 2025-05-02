@@ -15,8 +15,6 @@ namespace Common.Data
     [MemoryPackable]
     public partial struct ClientState
     {
-        public int Ms;
-
         public float X;
         public float Y;
         public uint Color;
@@ -35,8 +33,6 @@ namespace Common.Data
     [MemoryPackable]
     public partial struct ServerState
     {
-        public int Ms;
-
         public PeerState[] Peers;
     }
 }
