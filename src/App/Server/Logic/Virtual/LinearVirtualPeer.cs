@@ -14,6 +14,7 @@ public class LinearVirtualPeer(string id, uint color, Vector2 initPos, Vector2 i
         return new()
         {
             Id = id,
+            Ms = sessionMs,
             ClientState = new()
             {
                 Ms = sessionMs,

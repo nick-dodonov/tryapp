@@ -39,7 +39,7 @@ namespace Client.Logic
                 (byte)(colorU & 0xFF),
                 0xFF);
             _applyColor = color32;
-            _applySessionMs = clientState.Ms;
+            _applySessionMs = _peerState.Ms;
             ApplyColor();
 
             idText.text = peerState.Id;

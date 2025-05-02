@@ -35,7 +35,7 @@ namespace Shared.Tp.St.Sync
             get
             {
                 if (_count <= 0)
-                    ThrowInvalidOperation("Remote state is not received yet");
+                    ThrowInvalidOperation("LastValueRef: remote state is not received yet");
                 return ref LastItemRef.value;
             }
         }

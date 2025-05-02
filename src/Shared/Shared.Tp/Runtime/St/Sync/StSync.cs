@@ -21,6 +21,7 @@ namespace Shared.Tp.St.Sync
         public StHistory<TLocal> LocalHistory => _localHistory;
         public StHistory<TRemote> RemoteHistory => _remoteHistory;
 
+        public int RemoteStateMs => _remoteHistory.LastKey.ms;
         public ref TRemote RemoteStateRef => ref _remoteHistory.LastValueRef;
 
         internal StSync(ISyncHandler<TLocal, TRemote> handler)
@@ -39,15 +40,15 @@ namespace Shared.Tp.St.Sync
 
             var cmd = new StCmd<TLocal>
             {
-                From = _localHistory.FirstKey,
+                From = _localHistory.FirstKey.frame,
                 To = ++_localFrame,
-                Known = _remoteHistory.LastKey,
+                Known = _remoteHistory.LastKey.frame,
                 
                 Ms = _handler.TimeMs,
 
                 Value = _handler.MakeLocalState() //TODO: From->To
             };
-            _localHistory.AddValueRef(cmd.To) = cmd.Value;
+            _localHistory.AddValueRef((cmd.To, cmd.Ms)) = cmd.Value;
             
             _cmdLink.CmdSend(in cmd);
         }
@@ -70,10 +71,10 @@ namespace Shared.Tp.St.Sync
 
         void ICmdReceiver<StCmd<TRemote>>.CmdReceived(in StCmd<TRemote> cmd)
         {
-            _localHistory.ClearUntil(cmd.Known);
+            _localHistory.ClearUntil((cmd.Known, 0)); //TODO: think to move to filling local state
 
-            _remoteHistory.ClearUntil(cmd.From);
-            _remoteHistory.AddValueRef(cmd.To) = cmd.Value; //TODO: From->To
+            _remoteHistory.ClearUntil((cmd.From, 0));
+            _remoteHistory.AddValueRef((cmd.To, cmd.Ms)) = cmd.Value; //TODO: From->To
 
             _handler.RemoteUpdated();
         }

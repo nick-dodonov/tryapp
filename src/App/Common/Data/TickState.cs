@@ -27,6 +27,7 @@ namespace Common.Data
     {
         [QuickInternStringFormatter]
         public string Id;
+        public int Ms; // state fill time (current for virtual peers)
 
         public ClientState ClientState;
     }

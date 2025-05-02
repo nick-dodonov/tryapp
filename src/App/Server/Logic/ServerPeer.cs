@@ -36,6 +36,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
         => new()
         {
             Id = _peerStateId,
+            Ms = _stSync.RemoteStateMs,
             ClientState = _stSync.RemoteStateRef
         };
 
