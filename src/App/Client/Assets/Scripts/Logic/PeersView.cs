@@ -33,7 +33,7 @@ namespace Client.Logic
                 peerView.UpdateSessionMs(sessionMs);
         }
 
-        public void RemoteUpdated(ServerState serverState, History<ServerState> serverHistory)
+        public void RemoteUpdated(History<ServerState> serverHistory)
         {
             var count = 0;
             var pool = SlimMemoryPool<KeyValuePair<string, PeerView>>.Shared;
@@ -46,6 +46,7 @@ namespace Client.Logic
                 kv.Value.SetChanged(false);
             }
 
+            ref var serverState = ref serverHistory.LastValueRef;
             foreach (var peerState in serverState.Peers)
             {
                 var peerId = peerState.Id;

@@ -11,8 +11,8 @@ namespace Shared.Tp.Tests
             var hist = new History<string>(4);
             Assert.AreEqual(0, hist.Count);
 
-            hist.AddValue(1, "1");
-            hist.AddValue(2, "2");
+            hist.AddValueRef(1) = "1";
+            hist.AddValueRef(2) = "2";
             Assert.AreEqual(2, hist.Count);
             
             hist.ClearUntil(1);
@@ -30,17 +30,17 @@ namespace Shared.Tp.Tests
             Assert.AreEqual(initCapacity, hist.Capacity);
 
             var frame = 0;
-            hist.AddValue(++frame, frame.ToString());
+            hist.AddValueRef(++frame) = frame.ToString();
             Assert.AreEqual(1, hist.Count);
 
             for (var i = 0; i < 10; ++i)
             {
-                hist.AddValue(++frame, frame.ToString());
+                hist.AddValueRef(++frame) = frame.ToString();
                 Assert.AreEqual(2, hist.Count);
 
                 hist.ClearUntil(frame);
                 Assert.AreEqual(1, hist.Count);
-                Assert.AreEqual(frame.ToString(), hist.LastValue);
+                Assert.AreEqual(frame.ToString(), hist.LastValueRef);
             }
             
             Assert.AreEqual(initCapacity, hist.Capacity);

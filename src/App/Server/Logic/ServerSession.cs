@@ -36,8 +36,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
     private readonly IVirtualPeer[] _virtualPeers =
     [
         new CircleVirtualPeer("Virt-C/0", 0x8F7F7F, 0.0f, 0.8f, 10_000, 1),
-        //new CircleVirtualPeer("VirtualC1", 0x9F7F7F, 0.5f, 0.6f, 20_000, -1),
-        new LinearVirtualPeer("Virt-L/0", 0x7F7F8F, new(0.5f, 0.6f), new(0.3f, -0.3f)),
+        new LinearVirtualPeer("Virt-L/0", 0x7F7F8F, new(0.5f, 0.7f), new(0.3f, -0.4f)),
     ];
 
     public ServerSession(

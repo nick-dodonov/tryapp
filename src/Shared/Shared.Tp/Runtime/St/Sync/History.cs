@@ -3,7 +3,6 @@ using System;
 namespace Shared.Tp.St.Sync
 {
     /// <summary>
-    /// TODO: ref accessors only (get rid of copies in usage)
     /// TODO: reimplement with separate free array plus cyclic indices (reuse the same values frequently)
     /// 
     /// </summary>
@@ -27,15 +26,16 @@ namespace Shared.Tp.St.Sync
         public int Capacity => _capacity;
         public int Count => _count;
 
-        public int FirstFrame => _count > 0 ? _array[_first].frame : 0;
+        public int FirstFrame => _count > 0 ? FirstItemRef.frame : 0;
         public int LastFrame => _count > 0 ? LastItemRef.frame : 0;
-        public T LastValue
+
+        public ref T LastValueRef
         {
             get
             {
                 if (_count <= 0)
                     ThrowInvalidOperation("Remote state is not received yet");
-                return LastItemRef.value;
+                return ref LastItemRef.value;
             }
         }
 
@@ -48,7 +48,7 @@ namespace Shared.Tp.St.Sync
             }
         }
 
-        public void AddValue(int frame, T value)
+        public ref T AddValueRef(int frame)
         {
             if (_count >= _capacity)
             {
@@ -57,7 +57,9 @@ namespace Shared.Tp.St.Sync
             }
 
             ++_count;
-            LastItemRef = (frame, value);
+            ref var lastItemRef = ref LastItemRef;
+            lastItemRef.frame = frame;
+            return ref lastItemRef.value;
         }
 
         private static void ThrowInvalidOperation(string message) =>

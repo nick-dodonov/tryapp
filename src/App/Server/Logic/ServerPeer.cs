@@ -31,12 +31,12 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
         _stSync.Dispose();
     }
 
-    public bool PeerStateExists => _stSync.RemoteHistoryCount > 0; //TODO: remove adding first state to ClientConnectState
+    public bool PeerStateExists => _stSync.RemoteHistory.Count > 0; //TODO: remove adding first state to ClientConnectState
     public PeerState GetPeerState()
         => new()
         {
             Id = _peerStateId,
-            ClientState = _stSync.RemoteState
+            ClientState = _stSync.RemoteStateRef
         };
 
     public void Update(float deltaTime)

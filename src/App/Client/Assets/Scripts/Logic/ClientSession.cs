@@ -146,10 +146,10 @@ namespace Client.Logic
                 sb.AppendLine(" sec");
 
                 sb.Append("st-hist: ");
-                sb.Append(_stSync.LocalHistoryCount);
-                sb.Append("/");
-                sb.Append(_stSync.RemoteHistoryCount);
-                sb.AppendLine(" l/r");
+                sb.AppendHistInfo(_stSync.LocalHistory);
+                sb.Append(" (l) ");
+                sb.AppendHistInfo(_stSync.RemoteHistory);
+                sb.AppendLine(" (r) n/cap");
 
                 sb.Append("out: ");
                 sb.AppendStatDir(stats.Out);
@@ -190,7 +190,7 @@ namespace Client.Logic
 
         void ISyncHandler<ClientState, ServerState>.RemoteUpdated()
         {
-            peersView.RemoteUpdated(_stSync.RemoteState, _stSync.RemoteHistory);
+            peersView.RemoteUpdated(_stSync.RemoteHistory);
         }
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
@@ -232,6 +232,14 @@ namespace Client.Logic
             }
 
             sb.Append(" b/sec");
+        }
+
+        public static void AppendHistInfo<T>(this ref Utf16ValueStringBuilder sb, in History<T> history)
+        {
+            sb.Append(history.Count);
+            sb.Append('/');
+            sb.Append(history.Capacity);
+            
         }
     }
 }
