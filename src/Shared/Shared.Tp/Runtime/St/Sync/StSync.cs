@@ -15,11 +15,11 @@ namespace Shared.Tp.St.Sync
         private float _localElapsedToSend;
 
         private const int HistoryInitCapacity = 4;
-        private readonly History<int, TLocal> _localHistory = new(HistoryInitCapacity);
-        private readonly History<int, TRemote> _remoteHistory = new(HistoryInitCapacity);
+        private readonly StHistory<TLocal> _localHistory = new(HistoryInitCapacity);
+        private readonly StHistory<TRemote> _remoteHistory = new(HistoryInitCapacity);
 
-        public History<int, TLocal> LocalHistory => _localHistory;
-        public History<int, TRemote> RemoteHistory => _remoteHistory;
+        public StHistory<TLocal> LocalHistory => _localHistory;
+        public StHistory<TRemote> RemoteHistory => _remoteHistory;
 
         public ref TRemote RemoteStateRef => ref _remoteHistory.LastValueRef;
 

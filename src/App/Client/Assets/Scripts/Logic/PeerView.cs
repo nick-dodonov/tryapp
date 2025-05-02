@@ -23,7 +23,7 @@ namespace Client.Logic
         private float _applySessionMs;
         private Color _applyColor;
 
-        public void ApplyState(in PeerState peerState, History<int, ServerState> history)
+        public void ApplyState(in PeerState peerState, StHistory<ServerState> history)
         {
             _peerState = peerState;
             ApplyHistory(history);
@@ -47,7 +47,7 @@ namespace Client.Logic
             _changed = true;
         }
 
-        private void ApplyHistory(History<int, ServerState> history)
+        private void ApplyHistory(StHistory<ServerState> history)
         {
             var index = 0;
             lineRenderer.positionCount = 0;

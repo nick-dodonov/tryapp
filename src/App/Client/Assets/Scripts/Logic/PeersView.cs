@@ -33,7 +33,7 @@ namespace Client.Logic
                 peerView.UpdateSessionMs(sessionMs);
         }
 
-        public void RemoteUpdated(History<int, ServerState> serverHistory)
+        public void RemoteUpdated(StHistory<ServerState> serverHistory)
         {
             var count = 0;
             var pool = SlimMemoryPool<KeyValuePair<string, PeerView>>.Shared;

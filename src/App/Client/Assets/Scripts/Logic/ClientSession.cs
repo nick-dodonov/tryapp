@@ -235,13 +235,11 @@ namespace Client.Logic
             sb.Append(" b/sec");
         }
 
-        public static void AppendHistInfo<TKey, TValue>(this ref Utf16ValueStringBuilder sb, in History<TKey, TValue> history) 
-            where TKey : unmanaged, IComparable<TKey>
+        public static void AppendHistInfo<T>(this ref Utf16ValueStringBuilder sb, in StHistory<T> history) 
         {
             sb.Append(history.Count);
             sb.Append('/');
             sb.Append(history.Capacity);
-            
         }
     }
 }
