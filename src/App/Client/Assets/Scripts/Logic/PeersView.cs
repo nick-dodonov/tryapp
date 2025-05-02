@@ -7,6 +7,8 @@ using UnityEngine;
 
 namespace Client.Logic
 {
+    //TODO: !!!!! REWORK INTERPOLATIONS POC !!!!!
+    
     public class PeersView : MonoBehaviour, IViewHandler
     {
         public GameObject peerPrefab;
@@ -30,10 +32,35 @@ namespace Client.Logic
         }
 
         private int _frameSessionMs;
-        public int SessionMs => _frameSessionMs;
+        int IViewHandler.SessionMs => _frameSessionMs;
+
+        private ServerState _interpolatedState;
+
         private void Update()
         {
             _frameSessionMs = _timeLink.RemoteMs;
+
+            //TODO: currentMs using smoothed _timeLink.RttMs
+            var currentMs = _frameSessionMs - 210; //TODO: XXXXXXXX constant based on current server's send rate 
+
+            _history.VisitExistingBounds(
+                (0, currentMs),
+                //TODO: VisitExistingBounds with state for static delegate
+                (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
+                {
+                    var interval = to.Key.Ms - from.Key.Ms;
+                    var value = key.Ms - from.Key.Ms;
+                    var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
+                    //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {_frameSessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
+                    _interpolatedState.Interpolate(from.Value, to.Value, t);
+                    
+                    foreach (var peerState in _interpolatedState.Peers)
+                    {
+                        var peerId = peerState.Id;
+                        if (_peerViews.TryGetValue(peerId, out var peerView)) 
+                            peerView.ApplyInterpolatedState(peerState);
+                    }
+                });
         }
 
         public void RemoteUpdated()
@@ -61,7 +88,7 @@ namespace Client.Logic
                     _peerViews.Add(peerId, peerView);
                 }
 
-                peerView.ApplyState(peerState, _history);
+                peerView.ApplyLastState(peerState, _history);
             }
 
             //remove peer views that don't exist anymore

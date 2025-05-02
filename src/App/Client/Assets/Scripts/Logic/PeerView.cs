@@ -36,15 +36,12 @@ namespace Client.Logic
 
         private Color _applyColor;
 
-        public void ApplyState(in PeerState peerState, StHistory<ServerState> history)
+        public void ApplyLastState(in PeerState peerState, StHistory<ServerState> history)
         {
             _peerState = peerState;
             ApplyHistory(history);
 
             ref var clientState = ref _peerState.ClientState;
-            transform.position = clientState.LoadPosition();
-
-            // Convert back from uint to Color32 and assign it to image.color
             var colorU = clientState.Color;
             var color32 = new Color32(
                 (byte)((colorU >> 16) & 0xFF),
@@ -84,6 +81,11 @@ namespace Client.Logic
                 _states[1] = _states[0];
         }
 
+        public void ApplyInterpolatedState(in PeerState peerState)
+        {
+            transform.position = peerState.ClientState.LoadPosition();
+        }
+
         private const float FadeAlphaMin = 0.1f;
         private const float FadeAlphaSec = 4.0f;
 
@@ -95,45 +97,12 @@ namespace Client.Logic
             _applyColor.a = alpha;
 
             ApplyColor();
-            ApplyTransform();
         }
 
         private void ApplyColor()
         {
             image.color = _applyColor;
             meshRenderer.material.color = _applyColor;
-        }
-
-        private void ApplyTransform()
-        {
-            const float t = 0.5f;
-            var interpolated = new ClientState
-            {
-                X = Mathf.Lerp(_states[0].X, _states[1].X, t),
-                Y = Mathf.Lerp(_states[0].Y, _states[1].Y, t)
-            };
-            transform.position = interpolated.LoadPosition();
-        }
-    }
-
-    public static class ServerStateExtensions
-    {
-        //TODO: cache Peers by Id in ServerState
-        public static bool TryGetPeerStateIndex(this in ServerState serverState, string peerId, out int peerIndex)
-        {
-            peerIndex = -1;
-
-            var peers = serverState.Peers;
-            for (var i = 0; i < peers.Length; ++i)
-            {
-                if (peers[i].Id != peerId)
-                    continue;
-
-                peerIndex = i;
-                return true;
-            }
-
-            return false;
         }
     }
 }

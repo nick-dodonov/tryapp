@@ -13,19 +13,19 @@ MonoBehaviour:
   m_Name: ClientContext
   m_EditorClassIdentifier: 
   syncOptions:
-    <BasicSendRate>k__BackingField: 2
+    <BasicSendRate>k__BackingField: 5
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
     <LogStartBytes>k__BackingField: 100
     <LogEndBytes>k__BackingField: 20
   dumpLinkStats:
     In:
-      CountTotal: 616
-      BytesTotal: 82763
-      CountRate: 5
-      BytesRate: 680
+      CountTotal: 0
+      BytesTotal: 0
+      CountRate: 0
+      BytesRate: 0
     Out:
-      CountTotal: 291
-      BytesTotal: 13060
-      CountRate: 2
-      BytesRate: 90
+      CountTotal: 0
+      BytesTotal: 0
+      CountRate: 0
+      BytesRate: 0

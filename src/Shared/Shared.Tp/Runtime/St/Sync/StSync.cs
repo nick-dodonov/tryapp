@@ -73,7 +73,7 @@ namespace Shared.Tp.St.Sync
         {
             _localHistory.ClearUntil((cmd.Known, 0)); //TODO: think to move to filling local state
 
-            _remoteHistory.ClearUntil((cmd.From, 0));
+            _remoteHistory.ClearUntil((cmd.From - 2, 0)); //TODO: XXXXXXXX ClearUntil interpolation to keep
             _remoteHistory.AddValueRef((cmd.To, cmd.Ms)) = cmd.Value; //TODO: From->To
 
             _handler.RemoteUpdated();
