@@ -6,6 +6,15 @@ using UnityEngine.UI;
 
 namespace Client.Logic
 {
+    public interface IViewHandler
+    {
+        public int SessionMs { get; }
+    }
+    
+    /// <summary>
+    /// TODO: mv interpolation logic to generic and customization
+    /// 
+    /// </summary>
     public class PeerView : MonoBehaviour
     {
         public Image image;
@@ -14,13 +23,17 @@ namespace Client.Logic
 
         public LineRenderer lineRenderer;
 
+        private IViewHandler _viewHandler;
+        public void SetViewHandler(IViewHandler viewHandler) 
+            => _viewHandler = viewHandler;
+
         private bool _changed;
         public bool Changed => _changed;
         public void SetChanged(bool changed) => _changed = changed;
 
         private PeerState _peerState;
+        private readonly ClientState[] _states = new ClientState[2];
 
-        private float _applySessionMs;
         private Color _applyColor;
 
         public void ApplyState(in PeerState peerState, StHistory<ServerState> history)
@@ -39,12 +52,13 @@ namespace Client.Logic
                 (byte)(colorU & 0xFF),
                 0xFF);
             _applyColor = color32;
-            _applySessionMs = _peerState.Ms;
             ApplyColor();
 
             idText.text = peerState.Id;
 
             _changed = true;
+            
+            Update(); // update according to state (alpha, interpolated pos)
         }
 
         private void ApplyHistory(StHistory<ServerState> history)
@@ -57,26 +71,48 @@ namespace Client.Logic
                     continue;
 
                 ref var peerState = ref serverState.Peers[peerIndex];
+
+                if (index < _states.Length)
+                    _states[index] = peerState.ClientState;
+
                 lineRenderer.positionCount = index + 1;
                 lineRenderer.SetPosition(index++, peerState.ClientState.LoadPosition());
             }
+
+            Debug.Assert(index > 0); // always have the last state
+            if (index <= 1)
+                _states[1] = _states[0];
         }
 
         private const float FadeAlphaMin = 0.1f;
         private const float FadeAlphaSec = 4.0f;
 
-        public void UpdateSessionMs(int sessionMs)
+        public void Update()
         {
-            var t = (sessionMs - _applySessionMs) / FadeAlphaSec / 1000.0f;
+            var sessionMs = _viewHandler.SessionMs;
+            var t = (sessionMs - _peerState.Ms) / FadeAlphaSec / 1000.0f;
             var alpha = Mathf.Lerp(1, FadeAlphaMin, t);
             _applyColor.a = alpha;
+
             ApplyColor();
+            ApplyTransform();
         }
 
         private void ApplyColor()
         {
             image.color = _applyColor;
             meshRenderer.material.color = _applyColor;
+        }
+
+        private void ApplyTransform()
+        {
+            const float t = 0.5f;
+            var interpolated = new ClientState
+            {
+                X = Mathf.Lerp(_states[0].X, _states[1].X, t),
+                Y = Mathf.Lerp(_states[0].Y, _states[1].Y, t)
+            };
+            transform.position = interpolated.LoadPosition();
         }
     }
 

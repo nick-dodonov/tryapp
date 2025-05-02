@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Client.Logic
 {
-    public class PeersView : MonoBehaviour
+    public class PeersView : MonoBehaviour, IViewHandler
     {
         public GameObject peerPrefab;
 
@@ -26,11 +26,11 @@ namespace Client.Logic
             _peerViews.Clear();
         }
 
+        private int _frameSessionMs;
+        public int SessionMs => _frameSessionMs;
         private void Update()
         {
-            var sessionMs = _timeLink.RemoteMs;
-            foreach (var (_, peerView) in _peerViews)
-                peerView.UpdateSessionMs(sessionMs);
+            _frameSessionMs = _timeLink.RemoteMs;
         }
 
         public void RemoteUpdated(StHistory<ServerState> serverHistory)
@@ -54,6 +54,7 @@ namespace Client.Logic
                 {
                     var peerGameObject = Instantiate(peerPrefab, transform);
                     peerView = peerGameObject.GetComponent<PeerView>();
+                    peerView.SetViewHandler(this);
                     _peerViews.Add(peerId, peerView);
                 }
 
@@ -68,9 +69,6 @@ namespace Client.Logic
                 _peerViews.Remove(id);
                 Destroy(peerView.gameObject);
             }
-
-            // fix alpha according to current state
-            Update();
         }
     }
 }
