@@ -1,42 +1,66 @@
 using System;
-using System.Collections.Concurrent;
-using System.Linq;
 
 namespace Shared.Tp.St.Sync
 {
     /// <summary>
-    /// TODO: reimplement with cyclic buffer
-    /// TODO: implement with ref accessors
+    /// TODO: ref accessors only (get rid of copies in usage)
+    /// TODO: reimplement with separate free array plus cyclic indices (reuse the same values frequently)
     /// 
     /// </summary>
     public class History<T>
     {
-        private readonly ConcurrentQueue<(int frame, T value)> _history = new();
+        private (int frame, T value)[] _array;
 
-        public int Count => _history.Count; // diagnostics
+        private int _capacity;
+        private int _first;
+        private int _count;
 
-        public int FirstFrame => _history.Count > 0 ? _history.First().frame : 0;
-        public int LastFrame => _history.Count > 0 ? _history.Last().frame : 0;
+        private ref (int frame, T value) FirstItemRef => ref _array[_first];
+        private ref (int frame, T value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
 
+        public History(int initCapacity)
+        {
+            _array = new (int frame, T value)[initCapacity];
+            _capacity = initCapacity;
+        }
+
+        public int Capacity => _capacity;
+        public int Count => _count;
+
+        public int FirstFrame => _count > 0 ? _array[_first].frame : 0;
+        public int LastFrame => _count > 0 ? LastItemRef.frame : 0;
         public T LastValue
         {
             get
             {
-                if (_history.Count > 0)
-                    return _history.Last().value;
-                throw new InvalidOperationException("Remote state is not received yet");
+                if (_count <= 0)
+                    ThrowInvalidOperation("Remote state is not received yet");
+                return LastItemRef.value;
             }
         }
 
         public void ClearUntil(int frame)
         {
-            while (_history.TryPeek(out var first) && first.frame < frame)
-                _history.TryDequeue(out first);
+            while (_count > 0 && FirstItemRef.frame < frame)
+            {
+                _first = ++_first % _capacity; 
+                --_count;
+            }
         }
 
         public void AddValue(int frame, T value)
         {
-            _history.Enqueue((frame, value));
+            if (_count >= _capacity)
+            {
+                _capacity *= 2;
+                Array.Resize(ref _array, _capacity);
+            }
+
+            ++_count;
+            LastItemRef = (frame, value);
         }
+
+        private static void ThrowInvalidOperation(string message) =>
+            throw new InvalidOperationException(message);
     }
 }

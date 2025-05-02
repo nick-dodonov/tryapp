@@ -6,9 +6,9 @@ namespace Shared.Tp.Tests
     public class HistoryTests
     {
         [Test]
-        public void Add_And_Clear()
+        public void Start_Add_And_Clear()
         {
-            var hist = new History<string>();
+            var hist = new History<string>(4);
             Assert.AreEqual(0, hist.Count);
 
             hist.AddValue(1, "1");
@@ -20,6 +20,30 @@ namespace Shared.Tp.Tests
 
             hist.ClearUntil(2);
             Assert.AreEqual(1, hist.Count);
+        }
+
+        [Test]
+        public void Cycle_Add_And_Clear()
+        {
+            const int initCapacity = 4;
+            var hist = new History<string>(initCapacity);
+            Assert.AreEqual(initCapacity, hist.Capacity);
+
+            var frame = 0;
+            hist.AddValue(++frame, frame.ToString());
+            Assert.AreEqual(1, hist.Count);
+
+            for (var i = 0; i < 10; ++i)
+            {
+                hist.AddValue(++frame, frame.ToString());
+                Assert.AreEqual(2, hist.Count);
+
+                hist.ClearUntil(frame);
+                Assert.AreEqual(1, hist.Count);
+                Assert.AreEqual(frame.ToString(), hist.LastValue);
+            }
+            
+            Assert.AreEqual(initCapacity, hist.Capacity);
         }
     }
 }

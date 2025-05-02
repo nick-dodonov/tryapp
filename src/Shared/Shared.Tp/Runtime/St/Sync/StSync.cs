@@ -14,8 +14,9 @@ namespace Shared.Tp.St.Sync
         private int _localFrame;
         private float _localElapsedToSend;
 
-        private readonly History<TLocal> _localHistory = new();
-        private readonly History<TRemote> _remoteHistory = new();
+        private const int HistoryInitCapacity = 8;
+        private readonly History<TLocal> _localHistory = new(HistoryInitCapacity);
+        private readonly History<TRemote> _remoteHistory = new(HistoryInitCapacity);
 
         public TRemote RemoteState => _remoteHistory.LastValue;
 
