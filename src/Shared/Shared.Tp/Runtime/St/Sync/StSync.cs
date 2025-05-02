@@ -15,11 +15,11 @@ namespace Shared.Tp.St.Sync
         private float _localElapsedToSend;
 
         private const int HistoryInitCapacity = 4;
-        private readonly History<TLocal> _localHistory = new(HistoryInitCapacity);
-        private readonly History<TRemote> _remoteHistory = new(HistoryInitCapacity);
+        private readonly History<int, TLocal> _localHistory = new(HistoryInitCapacity);
+        private readonly History<int, TRemote> _remoteHistory = new(HistoryInitCapacity);
 
-        public History<TLocal> LocalHistory => _localHistory;
-        public History<TRemote> RemoteHistory => _remoteHistory;
+        public History<int, TLocal> LocalHistory => _localHistory;
+        public History<int, TRemote> RemoteHistory => _remoteHistory;
 
         public ref TRemote RemoteStateRef => ref _remoteHistory.LastValueRef;
 
@@ -29,7 +29,7 @@ namespace Shared.Tp.St.Sync
         internal void SetCmdLink(CmdLink<StCmd<TLocal>, StCmd<TRemote>> cmdLink)
             => _cmdLink = cmdLink;
 
-        public void Dispose() 
+        public void Dispose()
             => _cmdLink.Dispose();
 
         public void LocalUpdate(float deltaTime)
@@ -39,9 +39,9 @@ namespace Shared.Tp.St.Sync
 
             var cmd = new StCmd<TLocal>
             {
-                From = _localHistory.FirstFrame,
+                From = _localHistory.FirstKey,
                 To = ++_localFrame,
-                Known = _remoteHistory.LastFrame,
+                Known = _remoteHistory.LastKey,
                 
                 Ms = _handler.TimeMs,
 

@@ -8,7 +8,7 @@ namespace Shared.Tp.Tests
         [Test]
         public void Begin_Add_And_Clear()
         {
-            var hist = new History<string>(4);
+            var hist = new History<int, string>(4);
             Assert.AreEqual(0, hist.Count);
 
             hist.AddValueRef(1) = "1";
@@ -26,7 +26,7 @@ namespace Shared.Tp.Tests
         public void Cycle_Add_And_Clear()
         {
             const int initCapacity = 4;
-            var hist = new History<string>(initCapacity);
+            var hist = new History<int, string>(initCapacity);
             Assert.AreEqual(initCapacity, hist.Capacity);
 
             var frame = 0;
@@ -49,7 +49,7 @@ namespace Shared.Tp.Tests
         [Test]
         public void Iterate_Values_Reverse()
         {
-            var hist = new History<string>(4);
+            var hist = new History<int, string>(4);
             var frame = 0;
             hist.AddValueRef(++frame) = frame.ToString();
             hist.AddValueRef(++frame) = frame.ToString();
@@ -88,7 +88,7 @@ namespace Shared.Tp.Tests
         public void Resize_On_Cycle()
         {
             const int initCapacity = 4;
-            var hist = new History<string>(initCapacity);
+            var hist = new History<int, string>(initCapacity);
             var frame = 0;
             hist.AddValueRef(++frame) = frame.ToString();
             hist.AddValueRef(++frame) = frame.ToString();
@@ -108,11 +108,23 @@ namespace Shared.Tp.Tests
             var iterCount = 0;
             foreach (ref var item in hist.ReverseRefItems)
             {
-                Assert.AreEqual(expectFrame, item.frame);
+                Assert.AreEqual(expectFrame, item.key);
                 Assert.AreEqual((expectFrame--).ToString(), item.value);
                 ++iterCount;
             }
             Assert.AreEqual(hist.Count, iterCount);
         }
+
+        // [Test]
+        // public void Complex_Key()
+        // {
+        //     var hist = new History<(int, float), string>(4);
+        //     var frame = 0;
+        //     hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
+        //     hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
+        //     Assert.AreEqual(2, hist.Count);
+        //     
+        //     hist.ClearUntil((1, 0.0f));
+        // }
     }
 }

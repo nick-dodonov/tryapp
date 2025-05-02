@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace Shared.Tp.St.Sync
 {
@@ -6,30 +7,30 @@ namespace Shared.Tp.St.Sync
     /// TODO: reimplement with separate free array plus cyclic indices (reuse the same values frequently)
     /// 
     /// </summary>
-    public class History<T>
+    public class History<TKey, TValue>
     {
-        private (int frame, T value)[] _array;
+        private (int key, TValue value)[] _array;
 
         private int _capacity;
         private int _first;
         private int _count;
 
-        private ref (int frame, T value) FirstItemRef => ref _array[_first];
-        private ref (int frame, T value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
+        private ref (int key, TValue value) FirstItemRef => ref _array[_first];
+        private ref (int key, TValue value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
 
         public History(int initCapacity)
         {
-            _array = new (int frame, T value)[initCapacity];
+            _array = new (int key, TValue value)[initCapacity];
             _capacity = initCapacity;
         }
 
         public int Capacity => _capacity;
         public int Count => _count;
 
-        public int FirstFrame => _count > 0 ? FirstItemRef.frame : 0;
-        public int LastFrame => _count > 0 ? LastItemRef.frame : 0;
+        public int FirstKey => _count > 0 ? FirstItemRef.key : 0;
+        public int LastKey => _count > 0 ? LastItemRef.key : 0;
 
-        public ref T LastValueRef
+        public ref TValue LastValueRef
         {
             get
             {
@@ -39,16 +40,17 @@ namespace Shared.Tp.St.Sync
             }
         }
 
-        public void ClearUntil(int frame)
+        public void ClearUntil(int key, IComparer<int>? comparer = null)
         {
-            while (_count > 0 && FirstItemRef.frame < frame)
+            comparer ??= Comparer<int>.Default;
+            while (_count > 0 && comparer.Compare(FirstItemRef.key, key) < 0)
             {
                 _first = ++_first % _capacity; 
                 --_count;
             }
         }
 
-        public ref T AddValueRef(int frame)
+        public ref TValue AddValueRef(int key)
         {
             if (_count >= _capacity)
             {
@@ -65,16 +67,16 @@ namespace Shared.Tp.St.Sync
 
             ++_count;
             ref var lastItemRef = ref LastItemRef;
-            lastItemRef.frame = frame;
+            lastItemRef.key = key;
             return ref lastItemRef.value;
         }
 
         public struct ReverseRefValueEnumerator
         {
-            private readonly History<T> _history;
+            private readonly History<TKey, TValue> _history;
             private int _iterated;
 
-            internal ReverseRefValueEnumerator(History<T> history)
+            internal ReverseRefValueEnumerator(History<TKey, TValue> history)
             {
                 _history = history;
                 _iterated = 0;
@@ -82,7 +84,7 @@ namespace Shared.Tp.St.Sync
 
             public ReverseRefValueEnumerator GetEnumerator() => this;
 
-            public ref T Current 
+            public ref TValue Current 
                 => ref _history._array[(_history._first + _history._count - _iterated) % _history._capacity].value;
 
             public bool MoveNext() => _iterated++ < _history._count;
@@ -92,10 +94,10 @@ namespace Shared.Tp.St.Sync
 
         public struct ReverseRefItemEnumerator
         {
-            private readonly History<T> _history;
+            private readonly History<TKey, TValue> _history;
             private int _iterated;
 
-            internal ReverseRefItemEnumerator(History<T> history)
+            internal ReverseRefItemEnumerator(History<TKey, TValue> history)
             {
                 _history = history;
                 _iterated = 0;
@@ -103,7 +105,7 @@ namespace Shared.Tp.St.Sync
 
             public ReverseRefItemEnumerator GetEnumerator() => this;
 
-            public ref (int frame, T value) Current 
+            public ref (int key, TValue value) Current 
                 => ref _history._array[(_history._first + _history._count - _iterated) % _history._capacity];
 
             public bool MoveNext() => _iterated++ < _history._count;
