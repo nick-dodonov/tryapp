@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 
 namespace Shared.Tp.St.Sync
 {
@@ -8,9 +7,8 @@ namespace Shared.Tp.St.Sync
     /// 
     /// </summary>
     public class History<TKey, TValue>
-        where TKey : unmanaged
+        where TKey : unmanaged, IComparable<TKey>
     {
-        private readonly IComparer<TKey> _comparer;
         private (TKey key, TValue value)[] _array;
 
         private int _capacity;
@@ -20,9 +18,8 @@ namespace Shared.Tp.St.Sync
         private ref (TKey key, TValue value) FirstItemRef => ref _array[_first];
         private ref (TKey key, TValue value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
 
-        public History(int initCapacity, IComparer<TKey>? comparer = null)
+        public History(int initCapacity)
         {
-            _comparer = comparer ?? Comparer<TKey>.Default;
             _array = new (TKey key, TValue value)[initCapacity];
             _capacity = initCapacity;
         }
@@ -45,7 +42,7 @@ namespace Shared.Tp.St.Sync
 
         public void ClearUntil(TKey key)
         {
-            while (_count > 0 && _comparer.Compare(FirstItemRef.key, key) < 0)
+            while (_count > 0 && FirstItemRef.key.CompareTo(key) < 0)
             {
                 _first = ++_first % _capacity; 
                 --_count;

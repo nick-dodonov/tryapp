@@ -235,7 +235,8 @@ namespace Client.Logic
             sb.Append(" b/sec");
         }
 
-        public static void AppendHistInfo<TKey, TValue>(this ref Utf16ValueStringBuilder sb, in History<TKey, TValue> history)
+        public static void AppendHistInfo<TKey, TValue>(this ref Utf16ValueStringBuilder sb, in History<TKey, TValue> history) 
+            where TKey : unmanaged, IComparable<TKey>
         {
             sb.Append(history.Count);
             sb.Append('/');
