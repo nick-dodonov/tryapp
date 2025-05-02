@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Common.Data;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.St.Sync;
 using Shared.Tp.Util;
 using UnityEngine;
 
@@ -32,10 +33,8 @@ namespace Client.Logic
                 peerView.UpdateSessionMs(sessionMs);
         }
 
-        public void RemoteUpdated(ServerState serverState)
+        public void RemoteUpdated(ServerState serverState, History<ServerState> serverHistory)
         {
-            var sessionMs = _timeLink.RemoteMs;
-
             var count = 0;
             var pool = SlimMemoryPool<KeyValuePair<string, PeerView>>.Shared;
             using var owner = pool.Rent(_peerViews.Count);
@@ -57,8 +56,7 @@ namespace Client.Logic
                     _peerViews.Add(peerId, peerView);
                 }
 
-                peerView.ApplyState(peerState);
-                peerView.UpdateSessionMs(sessionMs);
+                peerView.ApplyState(peerState, serverHistory);
             }
 
             //remove peer views that don't exist anymore
@@ -69,6 +67,9 @@ namespace Client.Logic
                 _peerViews.Remove(id);
                 Destroy(peerView.gameObject);
             }
+
+            // fix alpha according to current state
+            Update();
         }
     }
 }

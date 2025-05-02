@@ -4,7 +4,6 @@
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
-    <RootNamespace>Shared.Tests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

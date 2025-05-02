@@ -9,7 +9,7 @@ namespace Shared.Tp.St.Sync
     /// TODO: implement with ref accessors
     /// 
     /// </summary>
-    public class HistoryQueue<T>
+    public class History<T>
     {
         private readonly ConcurrentQueue<(int frame, T value)> _history = new();
 

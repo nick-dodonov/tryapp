@@ -14,13 +14,14 @@ namespace Shared.Tp.St.Sync
         private int _localFrame;
         private float _localElapsedToSend;
 
-        private readonly HistoryQueue<TLocal> _localHistory = new();
-        private readonly HistoryQueue<TRemote> _remoteHistory = new();
+        private readonly History<TLocal> _localHistory = new();
+        private readonly History<TRemote> _remoteHistory = new();
 
         public TRemote RemoteState => _remoteHistory.LastValue;
 
         public int LocalHistoryCount => _localHistory.Count;
         public int RemoteHistoryCount => _remoteHistory.Count;
+        public History<TRemote> RemoteHistory => _remoteHistory;
 
         internal StSync(ISyncHandler<TLocal, TRemote> handler)
             => _handler = handler;
@@ -72,7 +73,7 @@ namespace Shared.Tp.St.Sync
             _remoteHistory.ClearUntil(cmd.From);
             _remoteHistory.AddValue(cmd.To, cmd.Value); //TODO: From->To
 
-            _handler.RemoteUpdated(RemoteState);
+            _handler.RemoteUpdated();
         }
 
         void ICmdReceiver<StCmd<TRemote>>.CmdDisconnected()

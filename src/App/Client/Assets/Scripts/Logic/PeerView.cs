@@ -1,4 +1,5 @@
 using Common.Data;
+using Shared.Tp.St.Sync;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -10,7 +11,7 @@ namespace Client.Logic
         public Image image;
         public MeshRenderer meshRenderer;
         public TMP_Text idText;
-        
+
         public LineRenderer lineRenderer;
 
         private bool _changed;
@@ -20,11 +21,11 @@ namespace Client.Logic
         private float _applySessionMs;
         private Color _applyColor;
 
-        public void ApplyState(in PeerState peerState)
+        public void ApplyState(in PeerState peerState, History<ServerState> serverHistory)
         {
             var state = peerState.ClientState;
             _applySessionMs = state.Ms;
-            
+
             lineRenderer.positionCount = 2;
             lineRenderer.SetPosition(0, transform.position);
             transform.position = state.LoadPosition();
@@ -40,10 +41,15 @@ namespace Client.Logic
             _applyColor = color32;
 
             ApplyColor();
-            
+
             idText.text = peerState.Id;
 
             _changed = true;
+
+            //TODO: history diagnostics
+            // {
+            //     lineRenderer.positionCount = serverHistory.Count;
+            // }
         }
 
         private const float FadeAlphaMin = 0.1f;
@@ -57,7 +63,7 @@ namespace Client.Logic
 
             ApplyColor();
         }
-        
+
         private void ApplyColor()
         {
             image.color = _applyColor;

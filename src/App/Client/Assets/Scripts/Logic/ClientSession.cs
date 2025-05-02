@@ -105,8 +105,10 @@ namespace Client.Logic
             }
             _log.Info(reason);
 
-            player.gameObject.SetActive(false);
-            peersView.gameObject.SetActive(false);
+            if (player != null) // can be already destroyed
+                player.gameObject.SetActive(false);
+            if (peersView != null)
+                peersView.gameObject.SetActive(false);
 
             debugControl.SetServerVersion(null);
             
@@ -186,9 +188,9 @@ namespace Client.Logic
             return clientState;
         }
 
-        void ISyncHandler<ClientState, ServerState>.RemoteUpdated(ServerState serverState)
+        void ISyncHandler<ClientState, ServerState>.RemoteUpdated()
         {
-            peersView.RemoteUpdated(serverState);
+            peersView.RemoteUpdated(_stSync.RemoteState, _stSync.RemoteHistory);
         }
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()

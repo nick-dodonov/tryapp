@@ -21,7 +21,7 @@ namespace Shared.Tp.St.Sync
 
         TLocal MakeLocalState();
 
-        void RemoteUpdated(TRemote remoteState);
+        void RemoteUpdated();
         void RemoteDisconnected();
     }
 }

@@ -50,7 +50,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState()
         => _session.GetServerState();
 
-    void ISyncHandler<ServerState, ClientState>.RemoteUpdated(ClientState remoteState) { }
+    void ISyncHandler<ServerState, ClientState>.RemoteUpdated() { }
 
     void ISyncHandler<ServerState, ClientState>.RemoteDisconnected()
         => _session.PeerDisconnected(this);
