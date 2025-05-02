@@ -91,7 +91,7 @@ namespace Client.Logic
             context.dumpLinkStats = _dumpLink.Stats;
 
             // enable peers view / player input
-            peersView.Init(_timeLink);
+            peersView.Init(_timeLink, _stSync.RemoteHistory);
             peersView.gameObject.SetActive(true);
             player.gameObject.SetActive(true); 
         }
@@ -185,10 +185,8 @@ namespace Client.Logic
             return clientState;
         }
 
-        void ISyncHandler<ClientState, ServerState>.RemoteUpdated()
-        {
-            peersView.RemoteUpdated(_stSync.RemoteHistory);
-        }
+        void ISyncHandler<ClientState, ServerState>.RemoteUpdated() 
+            => peersView.RemoteUpdated();
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
         {

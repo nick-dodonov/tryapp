@@ -108,8 +108,8 @@ namespace Shared.Tp.Tests
             var iterCount = 0;
             foreach (ref var item in hist.ReverseRefItems)
             {
-                Assert.AreEqual(expectFrame, item.key);
-                Assert.AreEqual((expectFrame--).ToString(), item.value);
+                Assert.AreEqual(expectFrame, item.Key);
+                Assert.AreEqual((expectFrame--).ToString(), item.Value);
                 ++iterCount;
             }
             Assert.AreEqual(hist.Count, iterCount);

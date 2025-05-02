@@ -12,11 +12,14 @@ namespace Client.Logic
         public GameObject peerPrefab;
 
         private TimeLink _timeLink;
+        private StHistory<ServerState> _history;
+
         private readonly Dictionary<string, PeerView> _peerViews = new();
 
-        public void Init(TimeLink timeLink)
+        public void Init(TimeLink timeLink, StHistory<ServerState> serverHistory)
         {
             _timeLink = timeLink;
+            _history = serverHistory;
         }
 
         private void OnDisable()
@@ -33,7 +36,7 @@ namespace Client.Logic
             _frameSessionMs = _timeLink.RemoteMs;
         }
 
-        public void RemoteUpdated(StHistory<ServerState> serverHistory)
+        public void RemoteUpdated()
         {
             var count = 0;
             var pool = SlimMemoryPool<KeyValuePair<string, PeerView>>.Shared;
@@ -46,7 +49,7 @@ namespace Client.Logic
                 kv.Value.SetChanged(false);
             }
 
-            ref var serverState = ref serverHistory.LastValueRef;
+            ref var serverState = ref _history.LastValueRef;
             foreach (var peerState in serverState.Peers)
             {
                 var peerId = peerState.Id;
@@ -58,7 +61,7 @@ namespace Client.Logic
                     _peerViews.Add(peerId, peerView);
                 }
 
-                peerView.ApplyState(peerState, serverHistory);
+                peerView.ApplyState(peerState, _history);
             }
 
             //remove peer views that don't exist anymore

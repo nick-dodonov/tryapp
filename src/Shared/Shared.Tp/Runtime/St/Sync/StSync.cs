@@ -21,7 +21,7 @@ namespace Shared.Tp.St.Sync
         public StHistory<TLocal> LocalHistory => _localHistory;
         public StHistory<TRemote> RemoteHistory => _remoteHistory;
 
-        public int RemoteStateMs => _remoteHistory.LastKey.ms;
+        public int RemoteStateMs => _remoteHistory.LastKeyOrDefault.Ms;
         public ref TRemote RemoteStateRef => ref _remoteHistory.LastValueRef;
 
         internal StSync(ISyncHandler<TLocal, TRemote> handler)
@@ -40,9 +40,9 @@ namespace Shared.Tp.St.Sync
 
             var cmd = new StCmd<TLocal>
             {
-                From = _localHistory.FirstKey.frame,
+                From = _localHistory.FirstKeyOrDefault.Frame,
                 To = ++_localFrame,
-                Known = _remoteHistory.LastKey.frame,
+                Known = _remoteHistory.LastKeyOrDefault.Frame,
                 
                 Ms = _handler.TimeMs,
 
