@@ -177,6 +177,7 @@ namespace Client.Logic
         IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
             = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
+        int ISyncHandler<ClientState, ServerState>.TimeMs => _timeLink.RemoteMs;
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
             var sessionMs = _timeLink.RemoteMs;

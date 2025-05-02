@@ -42,6 +42,8 @@ namespace Shared.Tp.St.Sync
                 From = _localHistory.FirstFrame,
                 To = ++_localFrame,
                 Known = _remoteHistory.LastFrame,
+                
+                Ms = _handler.TimeMs,
 
                 Value = _handler.MakeLocalState() //TODO: From->To
             };

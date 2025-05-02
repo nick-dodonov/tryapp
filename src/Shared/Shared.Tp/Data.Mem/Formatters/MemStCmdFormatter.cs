@@ -26,6 +26,7 @@ namespace Shared.Tp.Data.Mem.Formatters
             writer.WriteVarInt(value.From);
             writer.WriteVarInt(value.To);
             writer.WriteVarInt(value.Known);
+            writer.WriteVarInt(value.Ms);
             writer.WriteValue(value.Value);
         }
 
@@ -46,6 +47,7 @@ namespace Shared.Tp.Data.Mem.Formatters
             value.From = reader.ReadVarIntInt32();
             value.To = reader.ReadVarIntInt32();
             value.Known = reader.ReadVarIntInt32();
+            value.Ms = reader.ReadVarIntInt32();
             reader.ReadValue(ref value.Value!);
         }
     }
