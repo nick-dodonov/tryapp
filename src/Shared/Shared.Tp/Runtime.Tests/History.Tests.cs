@@ -115,16 +115,17 @@ namespace Shared.Tp.Tests
             Assert.AreEqual(hist.Count, iterCount);
         }
 
-        // [Test]
-        // public void Complex_Key()
-        // {
-        //     var hist = new History<(int, float), string>(4);
-        //     var frame = 0;
-        //     hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
-        //     hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
-        //     Assert.AreEqual(2, hist.Count);
-        //     
-        //     hist.ClearUntil((1, 0.0f));
-        // }
+        [Test]
+        public void Complex_Key()
+        {
+            var hist = new History<(int, float), string>(4);
+            var frame = 0;
+            hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
+            hist.AddValueRef((++frame, frame / 10.0f)) = frame.ToString();
+            Assert.AreEqual(2, hist.Count);
+            
+            hist.ClearUntil((2, 0.0f));
+            Assert.AreEqual(1, hist.Count);
+        }
     }
 }

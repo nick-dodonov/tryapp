@@ -8,27 +8,30 @@ namespace Shared.Tp.St.Sync
     /// 
     /// </summary>
     public class History<TKey, TValue>
+        where TKey : unmanaged
     {
-        private (int key, TValue value)[] _array;
+        private readonly IComparer<TKey> _comparer;
+        private (TKey key, TValue value)[] _array;
 
         private int _capacity;
         private int _first;
         private int _count;
 
-        private ref (int key, TValue value) FirstItemRef => ref _array[_first];
-        private ref (int key, TValue value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
+        private ref (TKey key, TValue value) FirstItemRef => ref _array[_first];
+        private ref (TKey key, TValue value) LastItemRef => ref _array[(_first + _count - 1) % _capacity];
 
-        public History(int initCapacity)
+        public History(int initCapacity, IComparer<TKey>? comparer = null)
         {
-            _array = new (int key, TValue value)[initCapacity];
+            _comparer = comparer ?? Comparer<TKey>.Default;
+            _array = new (TKey key, TValue value)[initCapacity];
             _capacity = initCapacity;
         }
 
         public int Capacity => _capacity;
         public int Count => _count;
 
-        public int FirstKey => _count > 0 ? FirstItemRef.key : 0;
-        public int LastKey => _count > 0 ? LastItemRef.key : 0;
+        public TKey FirstKey => _count > 0 ? FirstItemRef.key : default;
+        public TKey LastKey => _count > 0 ? LastItemRef.key : default;
 
         public ref TValue LastValueRef
         {
@@ -40,18 +43,19 @@ namespace Shared.Tp.St.Sync
             }
         }
 
-        public void ClearUntil(int key, IComparer<int>? comparer = null)
+        public void ClearUntil(TKey key)
         {
-            comparer ??= Comparer<int>.Default;
-            while (_count > 0 && comparer.Compare(FirstItemRef.key, key) < 0)
+            while (_count > 0 && _comparer.Compare(FirstItemRef.key, key) < 0)
             {
                 _first = ++_first % _capacity; 
                 --_count;
             }
         }
 
-        public ref TValue AddValueRef(int key)
+        public ref TValue AddValueRef(TKey key)
         {
+            //TODO: assert added key is more than last
+
             if (_count >= _capacity)
             {
                 var capacity = _capacity * 2;
@@ -105,7 +109,7 @@ namespace Shared.Tp.St.Sync
 
             public ReverseRefItemEnumerator GetEnumerator() => this;
 
-            public ref (int key, TValue value) Current 
+            public ref (TKey key, TValue value) Current 
                 => ref _history._array[(_history._first + _history._count - _iterated) % _history._capacity];
 
             public bool MoveNext() => _iterated++ < _history._count;
