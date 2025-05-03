@@ -14,7 +14,7 @@ namespace Shared.Tp.Rtc
         public List<RtcIceServer>? IceServers { get; set; }
 
         public override string ToString() =>
-            $"{nameof(RtcConfig)}({string.Join(", ", IceServers?.Select(x => $"\"{x.Url}\"") ?? Enumerable.Empty<string>())})";
+            $"{nameof(RtcConfig)}({string.Join(", ", IceServers?.Select(x => $"\"{x.Urls}\"") ?? Enumerable.Empty<string>())})";
 
         private string? _json;
         public string ToJson() => _json ??= WebSerializer.Default.Serialize(this);
@@ -24,7 +24,7 @@ namespace Shared.Tp.Rtc
     public class RtcIceServer
     {
         [field: SerializeField] [RequiredMember]
-        public string? Url { get; set; }
+        public string? Urls { get; set; } // correspond to js RTCIceServer just for simple ToJson ("url is deprecated! Use urls instead")
 
         [field: SerializeField] [RequiredMember]
         public string? Username { get; set; }

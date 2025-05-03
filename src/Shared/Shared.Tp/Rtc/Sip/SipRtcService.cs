@@ -76,7 +76,7 @@ namespace Shared.Tp.Rtc.Sip
             {
                 configuration.iceServers = config.IceServers.Select(x => new RTCIceServer
                 {
-                    urls = x.Url,
+                    urls = x.Urls,
                     username = x.Username,
                     credential = x.Password,
                 }).ToList();

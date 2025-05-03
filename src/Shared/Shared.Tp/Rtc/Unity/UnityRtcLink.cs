@@ -34,7 +34,7 @@ namespace Shared.Tp.Rtc.Unity
             {
                 iceServers = offer.Config?.IceServers?.Select(x => new RTCIceServer
                 {
-                    urls = new[] { x.Url },
+                    urls = new[] { x.Urls },
                     username = x.Username,
                     credential = x.Password,
                 }).ToArray()

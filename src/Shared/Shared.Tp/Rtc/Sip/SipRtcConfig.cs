@@ -15,6 +15,6 @@ namespace Shared.Tp.Rtc.Sip
         //TODO: SIPSorcery.Net.RTCPeerConnection port range settings here
 
         public override string ToString() =>
-            $"{nameof(SipRtcConfig)}({string.Join(", ", IceServers?.Select(x => $"\"{x.Url}\"") ?? Enumerable.Empty<string>())} Remote={RemoteConfig})";
+            $"{nameof(SipRtcConfig)}({string.Join(", ", IceServers?.Select(x => $"\"{x.Urls}\"") ?? Enumerable.Empty<string>())} Remote={RemoteConfig})";
     }
 }
