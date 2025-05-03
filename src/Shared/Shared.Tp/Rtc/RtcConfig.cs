@@ -24,7 +24,7 @@ namespace Shared.Tp.Rtc
     public class RtcIceServer
     {
         [field: SerializeField] [RequiredMember]
-        public string? Urls { get; set; } // correspond to js RTCIceServer just for simple ToJson ("url is deprecated! Use urls instead")
+        public string[]? Urls { get; set; } // correspond to js RTCIceServer just for simple ToJson ("url is deprecated! Use urls instead")
 
         [field: SerializeField] [RequiredMember]
         public string? Username { get; set; }
