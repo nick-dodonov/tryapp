@@ -14,9 +14,9 @@ public class LinearVirtualPeer(string id, uint color, Vector2 initPos, Vector2 i
         return new()
         {
             Id = id,
+            Ms = sessionMs,
             ClientState = new()
             {
-                Ms = sessionMs,
                 X = _pos.X,
                 Y = _pos.Y,
                 Color = color
@@ -27,7 +27,11 @@ public class LinearVirtualPeer(string id, uint color, Vector2 initPos, Vector2 i
     void IVirtualPeer.Update(float deltaTime)
     {
         _pos += _speed * deltaTime;
-        if (_pos.X is < -1 or > 1) _speed.X *= -1;
-        if (_pos.Y is < -1 or > 1) _speed.Y *= -1;
+        if (_pos.X < -1 && _speed.X < 0 ||
+            _pos.X > 1 && _speed.X > 0) 
+            _speed.X *= -1;
+        if (_pos.Y < -1 && _speed.Y < 0 ||
+            _pos.Y > 1 && _speed.Y > 0) 
+            _speed.Y *= -1;
     }
 }

@@ -1,6 +1,4 @@
 using System;
-using System.Buffers;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Client.UI;
@@ -37,8 +35,8 @@ namespace Client.Logic
         public DebugControl debugControl;
         public InfoControl infoControl;
 
-        public ClientTap clientTap;
-        public GameObject peerPrefab;
+        public Player player;
+        public PeersView peersView;
 
         public ClientContext context;
 
@@ -49,11 +47,10 @@ namespace Client.Logic
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
 
-        private readonly Dictionary<string, PeerTap> _peerTaps = new();
-
         private void OnEnable()
         {
-            clientTap.SetActive(false);
+            peersView.gameObject.SetActive(false);
+            player.gameObject.SetActive(false);
             RuntimePanel.SetInspectorContext(context);
         }
 
@@ -93,22 +90,28 @@ namespace Client.Logic
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            // enable player input
-            clientTap.SetActive(true);
+            // enable peers view / player input
+            peersView.Init(_timeLink, _stSync.RemoteHistory);
+            peersView.gameObject.SetActive(true);
+            player.gameObject.SetActive(true); 
         }
 
         public void Finish(string reason)
         {
+            if (_meta == null)
+            {
+                _log.Info($"skip: {reason}");
+                return;
+            }
             _log.Info(reason);
 
+            if (player != null) // can be already destroyed
+                player.gameObject.SetActive(false);
+            if (peersView != null)
+                peersView.gameObject.SetActive(false);
+
             debugControl.SetServerVersion(null);
-
-            foreach (var kv in _peerTaps)
-                Destroy(kv.Value.gameObject);
-            _peerTaps.Clear();
-
-            clientTap.SetActive(false);
-
+            
             _dumpLink = null;
             _timeLink = null;
 
@@ -118,6 +121,8 @@ namespace Client.Logic
             _api = null;
             _meta?.Dispose();
             _meta = null;
+
+            _log.Info("completed");
         }
 
         private void Update()
@@ -128,8 +133,6 @@ namespace Client.Logic
             UpdateInfoControl();
 
             _stSync.LocalUpdate(Time.deltaTime);
-            foreach (var kv in _peerTaps)
-                kv.Value.UpdateSessionMs(_timeLink.RemoteMs);
         }
 
         private void UpdateInfoControl()
@@ -138,9 +141,15 @@ namespace Client.Logic
             var sb = ZString.CreateStringBuilder(true);
             try
             {
-                sb.Append("session-sec: ");
+                sb.Append("session: ");
                 sb.Append(_timeLink.RemoteMs / 1000.0f, "F1");
                 sb.AppendLine(" sec");
+
+                sb.Append("st-hist: ");
+                sb.AppendHistInfo(_stSync.LocalHistory);
+                sb.Append(" (l) ");
+                sb.AppendHistInfo(_stSync.RemoteHistory);
+                sb.AppendLine(" (r) n/cap");
 
                 sb.Append("out: ");
                 sb.AppendStatDir(stats.Out);
@@ -168,57 +177,16 @@ namespace Client.Logic
         IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
             = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
+        int ISyncHandler<ClientState, ServerState>.TimeMs => _timeLink.RemoteMs;
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
-            var sessionMs = _timeLink.RemoteMs;
-            var clientState = new ClientState
-            {
-                Ms = sessionMs
-            };
-            clientTap.Fill(ref clientState);
+            var clientState = new ClientState();
+            player.Fill(ref clientState);
             return clientState;
         }
 
-        void ISyncHandler<ClientState, ServerState>.RemoteUpdated(ServerState serverState)
-        {
-            var count = 0;
-            var peerKvsPool = ArrayPool<KeyValuePair<string, PeerTap>>.Shared;
-            var peerKvs = peerKvsPool.Rent(_peerTaps.Count);
-            try
-            {
-                foreach (var kv in _peerTaps)
-                {
-                    peerKvs[count++] = kv;
-                    kv.Value.SetChanged(false);
-                }
-
-                foreach (var peerState in serverState.Peers)
-                {
-                    var peerId = peerState.Id;
-                    if (!_peerTaps.TryGetValue(peerId, out var peerTap))
-                    {
-                        var peerGameObject = Instantiate(peerPrefab, transform);
-                        peerTap = peerGameObject.GetComponent<PeerTap>();
-                        _peerTaps.Add(peerId, peerTap);
-                    }
-
-                    peerTap.Apply(peerState);
-                }
-
-                //remove peer taps that don't exist anymore
-                foreach (var (id, peerTap) in peerKvs.AsSpan(0, count))
-                {
-                    if (peerTap.Changed)
-                        continue;
-                    _peerTaps.Remove(id);
-                    Destroy(peerTap.gameObject);
-                }
-            }
-            finally
-            {
-                peerKvsPool.Return(peerKvs);
-            }
-        }
+        void ISyncHandler<ClientState, ServerState>.RemoteUpdated() 
+            => peersView.RemoteUpdated();
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
         {
@@ -259,6 +227,13 @@ namespace Client.Logic
             }
 
             sb.Append(" b/sec");
+        }
+
+        public static void AppendHistInfo<T>(this ref Utf16ValueStringBuilder sb, in StHistory<T> history) 
+        {
+            sb.Append(history.Count);
+            sb.Append('/');
+            sb.Append(history.Capacity);
         }
     }
 }

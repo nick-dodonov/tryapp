@@ -17,7 +17,7 @@
       "applicationUrl": "http://localhost:5270",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
-        "SipRtcConfig__IceServers__0__Url": "turn:10.211.55.4:3478",
+        "SipRtcConfig__IceServers__0__Urls__0": "turn:10.211.55.4:3478",
         "SipRtcConfig__IceServers__0__Username": "user",
         "SipRtcConfig__IceServers__0__Password": "pass"
       }

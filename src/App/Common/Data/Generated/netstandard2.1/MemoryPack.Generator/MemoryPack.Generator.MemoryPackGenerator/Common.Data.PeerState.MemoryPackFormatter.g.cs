@@ -26,6 +26,7 @@ namespace Common.Data {
 /// MemoryPack GenerateType: Object<br/>
 /// <code>
 /// <b>string</b> Id<br/>
+/// <b>int</b> Ms<br/>
 /// <b>Common.Data.ClientState</b> ClientState<br/>
 /// </code>
 /// </remarks>
@@ -61,9 +62,9 @@ partial struct PeerState : IMemoryPackable<PeerState>
 
 
 
-        writer.WriteObjectHeader(2);
+        writer.WriteObjectHeader(3);
         writer.WriteValueWithFormatter(__IdFormatter, value.@Id);
-        writer.WriteUnmanaged(value.@ClientState);
+        writer.WriteUnmanaged(value.@Ms, value.@ClientState);
 
     END:
 
@@ -83,15 +84,16 @@ partial struct PeerState : IMemoryPackable<PeerState>
 
 
         string __Id;
+        int __Ms;
         global::Common.Data.ClientState __ClientState;
 
         
-        if (count == 2)
+        if (count == 3)
         {
             
             {
                 __Id = reader.ReadValueWithFormatter<global::Shared.Tp.Data.Mem.Formatters.QuickInternStringFormatter, string>(__IdFormatter);
-                reader.ReadUnmanaged(out __ClientState);
+                reader.ReadUnmanaged(out __Ms, out __ClientState);
 
 
                 goto NEW;
@@ -99,18 +101,20 @@ partial struct PeerState : IMemoryPackable<PeerState>
 #if false
             {
                 __Id = value.@Id;
+                __Ms = value.@Ms;
                 __ClientState = value.@ClientState;
 
                 reader.ReadValueWithFormatter(__IdFormatter, ref __Id);
+                reader.ReadUnmanaged(out __Ms);
                 reader.ReadUnmanaged(out __ClientState);
 
                 goto SET;
             }
 #endif
         }
-        else if (count > 2)
+        else if (count > 3)
         {
-            MemoryPackSerializationException.ThrowInvalidPropertyCount(typeof(PeerState), 2, count);
+            MemoryPackSerializationException.ThrowInvalidPropertyCount(typeof(PeerState), 3, count);
             goto READ_END;
         }
         else
@@ -118,18 +122,21 @@ partial struct PeerState : IMemoryPackable<PeerState>
             
             {
                __Id = default!;
+               __Ms = default!;
                __ClientState = default!;
             }
 #if false
             {
                __Id = value.@Id;
+               __Ms = value.@Ms;
                __ClientState = value.@ClientState;
             }
 #endif
 
             if (count == 0) goto SKIP_READ;
             reader.ReadValueWithFormatter(__IdFormatter, ref __Id); if (count == 1) goto SKIP_READ;
-            reader.ReadUnmanaged(out __ClientState); if (count == 2) goto SKIP_READ;
+            reader.ReadUnmanaged(out __Ms); if (count == 2) goto SKIP_READ;
+            reader.ReadUnmanaged(out __ClientState); if (count == 3) goto SKIP_READ;
 
     SKIP_READ:
             
@@ -146,6 +153,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
     SET:
         
         value.@Id = __Id;
+        value.@Ms = __Ms;
         value.@ClientState = __ClientState;
         goto READ_END;
 
@@ -153,6 +161,7 @@ partial struct PeerState : IMemoryPackable<PeerState>
         value = new PeerState()
         {
             @Id = __Id,
+            @Ms = __Ms,
             @ClientState = __ClientState
         };
 

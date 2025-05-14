@@ -7,6 +7,7 @@ namespace Common.Data
     {
         public static IOwnWriter CreateOwnWriter<T>(T state)
             => new OwnWriter<T>(state, new WebObjWriter<T>());
+
         public static IObjReader<T> CreateObjReader<T>()
             => new WebObjReader<T>();
     }

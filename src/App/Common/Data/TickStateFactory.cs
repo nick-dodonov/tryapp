@@ -9,9 +9,6 @@ namespace Common.Data
             => new MemObjWriter<T>();
 
         public static IObjReader<T> CreateObjReader<T>()
-        {
-            //ServerState.RegisterFormatter();
-            return new MemObjReader<T>();
-        }
+            => new MemObjReader<T>();
     }
 }

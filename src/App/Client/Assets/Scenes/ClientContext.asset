@@ -20,10 +20,12 @@ MonoBehaviour:
     <LogEndBytes>k__BackingField: 20
   dumpLinkStats:
     In:
-      Count: 0
-      Bytes: 0
-      Rate: 0
+      CountTotal: 0
+      BytesTotal: 0
+      CountRate: 0
+      BytesRate: 0
     Out:
-      Count: 0
-      Bytes: 0
-      Rate: 0
+      CountTotal: 0
+      BytesTotal: 0
+      CountRate: 0
+      BytesRate: 0

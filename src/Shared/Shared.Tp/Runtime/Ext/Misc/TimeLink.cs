@@ -1,7 +1,6 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
-using Microsoft.Extensions.Logging;
 using Shared.Log;
 using Shared.Tp.Util;
 
@@ -14,6 +13,7 @@ namespace Shared.Tp.Ext.Misc
     ///     instead of sending and receiving it back with adjustment (send only index and adjustment)
     /// TODO: use SequenceReader or analog to read data
     /// TODO: efficient (lock-free) atomic change for _receivedRemote/_receivedLocal (fix rare wrong calculation on send)
+    /// 
     /// </summary>
     public class TimeLink : ExtLink
     {
@@ -23,14 +23,12 @@ namespace Shared.Tp.Ext.Misc
 
         public class Api : ExtApi<TimeLink>
         {
-            private readonly ILogger _logger;
             private readonly long _startTicks; //rt
 
-            public Api(ITpApi innerApi, ILoggerFactory loggerFactory) : base(innerApi)
+            public Api(ITpApi innerApi) : base(innerApi)
             {
-                _logger = loggerFactory.CreateLogger<TimeLink>();
                 _startTicks = DateTime.UtcNow.Ticks;
-                _logger.Info($"start ticks: {_startTicks}");
+                Slog.Info($"start ticks: {_startTicks}");
             }
 
             private long LocalRt
@@ -46,13 +44,11 @@ namespace Shared.Tp.Ext.Misc
             }
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) =>
-                new(_startTicks, _logger) { Receiver = receiver };
+                new(_startTicks) { Receiver = receiver };
 
             protected override TimeLink CreateServerLink(ITpLink innerLink) =>
-                new(_startTicks, _logger) { InnerLink = innerLink };
+                new(_startTicks) { InnerLink = innerLink };
         }
-
-        private readonly ILogger _logger = null!;
 
         private readonly long _startTicks; //rt
 
@@ -62,17 +58,15 @@ namespace Shared.Tp.Ext.Misc
         private int _rtt; //rt
 
         public TimeLink() { }
+        private TimeLink(long startTicks) => _startTicks = startTicks;
 
-        private TimeLink(long startTicks, ILogger logger) =>
-            (_startTicks, _logger) = (startTicks, logger);
-
-        private long LocalRt
+        private long LocalRt // same as Api.LocalRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
         }
 
-        public int LocalMs
+        public int LocalMs // same as Api.LocalMs
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (int)(LocalRt / RtPerMs);
@@ -113,12 +107,12 @@ namespace Shared.Tp.Ext.Misc
             var passedLocal = _receivedLocal != 0 ? local - _receivedLocal : 0;
             writer.Write(local);
 
-            //adjustment from previous receive, so remote side correctly calculates rtt
+            //adjustment from previous reception, so the remote side can correctly calculate rtt
             var receivedRemote = _receivedRemote;
             receivedRemote += passedLocal;
             writer.Write(receivedRemote);
 
-            //_logger.Info($"local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
+            //Slog.Info($"local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -137,7 +131,7 @@ namespace Shared.Tp.Ext.Misc
                 if (sentLocalAdjusted != 0)
                     _rtt = (int)(local - sentLocalAdjusted);
 
-                //_logger.Info($"local={local} remote={_receivedRemote} sentLocalAdjusted={sentLocalAdjusted} (rtt={_rtt})");
+                //Slog.Info($"local={local} remote={_receivedRemote} sentLocalAdjusted={sentLocalAdjusted} (rtt={_rtt})");
             }
 
             return span[..^length];

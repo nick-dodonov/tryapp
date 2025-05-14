@@ -23,8 +23,7 @@ namespace Common.Logic
                         rtcApi,
                         dumpLinkOptions,
                         loggerFactory
-                    ),
-                    loggerFactory
+                    )
                 ),
                 HandStateFactory.CreateOwnWriter(localState),
                 HandStateFactory.CreateObjReader<TRemoteState>(),

@@ -1,6 +1,7 @@
 #if !UNITY_5_6_OR_NEWER
 using System;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -74,11 +75,20 @@ namespace Shared.Tp.Rtc.Sip
             };
             if (config.IceServers != null)
             {
-                configuration.iceServers = config.IceServers.Select(x => new RTCIceServer
+                configuration.iceServers = config.IceServers.Select(x =>
                 {
-                    urls = x.Url,
-                    username = x.Username,
-                    credential = x.Password,
+                    if (x.Urls?.Length != 1)
+                    {
+                        _logger.Error($"SipRtcConfig.IceServers.Urls must be single element array: {x.Urls}");
+                        Debug.Assert(false, "SipRtcConfig.IceServers.Urls must be single element array");
+                    }
+
+                    return new RTCIceServer
+                    {
+                        urls = x.Urls?[0],
+                        username = x.Username,
+                        credential = x.Password,
+                    };
                 }).ToList();
             }
             var sdpInit = await link.Init(configuration, _portRange);
