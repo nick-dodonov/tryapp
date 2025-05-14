@@ -1,7 +1,5 @@
 {
   "dependencies": {
-    "org.nuget.memorypack.core": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.core",
-    "org.nuget.memorypack.generator": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.generator",
     "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask#2.5.10",
     "com.unity.ide.rider": "3.0.36",
     "com.unity.inputsystem": "1.14.0",
@@ -11,6 +9,8 @@
     "common": "file:../../Common",
     "locator.api": "file:../../../Locator/Locator.Api",
     "locator.client": "file:../../../Locator/Locator.Client",
+    "org.nuget.memorypack.core": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.core",
+    "org.nuget.memorypack.generator": "https://github.com/nick-dodonov/unitynuget-static.git?path=packages/org.nuget.memorypack.generator",
     "shared.boot": "file:../../../Shared/Shared.Boot",
     "shared.log": "file:../../../Shared/Shared.Log",
     "shared.sys": "file:../../../Shared/Shared.Sys",
