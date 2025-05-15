@@ -6,72 +6,26 @@ using NUnit.Framework;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 
-// ReSharper disable AccessToStaticMemberViaDerivedType
-
 namespace Shared.Tp.Tests.Tween
 {
-    public struct TestUnmanaged
+    public unsafe class FieldRefTweener<T>
+        : ITweener<T>
+        where T : unmanaged
     {
-        public int IntValue;
-        public float FloatValue;
+        private delegate void FieldProcessor(IntPtr aPtr, IntPtr bPtr, float t, IntPtr rPtr);
+        private readonly Dictionary<FieldInfo, FieldProcessor> _processors = new();
 
-        public static TestUnmanaged Make(int idx)
+        public FieldRefTweener()
         {
-            return new()
+            var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public);
+            foreach (var field in fields)
             {
-                IntValue = 11 * (idx + 1),
-                FloatValue = 11.1f * (idx + 1),
-            };
+                if (field.FieldType == typeof(UnmanagedBasic))
+                    RegisterProcessor(field, new UnmanagedBasicTweener());
+            }
         }
 
-        public static void CustomTween(ref TestUnmanaged a, ref TestUnmanaged b, float t, ref TestUnmanaged r)
-        {
-            r.IntValue = (int)(a.IntValue * (1 - t) + b.IntValue * t);
-            r.FloatValue = a.FloatValue * (1 - t) + b.FloatValue * t;
-        }
-
-        public static void AssertInside(in TestUnmanaged a, in TestUnmanaged b, in TestUnmanaged r)
-        {
-            Assert.That(r.IntValue, Is.InRange(a.IntValue, b.IntValue));
-            Assert.That(r.FloatValue, Is.InRange(a.FloatValue, b.FloatValue));
-        }
-    }
-
-    public struct TestAuto
-    {
-        public long Offset;
-        public TestUnmanaged Unmanaged;
-        //public string StringValue;
-
-        public static TestAuto Make(int idx)
-        {
-            return new()
-            {
-                Unmanaged = TestUnmanaged.Make(idx),
-                //StringValue = $"idx:{idx}"
-            };
-        }
-    }
-
-    public interface ITweenProcessor<TField> where TField : unmanaged
-    {
-        void Process(ref TField a, ref TField b, float t, ref TField r);
-    }
-
-    public class TestUnmanagedProcessor : ITweenProcessor<TestUnmanaged>
-    {
-        public void Process(ref TestUnmanaged a, ref TestUnmanaged b, float t, ref TestUnmanaged r)
-        {
-            TestUnmanaged.CustomTween(ref a, ref b, t, ref r);
-        }
-    }
-
-    public static unsafe class FieldRefTweenProcessor<T> where T : unmanaged
-    {
-        // ReSharper disable once StaticMemberInGenericType
-        private static readonly Dictionary<FieldInfo, Action<IntPtr, IntPtr, float, IntPtr>> _processors = new();
-
-        public static void RegisterProcessor<TField>(FieldInfo field, ITweenProcessor<TField> processor)
+        private void RegisterProcessor<TField>(FieldInfo field, ITweener<TField> tweener)
             where TField : unmanaged
         {
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
@@ -80,18 +34,16 @@ namespace Shared.Tp.Tests.Tween
                 ref var a = ref *(TField*)(aPtr + fieldOffset);
                 ref var b = ref *(TField*)(bPtr + fieldOffset);
                 ref var r = ref *(TField*)(rPtr + fieldOffset);
-                processor.Process(ref a, ref b, t, ref r);
+                tweener.Process(ref a, ref b, t, ref r);
             };
         }
 
-        public static void Process(ref T a, ref T b, float t, ref T r)
+        public void Process(ref T a, ref T b, float t, ref T r)
         {
             fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
             {
                 foreach (var (_, processor) in _processors)
-                {
                     processor((IntPtr)aPtr, (IntPtr)bPtr, t, (IntPtr)rPtr);
-                }
             }
         }
     }
@@ -99,41 +51,35 @@ namespace Shared.Tp.Tests.Tween
     public class TweenTests
     {
         [Test]
-        public void Unmanaged_CustomTween_GCFree()
+        public void UnmanagedBasic_Tween_GCFree()
         {
-            var a = TestUnmanaged.Make(0);
-            var b = TestUnmanaged.Make(1);
-            var r = new TestUnmanaged();
+            var a = UnmanagedBasic.Make(0);
+            var b = UnmanagedBasic.Make(1);
+            var r = new UnmanagedBasic();
 
+            var tweener = new UnmanagedBasicTweener();
             Assert.That(() =>
             {
-                TestUnmanaged.CustomTween(ref a, ref b, 0.5f, ref r);
+                tweener.Process(ref a, ref b, 0.5f, ref r);
             }, Is.Not.AllocatingGCMemory());
 
-            TestUnmanaged.AssertInside(a, b, r);
+            UnmanagedBasic.AssertInRange(a, b, r);
         }
 
         [Test]
-        public void FieldRefTweenProcessor_ImplChecks()
+        public void UnmanagedComplex_Tween()
         {
-            var a = TestAuto.Make(0);
-            var b = TestAuto.Make(1);
-            var r = default(TestAuto);
+            var a = UnmanagedComplex.Make(0);
+            var b = UnmanagedComplex.Make(1);
+            var r = default(UnmanagedComplex);
 
-            {
-                var fields = typeof(TestAuto).GetFields(BindingFlags.Instance | BindingFlags.Public);
-                foreach (var field in fields)
-                {
-                    if (field.FieldType == typeof(TestUnmanaged))
-                    {
-                        FieldRefTweenProcessor<TestAuto>.RegisterProcessor(field, new TestUnmanagedProcessor());
-                    }
-                }
-                
-                FieldRefTweenProcessor<TestAuto>.Process(ref a, ref b, 0.5f, ref r);
-                TestUnmanaged.AssertInside(a.Unmanaged, b.Unmanaged, r.Unmanaged);
-            }
-            //TODO: impl checks
+            // var provider = new TweenerProvider();
+            // provider.Register(new UnmanagedBasicTweener());
+
+            var tweener = new FieldRefTweener<UnmanagedComplex>();
+            tweener.Process(ref a, ref b, 0.5f, ref r);
+
+            UnmanagedBasic.AssertInRange(a.UnmanagedBasic, b.UnmanagedBasic, r.UnmanagedBasic);
         }
     }
 }
