@@ -1,6 +1,6 @@
 using NUnit.Framework;
 
-namespace Shared.Tp.Tests.Tween
+namespace Shared.Tp.Tests.Tween.Data
 {
     public struct UnmanagedBasic
     {
@@ -16,14 +16,14 @@ namespace Shared.Tp.Tests.Tween
             };
         }
 
-        public static void AssertInRange(in UnmanagedBasic a, in UnmanagedBasic b, in UnmanagedBasic r)
+        public void AssertInRange(in UnmanagedBasic a, in UnmanagedBasic b)
         {
-            Assert.That(r.IntValue, Is.InRange(a.IntValue, b.IntValue));
-            Assert.That(r.FloatValue, Is.InRange(a.FloatValue, b.FloatValue));
+            Assert.That(IntValue, Is.InRange(a.IntValue, b.IntValue));
+            Assert.That(FloatValue, Is.InRange(a.FloatValue, b.FloatValue));
         }
     }
     
-    public class UnmanagedBasicTweener : ITweener<UnmanagedBasic>
+    public class CustomUnmanagedBasicTweener : ITweener<UnmanagedBasic>
     {
         public void Process(ref UnmanagedBasic a, ref UnmanagedBasic b, float t, ref UnmanagedBasic r)
         {

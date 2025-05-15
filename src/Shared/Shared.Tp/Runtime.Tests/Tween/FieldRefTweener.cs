@@ -6,21 +6,33 @@ using System.Runtime.InteropServices;
 
 namespace Shared.Tp.Tests.Tween
 {
-    public unsafe class FieldRefTweener<T>
-        : ITweener<T>
+    public class FieldRefTweener
+    {
+        protected readonly TweenerProvider Provider;
+
+        protected delegate void FieldProcessor(IntPtr aPtr, IntPtr bPtr, float t, IntPtr rPtr);
+        protected readonly Dictionary<FieldInfo, FieldProcessor> Processors = new(); //TODO: don't need map, just use array to speedup processing
+
+        protected FieldRefTweener(TweenerProvider provider)
+        {
+            Provider = provider;
+        }
+
+        protected void RegisterProcessor(FieldInfo field, FieldProcessor fieldProcessor)
+        {
+            if (!Processors.TryAdd(field, fieldProcessor))
+                throw new InvalidOperationException($"Field {field.Name} already registered");
+        }
+    }
+
+    public unsafe class FieldRefTweener<T> : FieldRefTweener, ITweener<T>
         where T : unmanaged
     {
-        private readonly TweenerProvider _provider;
-
-        private delegate void FieldProcessor(IntPtr aPtr, IntPtr bPtr, float t, IntPtr rPtr);
-        private readonly Dictionary<FieldInfo, FieldProcessor> _processors = new();
-
-        public FieldRefTweener(TweenerProvider provider)
+        public FieldRefTweener(TweenerProvider provider) : base(provider)
         {
             if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
                 throw new NotImplementedException("TODO: support reference types");
-            
-            _provider = provider;
+
             var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public);
             var registerUnmanagedField = GetType().GetMethod(nameof(RegisterUnmanagedField), BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -37,28 +49,22 @@ namespace Shared.Tp.Tests.Tween
             if (RuntimeHelpers.IsReferenceOrContainsReferences<TField>())
                 throw new NotImplementedException("TODO: support reference field types");
 
-            var tweener = _provider.Get<TField>();
-            RegisterProcessor(field, tweener);
-        }
-
-        private void RegisterProcessor<TField>(FieldInfo field, ITweener<TField> tweener)
-            where TField : unmanaged
-        {
+            var tweener = Provider.Get<TField>();
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
-            _processors[field] = (aPtr, bPtr, t, rPtr) =>
+            RegisterProcessor(field, (aPtr, bPtr, t, rPtr) =>
             {
                 ref var a = ref *(TField*)(aPtr + fieldOffset);
                 ref var b = ref *(TField*)(bPtr + fieldOffset);
                 ref var r = ref *(TField*)(rPtr + fieldOffset);
                 tweener.Process(ref a, ref b, t, ref r);
-            };
+            });
         }
 
         public void Process(ref T a, ref T b, float t, ref T r)
         {
             fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
             {
-                foreach (var (_, processor) in _processors)
+                foreach (var (_, processor) in Processors)
                     processor((IntPtr)aPtr, (IntPtr)bPtr, t, (IntPtr)rPtr);
             }
         }

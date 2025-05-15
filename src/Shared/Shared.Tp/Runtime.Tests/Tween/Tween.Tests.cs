@@ -1,4 +1,6 @@
+using System;
 using NUnit.Framework;
+using Shared.Tp.Tests.Tween.Data;
 using UnityEngine.TestTools.Constraints;
 using Is = UnityEngine.TestTools.Constraints.Is;
 
@@ -7,37 +9,38 @@ namespace Shared.Tp.Tests.Tween
     public class TweenTests
     {
         //[Test] public void CheckFailWorks() => Assert.Fail();
+        private static (T, T, T) MakeTestData<T>(Func<int, T> factory) where T : new() => (factory(0), factory(1), new());
 
         [Test]
-        public void UnmanagedBasic_Tween_GCFree()
+        public void UnmanagedBasic_CustomTween_GCFree()
         {
-            var a = UnmanagedBasic.Make(0);
-            var b = UnmanagedBasic.Make(1);
-            var r = new UnmanagedBasic();
+            var (a, b, r) = MakeTestData(UnmanagedBasic.Make);
 
-            var tweener = new UnmanagedBasicTweener();
+            var tweener = new CustomUnmanagedBasicTweener();
             Assert.That(() =>
             {
                 tweener.Process(ref a, ref b, 0.5f, ref r);
             }, Is.Not.AllocatingGCMemory());
 
-            UnmanagedBasic.AssertInRange(a, b, r);
+            r.AssertInRange(a, b);
         }
 
         [Test]
-        public void UnmanagedComplex_Tween()
+        public void UnmanagedComplex_Tween_GCFree()
         {
-            var a = UnmanagedComplex.Make(0);
-            var b = UnmanagedComplex.Make(1);
-            var r = default(UnmanagedComplex);
+            var (a, b, r) = MakeTestData(UnmanagedComplex.Make);
 
             var provider = new TweenerProvider();
-            provider.Register(new UnmanagedBasicTweener());
+            provider.Register(new CustomUnmanagedBasicTweener());
 
             var tweener = new FieldRefTweener<UnmanagedComplex>(provider);
-            tweener.Process(ref a, ref b, 0.5f, ref r);
+            tweener.Process(ref a, ref b, 0.5f, ref r); // warmup (Mono.JIT->GC.Alloc)
+            Assert.That(() =>
+            {
+                tweener.Process(ref a, ref b, 0.5f, ref r);
+            }, Is.Not.AllocatingGCMemory());
 
-            UnmanagedBasic.AssertInRange(a.UnmanagedBasic, b.UnmanagedBasic, r.UnmanagedBasic);
+            r.AssertInRange(a, b);
         }
     }
 }
