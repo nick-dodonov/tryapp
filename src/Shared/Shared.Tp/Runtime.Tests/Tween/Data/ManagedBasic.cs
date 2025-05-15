@@ -1,7 +1,9 @@
+using System.Runtime.InteropServices;
 using NUnit.Framework;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
+    [StructLayout(LayoutKind.Sequential)]
     public struct ManagedBasic
     {
         public int IntValue;

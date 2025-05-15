@@ -1,4 +1,4 @@
-namespace Shared.Tp.Tests.Tween
+namespace Shared.Tp.Tween
 {
     public interface ITweener { }
 

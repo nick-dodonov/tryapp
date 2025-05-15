@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Shared.Tp.Tests.Tween
+namespace Shared.Tp.Tween
 {
     public class TweenerProvider
     {
@@ -17,15 +17,24 @@ namespace Shared.Tp.Tests.Tween
 
         private void RegisterWellKnown()
         {
+            Register(new IntTweener());
             Register(new LongTweener());
+            Register(new StringTweener());
         }
+    }
+
+    public class IntTweener : ITweener<int>
+    {
+        public void Process(ref int a, ref int b, float t, ref int r) => r = (int)(a + (b - a) * t);
     }
 
     public class LongTweener : ITweener<long>
     {
-        void ITweener<long>.Process(ref long a, ref long b, float t, ref long r)
-        {
-            r = (long)(a + (b - a) * t);
-        }
+        public void Process(ref long a, ref long b, float t, ref long r) => r = (long)(a + (b - a) * t);
+    }
+
+    internal class StringTweener : ITweener<string>
+    {
+        public void Process(ref string a, ref string b, float t, ref string r) => r = t < 0.5f ? a : b;
     }
 }

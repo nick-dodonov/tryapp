@@ -1,38 +1,16 @@
 using System;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Shared.Tp.Tests.Tween
+namespace Shared.Tp.Tween
 {
-    public class FieldRefTweener
-    {
-        protected readonly TweenerProvider Provider;
-
-        protected delegate void FieldProcessor(IntPtr aPtr, IntPtr bPtr, float t, IntPtr rPtr);
-        protected readonly Dictionary<FieldInfo, FieldProcessor> Processors = new(); //TODO: don't need map, just use array to speedup processing
-
-        protected FieldRefTweener(TweenerProvider provider)
-        {
-            Provider = provider;
-        }
-
-        protected void RegisterProcessor(FieldInfo field, FieldProcessor fieldProcessor)
-        {
-            if (!Processors.TryAdd(field, fieldProcessor))
-                throw new InvalidOperationException($"Field {field.Name} already registered");
-        }
-    }
-
-    public unsafe class FieldRefTweener<T> : FieldRefTweener, ITweener<T>
+    public unsafe class UnmanagedTweener<T> : BaseTweener, ITweener<T>
         where T : unmanaged
     {
-        public FieldRefTweener(TweenerProvider provider) : base(provider)
+        public UnmanagedTweener(TweenerProvider provider) : base(provider)
         {
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-                throw new NotImplementedException("TODO: support reference types");
-
             var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public);
             var registerUnmanagedField = GetType().GetMethod(nameof(RegisterUnmanagedField), BindingFlags.NonPublic | BindingFlags.Instance);
 
@@ -46,8 +24,7 @@ namespace Shared.Tp.Tests.Tween
         private void RegisterUnmanagedField<TField>(FieldInfo field)
             where TField : unmanaged
         {
-            if (RuntimeHelpers.IsReferenceOrContainsReferences<TField>())
-                throw new NotImplementedException("TODO: support reference field types");
+            Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<TField>());
 
             var tweener = Provider.Get<TField>();
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
@@ -65,7 +42,12 @@ namespace Shared.Tp.Tests.Tween
             fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
             {
                 foreach (var (_, processor) in Processors)
-                    processor((IntPtr)aPtr, (IntPtr)bPtr, t, (IntPtr)rPtr);
+                {
+                    var aIntPtr = (IntPtr)aPtr;
+                    var bIntPtr = (IntPtr)bPtr;
+                    var rIntPtr = (IntPtr)rPtr;
+                    processor(aIntPtr, bIntPtr, t, rIntPtr);
+                }
             }
         }
     }
