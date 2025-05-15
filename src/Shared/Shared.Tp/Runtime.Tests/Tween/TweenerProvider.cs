@@ -13,7 +13,7 @@ namespace Shared.Tp.Tests.Tween
         }
 
         public void Register<T>(ITweener<T> tweener) => _tweeners[typeof(T)] = tweener;
-        public ITweener Get(Type type) => _tweeners[type];
+        public ITweener<T> Get<T>() => (ITweener<T>)_tweeners[typeof(T)];
 
         private void RegisterWellKnown()
         {

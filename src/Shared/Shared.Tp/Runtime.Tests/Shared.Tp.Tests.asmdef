@@ -4,6 +4,7 @@
     "references": [
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
+        "Shared.Log",
         "Shared.Tp"
     ],
     "includePlatforms": [],
