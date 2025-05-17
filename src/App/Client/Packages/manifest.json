@@ -20,6 +20,7 @@
     "com.unity.modules.physics": "1.0.0"
   },
   "testables": [
+    "common",
     "shared.sys",
     "shared.tp"
   ],
