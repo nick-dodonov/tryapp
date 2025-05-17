@@ -28,7 +28,9 @@ namespace Shared.Tp.Tests.Tween.Data
         }
 
         [UnityEngine.Scripting.Preserve] // ReSharper disable once UnusedMember.Global TODO: auto-create via Shared.Sys.SourceGen
-        public RttUnmanagedInfo GetUnmanagedInfo() => new RttUnmanagedInfo()
-            .Add(ref this, ref IntValue, nameof(IntValue));
+        public RttInfo GetRttInfo() => new RttInfo()
+            .Add(ref this, ref IntValue, nameof(IntValue))
+            .Add(ref this, ref StringValue, nameof(StringValue))
+            ;
     }
 }

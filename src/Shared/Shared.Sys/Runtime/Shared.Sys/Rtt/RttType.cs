@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using UnityEngine.Scripting;
 
 namespace Shared.Sys.Rtt
@@ -65,12 +66,13 @@ namespace Shared.Sys.Rtt
 
         private void InitUnmanagedFields<T>()
         {
-            var methodInfo = Type.GetMethod(nameof(IRttInfoProvider.GetUnmanagedInfo), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
+            //TODO: another variants to obtain RttInfo for types not handled with user
+            var methodInfo = Type.GetMethod(nameof(IRttInfoProvider.GetRttInfo), BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
             if (methodInfo == null)
-                throw new InvalidOperationException($"Type {Type} does not have GetUnmanagedInfo method");
+                throw new InvalidOperationException($"Type {Type} does not have {nameof(IRttInfoProvider.GetRttInfo)} method");
 
             var dummy = (T)RuntimeHelpers.GetUninitializedObject(Type);
-            var unmanagedInfo = (RttUnmanagedInfo)methodInfo.Invoke(dummy, null);
+            var rttInfo = (RttInfo)methodInfo.Invoke(dummy, null);
 
             var fieldsLength = _publicFields.Length;
             for (var i = 0; i < fieldsLength; ++i)
@@ -81,30 +83,27 @@ namespace Shared.Sys.Rtt
                 var fieldName = fieldInfo.Name;
                 var fieldType = fieldInfo.FieldType;
 
-                var isUnmanaged = rttField.IsUnmanaged = IsUnmanagedType(fieldType);
-                if (!isUnmanaged)
-                    continue;
+                rttField.IsUnmanaged = IsUnmanagedType(fieldType);
 
+                // rttField.RuntimeOffset if provided
                 var j = 0;
-                var unmanagedFields = unmanagedInfo.FieldItems;
-                var unmanagedLength = unmanagedFields.Count;
-                for (; j < unmanagedLength; j++)
+                var infoFields = rttInfo.FieldItems;
+                var infoLength = infoFields.Count;
+                for (; j < infoLength; j++)
                 {
-                    var unmanagedField = unmanagedFields[j];
-                    if (unmanagedField.Name != fieldName)
+                    var infoField = infoFields[j];
+                    if (infoField.Name != fieldName)
                         continue;
 
-                    rttField.UnmanagedRuntimeOffset = unmanagedField.Offset;
+                    rttField.RuntimeOffset = infoField.Offset;
                     break;
                 }
-
-                if (j >= unmanagedLength)
-                    throw new InvalidOperationException($"Field {fieldName} of type {fieldType} is not found in GetUnmanagedInfo method");
             }
         }
 
         [Preserve]
         private static bool IsUnmanaged<T>() where T : unmanaged => typeof(T).IsValueType; //true
+
         private static bool IsUnmanagedType(Type type)
         {
             try
@@ -125,7 +124,21 @@ namespace Shared.Sys.Rtt
         public Type FieldType => FieldInfo.FieldType;
 
         public bool IsUnmanaged { get; internal set; }
-        public int UnmanagedRuntimeOffset { get; internal set; }
+
+        private int? _runtimeOffset;
+        public bool HasRuntimeOffset => _runtimeOffset.HasValue;
+
+        public int RuntimeOffset
+        {
+            get
+            {
+                if (_runtimeOffset.HasValue)
+                    return _runtimeOffset.Value;
+
+                throw new InvalidOperationException($"Field {FieldInfo.Name} of type {FieldInfo.ReflectedType!.FullName} didn't provided runtime offset (check GetRttInfo())");
+            }
+            internal set => _runtimeOffset = value;
+        }
 
         internal RttField(FieldInfo fieldInfo)
         {
@@ -135,24 +148,26 @@ namespace Shared.Sys.Rtt
 
     public interface IRttInfoProvider
     {
-        RttUnmanagedInfo GetUnmanagedInfo();
+        RttInfo GetRttInfo();
     }
-    
-    public class RttUnmanagedInfo
+
+    public class RttInfo
     {
         internal struct FieldItem
         {
             public readonly string Name;
-            public readonly int Offset;
+            public readonly int Offset; // differs from Marshal.OffsetOf because it's used in runtime not only for marshaled objects
+
             public FieldItem(string name, int offset)
             {
                 Name = name;
                 Offset = offset;
             }
         }
+
         internal List<FieldItem> FieldItems { get; } = new();
 
-        public unsafe RttUnmanagedInfo Add<T, TField>(ref T objRef, ref TField fieldRef, string fieldName)
+        public unsafe RttInfo Add<T, TField>(ref T objRef, ref TField fieldRef, string fieldName)
         {
             var objPtr = (byte*)Unsafe.AsPointer(ref objRef);
             var fieldPtr = (byte*)Unsafe.AsPointer(ref fieldRef);
