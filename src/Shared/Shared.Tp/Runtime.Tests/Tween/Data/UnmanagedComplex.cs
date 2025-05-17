@@ -1,10 +1,12 @@
 using NUnit.Framework;
+using Shared.Tp.Tween;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
     public struct UnmanagedComplex
     {
-        public long Offset;
+        public long Offset; // NO tween
+        [Tween] 
         public UnmanagedBasic UnmanagedBasic;
 
         public static UnmanagedComplex Make(int idx)
@@ -18,7 +20,7 @@ namespace Shared.Tp.Tests.Tween.Data
 
         public void AssertInRange(UnmanagedComplex a, UnmanagedComplex b)
         {
-            Assert.That(Offset, Is.InRange(a.Offset, b.Offset));
+            Assert.That(Offset, Is.EqualTo(b.Offset));
             UnmanagedBasic.AssertInRange(a.UnmanagedBasic, b.UnmanagedBasic);
         }
     }

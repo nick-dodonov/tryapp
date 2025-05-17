@@ -11,9 +11,10 @@ namespace Shared.Tp.Tween.Default
     {
         public UnmanagedTweener(TweenerProvider provider) : base(provider)
         {
-            var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public);
+            //TODO: speedup get method once
             var registerUnmanagedField = GetType().GetMethod(nameof(RegisterUnmanagedField), BindingFlags.NonPublic | BindingFlags.Instance);
 
+            var fields = typeof(T).GetFields(BindingFlags.Instance | BindingFlags.Public);
             foreach (var field in fields)
             {
                 var genericMethod = registerUnmanagedField!.MakeGenericMethod(field.FieldType);
@@ -26,14 +27,22 @@ namespace Shared.Tp.Tween.Default
         {
             Debug.Assert(!RuntimeHelpers.IsReferenceOrContainsReferences<TField>());
 
-            var tweener = Provider.Get<TField>();
+            var tweenEnabled = field.GetCustomAttribute<TweenAttribute>() != null;
+            var tweener = tweenEnabled 
+                ? Provider.Get<TField>()
+                : null;
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
             RegisterProcessor((aPtr, bPtr, t, rPtr) =>
             {
-                ref var a = ref *(TField*)(aPtr + fieldOffset);
                 ref var b = ref *(TField*)(bPtr + fieldOffset);
                 ref var r = ref *(TField*)(rPtr + fieldOffset);
-                tweener.Process(ref a, ref b, t, ref r);
+                if (tweener != null)
+                {
+                    ref var a = ref *(TField*)(aPtr + fieldOffset);
+                    tweener.Process(ref a, ref b, t, ref r);
+                }
+                else
+                    r = b;
             });
         }
 
