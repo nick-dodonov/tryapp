@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace Shared.Tp.Tween
+namespace Shared.Tp.Tween.Default
 {
     public unsafe class UnmanagedTweener<T> : BaseTweener, ITweener<T>
         where T : unmanaged
@@ -28,7 +28,7 @@ namespace Shared.Tp.Tween
 
             var tweener = Provider.Get<TField>();
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
-            RegisterProcessor(field, (aPtr, bPtr, t, rPtr) =>
+            RegisterProcessor((aPtr, bPtr, t, rPtr) =>
             {
                 ref var a = ref *(TField*)(aPtr + fieldOffset);
                 ref var b = ref *(TField*)(bPtr + fieldOffset);
@@ -41,7 +41,7 @@ namespace Shared.Tp.Tween
         {
             fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
             {
-                foreach (var (_, processor) in Processors)
+                foreach (var processor in Processors)
                 {
                     var aIntPtr = (IntPtr)aPtr;
                     var bIntPtr = (IntPtr)bPtr;

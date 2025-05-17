@@ -1,0 +1,72 @@
+using System;
+using System.Reflection;
+using System.Runtime.CompilerServices;
+using Shared.Sys.Rtt;
+
+namespace Shared.Tp.Tween.Default
+{
+    public unsafe class ManagedStructTweener<T> : BaseTweener, ITweener<T>
+        where T : struct
+    {
+        public ManagedStructTweener(TweenerProvider provider) : base(provider)
+        {
+            //TODO: get method once
+            var registerField = GetType().GetMethod(nameof(RegisterField), BindingFlags.NonPublic | BindingFlags.Instance);
+
+            var rttType = RttType.Get<T>();
+            foreach (var rttField in rttType.PublicFields)
+            {
+                var genericMethod = registerField!.MakeGenericMethod(rttField.FieldType);
+                genericMethod.Invoke(this, new object[] { rttField });
+            }
+        }
+
+        private void RegisterField<TField>(RttField rttField)
+        {
+            var tweener = Provider.Get<TField>();
+            if (rttField.IsUnmanaged)
+            {
+                var fieldOffset = rttField.UnmanagedRuntimeOffset;
+                RegisterProcessor((aPtr, bPtr, t, rPtr) =>
+                {
+                    ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + fieldOffset));
+                    ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + fieldOffset));
+                    ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + fieldOffset));
+                    tweener.Process(ref a, ref b, t, ref r);
+                });
+            }
+            else
+            {
+                var field = rttField.FieldInfo;
+                RegisterProcessor((aPtr, bPtr, t, rPtr) =>
+                {
+                    ref var a = ref Unsafe.AsRef<T>((void*)(aPtr));
+                    ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
+                    ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
+                    var af = (TField?)field.GetValue(a);
+                    var bf = (TField?)field.GetValue(b);
+                    var rf = (TField?)field.GetValue(r);
+                    var orf = rf;
+                    tweener.Process(ref af!, ref bf!, t, ref rf!);
+                    if (!ReferenceEquals(af, orf))
+                        field.SetValue(r, rf);
+                });
+            }
+        }
+
+        public void Process(ref T a, ref T b, float t, ref T r)
+        {
+            var aPtr = Unsafe.AsPointer(ref a);
+            var bPtr = Unsafe.AsPointer(ref b);
+            var rPtr = Unsafe.AsPointer(ref r);
+
+            foreach (var processor in Processors)
+            {
+                var aIntPtr = (IntPtr)aPtr;
+                var bIntPtr = (IntPtr)bPtr;
+                var rIntPtr = (IntPtr)rPtr;
+                processor(aIntPtr, bIntPtr, t, rIntPtr);
+            }
+        }
+    }
+}

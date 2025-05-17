@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Reflection;
 using System.Runtime.CompilerServices;
 using Shared.Log;
+using Shared.Tp.Tween.Default;
 
 namespace Shared.Tp.Tween
 {
@@ -11,11 +12,18 @@ namespace Shared.Tp.Tween
     {
         private readonly Dictionary<Type, ITweener> _tweeners = new();
         private readonly MethodInfo _createDefaultUnmanaged;
+        private readonly MethodInfo _createDefaultManagedStruct;
 
         public TweenerProvider()
         {
-            _createDefaultUnmanaged = GetType().GetMethod(nameof(CreateDefaultUnmanaged), BindingFlags.NonPublic | BindingFlags.Instance)!;
+            var type = GetType();
+            const BindingFlags bindingFlags = BindingFlags.NonPublic | BindingFlags.Instance;
+
+            _createDefaultUnmanaged = type.GetMethod(nameof(CreateDefaultUnmanaged), bindingFlags)!;
             Debug.Assert(_createDefaultUnmanaged != null);
+            _createDefaultManagedStruct = type.GetMethod(nameof(CreateDefaultManagedStruct), bindingFlags)!;
+            Debug.Assert(_createDefaultManagedStruct != null);
+
             RegisterWellKnown();
         }
 
@@ -26,26 +34,30 @@ namespace Shared.Tp.Tween
         }
 
         public ITweener<T> GetOfVar<T>(ref T _) => Get<T>(); //to simplify code (without explicit type declaration)
+
         public ITweener<T> Get<T>()
         {
             if (_tweeners.TryGetValue(typeof(T), out var baseTweener))
                 return (ITweener<T>)baseTweener;
 
-            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            if (typeof(T).IsValueType)
             {
-                var genericMethod = _createDefaultUnmanaged.MakeGenericMethod(typeof(T));
+                MethodInfo genericMethod;
+                if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+                    genericMethod = _createDefaultUnmanaged.MakeGenericMethod(typeof(T));
+                else
+                    genericMethod = _createDefaultManagedStruct.MakeGenericMethod(typeof(T));
+
                 var tweener = (ITweener<T>)genericMethod.Invoke(this, null);
                 Register(tweener);
                 return tweener;
             }
-            
+
             throw new InvalidOperationException($"Type {typeof(T).FullName} is not registered");
         }
 
-        private ITweener<T> CreateDefaultUnmanaged<T>() where T : unmanaged
-        {
-            return new UnmanagedTweener<T>(this);
-        }
+        private ITweener<T> CreateDefaultUnmanaged<T>() where T : unmanaged => new UnmanagedTweener<T>(this);
+        private ITweener<T> CreateDefaultManagedStruct<T>() where T : unmanaged => new ManagedStructTweener<T>(this);
 
         private void RegisterWellKnown()
         {

@@ -1,5 +1,6 @@
 using System.Runtime.InteropServices;
 using NUnit.Framework;
+using Shared.Sys.Rtt;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
@@ -25,5 +26,9 @@ namespace Shared.Tp.Tests.Tween.Data
                 .EqualTo(a.StringValue).Or
                 .EqualTo(b.StringValue));
         }
+
+        [UnityEngine.Scripting.Preserve] // ReSharper disable once UnusedMember.Global TODO: auto-create via Shared.Sys.SourceGen
+        public RttUnmanagedInfo GetUnmanagedInfo() => new RttUnmanagedInfo()
+            .Add(ref this, ref IntValue, nameof(IntValue));
     }
 }
