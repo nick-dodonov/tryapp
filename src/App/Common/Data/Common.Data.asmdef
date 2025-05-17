@@ -2,6 +2,7 @@
     "name": "Common.Data",
     "rootNamespace": "Common.Data",
     "references": [
+        "Shared.Sys",
         "Shared.Tp",
         "Shared.Tp.Data.Web",
         "Shared.Tp.Data.Mem",
@@ -17,5 +18,5 @@
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
-    "noEngineReferences": true
+    "noEngineReferences": false
 }
