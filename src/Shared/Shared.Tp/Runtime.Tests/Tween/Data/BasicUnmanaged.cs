@@ -3,12 +3,12 @@ using Shared.Tp.Tween;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
-    public struct UnmanagedBasic
+    public struct BasicUnmanaged
     {
         public int IntValue;
         public float FloatValue;
 
-        public static UnmanagedBasic Make(int idx)
+        public static BasicUnmanaged Make(int idx)
         {
             return new()
             {
@@ -17,16 +17,16 @@ namespace Shared.Tp.Tests.Tween.Data
             };
         }
 
-        public void AssertInRange(in UnmanagedBasic a, in UnmanagedBasic b)
+        public void AssertInRange(in BasicUnmanaged a, in BasicUnmanaged b)
         {
             Assert.That(IntValue, Is.InRange(a.IntValue, b.IntValue));
             Assert.That(FloatValue, Is.InRange(a.FloatValue, b.FloatValue));
         }
     }
     
-    public class CustomUnmanagedBasicTweener : ITweener<UnmanagedBasic>
+    public class CustomUnmanagedBasicTweener : ITweener<BasicUnmanaged>
     {
-        public void Process(ref UnmanagedBasic a, ref UnmanagedBasic b, float t, ref UnmanagedBasic r)
+        public void Process(ref BasicUnmanaged a, ref BasicUnmanaged b, float t, ref BasicUnmanaged r)
         {
             r.IntValue = (int)(a.IntValue * (1 - t) + b.IntValue * t);
             r.FloatValue = a.FloatValue * (1 - t) + b.FloatValue * t;

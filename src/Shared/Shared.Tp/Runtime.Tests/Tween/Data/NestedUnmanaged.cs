@@ -3,25 +3,25 @@ using Shared.Tp.Tween;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
-    public struct UnmanagedComplex
+    public struct NestedUnmanaged
     {
         public long Offset; // NO tween
         [Tween] 
-        public UnmanagedBasic UnmanagedBasic;
+        public BasicUnmanaged BasicUnmanaged;
 
-        public static UnmanagedComplex Make(int idx)
+        public static NestedUnmanaged Make(int idx)
         {
             return new()
             {
                 Offset = 1111 * (idx + 1),
-                UnmanagedBasic = UnmanagedBasic.Make(idx),
+                BasicUnmanaged = BasicUnmanaged.Make(idx),
             };
         }
 
-        public void AssertInRange(UnmanagedComplex a, UnmanagedComplex b)
+        public void AssertInRange(NestedUnmanaged a, NestedUnmanaged b)
         {
             Assert.That(Offset, Is.EqualTo(b.Offset));
-            UnmanagedBasic.AssertInRange(a.UnmanagedBasic, b.UnmanagedBasic);
+            BasicUnmanaged.AssertInRange(a.BasicUnmanaged, b.BasicUnmanaged);
         }
     }
 }

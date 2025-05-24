@@ -6,12 +6,12 @@ using Is = UnityEngine.TestTools.Constraints.Is;
 
 namespace Shared.Tp.Tests.Tween
 {
-    public class UnmanagedTweenTests : BaseTweenTests
+    public class UnmanagedTween_Tests : BaseTweenTests
     {
         [Test]
-        public void UnmanagedBasic_CustomTween_GCFree()
+        public void BasicUnmanaged_CustomTween_GCFree()
         {
-            var (a, b, r) = MakeTestData(UnmanagedBasic.Make);
+            var (a, b, r) = MakeTestData(BasicUnmanaged.Make);
 
             var tweener = new CustomUnmanagedBasicTweener();
             Assert.That(() =>
@@ -23,9 +23,9 @@ namespace Shared.Tp.Tests.Tween
         }
 
         [Test]
-        public void UnmanagedComplex_Tween_GCFree()
+        public void NestedUnmanaged_Tween_GCFree()
         {
-            var (a, b, r) = MakeTestData(UnmanagedComplex.Make);
+            var (a, b, r) = MakeTestData(NestedUnmanaged.Make);
 
             var provider = new TweenerProvider();
             provider.Register(new CustomUnmanagedBasicTweener());

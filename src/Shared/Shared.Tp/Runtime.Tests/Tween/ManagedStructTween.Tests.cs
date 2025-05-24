@@ -11,7 +11,7 @@ namespace Shared.Tp.Tests.Tween
     public struct Basic1
     {
         public int IntValue;
-        public UnmanagedBasic UnmanagedBasic;
+        public BasicUnmanaged BasicUnmanaged;
         public string StringValue;
         public long LongValue;
         public byte ByteValue;
@@ -21,7 +21,7 @@ namespace Shared.Tp.Tests.Tween
             return new()
             {
                 IntValue = 11 * (idx + 1),
-                UnmanagedBasic = UnmanagedBasic.Make(idx),
+                BasicUnmanaged = BasicUnmanaged.Make(idx),
                 StringValue = $"std:{idx}",
                 LongValue = 111 * (idx + 1),
                 ByteValue = (byte)(1 * (idx + 1))
@@ -29,10 +29,10 @@ namespace Shared.Tp.Tests.Tween
         }
     }
 
-    public class ManagedTweenTests : BaseTweenTests
+    public class ManagedStructTween_Tests : BaseTweenTests
     {
         [Test]
-        public unsafe void ManagedBasic_GetSetValue_GCFree()
+        public unsafe void Basic1_GetSetValue_GCFree()
         {
             var val = Basic1.Make(0);
             var field = val.GetType().GetField(nameof(Basic1.StringValue), BindingFlags.Instance | BindingFlags.Public)!;
@@ -53,9 +53,9 @@ namespace Shared.Tp.Tests.Tween
         }
         
         [Test]
-        public void ManagedBasic_Tween_GCFree()
+        public void BasicStruct_Tween_GCFree()
         {
-            var (a, b, r) = MakeTestData(ManagedBasic.Make);
+            var (a, b, r) = MakeTestData(BasicStruct.Make);
             
             var provider = new TweenerProvider();
             var tweener = provider.GetOfVar(ref a);
