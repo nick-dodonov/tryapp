@@ -49,6 +49,7 @@ namespace Shared.Tp.Tween.Default
                 });
         }
 
+        public void Replica(in T src, ref T dst) => dst = src;
         public void Process(in T src0, in T src1, float t, ref T dst)
         {
             fixed (T* srcPtr0 = &src0, srcPtr1 = &src1, dstPtr = &dst)
