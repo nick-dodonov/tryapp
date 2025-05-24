@@ -37,23 +37,29 @@ namespace Shared.Tp.Tween
 
         public ITweener<T> Get<T>()
         {
-            if (_tweeners.TryGetValue(typeof(T), out var baseTweener))
+            var type = typeof(T);
+            if (_tweeners.TryGetValue(type, out var baseTweener))
                 return (ITweener<T>)baseTweener;
 
-            if (typeof(T).IsValueType)
+            if (type.IsValueType)
             {
                 MethodInfo genericMethod;
                 if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-                    genericMethod = _createDefaultUnmanaged.MakeGenericMethod(typeof(T));
+                {
+                    if (!type.IsPrimitive)
+                        genericMethod = _createDefaultUnmanaged.MakeGenericMethod(type);
+                    else
+                        throw new InvalidOperationException($"Primitive type {type.FullName} is not registered");
+                }
                 else
-                    genericMethod = _createDefaultManagedStruct.MakeGenericMethod(typeof(T));
+                    genericMethod = _createDefaultManagedStruct.MakeGenericMethod(type);
 
                 var tweener = (ITweener<T>)genericMethod.Invoke(this, null);
                 Register(tweener);
                 return tweener;
             }
 
-            throw new InvalidOperationException($"Type {typeof(T).FullName} is not registered");
+            throw new InvalidOperationException($"Type {type.FullName} is not registered");
         }
 
         private ITweener<T> CreateDefaultUnmanaged<T>() where T : unmanaged => new UnmanagedTweener<T>(this);
@@ -63,6 +69,7 @@ namespace Shared.Tp.Tween
         {
             Register(new IntTweener());
             Register(new LongTweener());
+            Register(new FloatTweener());
             Register(new StringTweener());
         }
     }
@@ -75,6 +82,11 @@ namespace Shared.Tp.Tween
     public class LongTweener : ITweener<long>
     {
         public void Process(ref long a, ref long b, float t, ref long r) => r = (long)(a + (b - a) * t);
+    }
+
+    public class FloatTweener : ITweener<float>
+    {
+        public void Process(ref float a, ref float b, float t, ref float r) => r = a + (b - a) * t;
     }
 
     internal class StringTweener : ITweener<string>

@@ -91,7 +91,7 @@ namespace Client.Logic
             context.dumpLinkStats = _dumpLink.Stats;
 
             // enable state view / player input
-            serverStateView.Init(_timeLink, _stSync.RemoteHistory);
+            serverStateView.Init(_timeLink, _stSync.RemoteHistory, CommonSession.CreateTweenerProvider());
             serverStateView.gameObject.SetActive(true);
             player.gameObject.SetActive(true); 
         }
@@ -105,9 +105,9 @@ namespace Client.Logic
             }
             _log.Info(reason);
 
-            if (player != null) // can be already destroyed
+            if (player) // can be already destroyed
                 player.gameObject.SetActive(false);
-            if (serverStateView != null)
+            if (serverStateView)
                 serverStateView.gameObject.SetActive(false);
 
             debugControl.SetServerVersion(null);

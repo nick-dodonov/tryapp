@@ -1,9 +1,11 @@
 using Common.Data;
+using Common.Tween;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Tp;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.Tween;
 
 namespace Common.Logic
 {
@@ -29,6 +31,14 @@ namespace Common.Logic
                 HandStateFactory.CreateObjReader<TRemoteState>(),
                 linkIdProvider,
                 loggerFactory);
+        }
+
+        //TODO: possible move to CommonClient because it's not required on Server now
+        public static TweenerProvider CreateTweenerProvider()
+        {
+            var provider = new TweenerProvider();
+            provider.Register(new PeerStateArrayTweener(provider));
+            return provider;
         }
     }
 }

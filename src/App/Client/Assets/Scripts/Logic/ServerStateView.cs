@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using Common.Data;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
+using Shared.Tp.Tween;
 using Shared.Tp.Util;
 using UnityEngine;
 
@@ -15,13 +16,15 @@ namespace Client.Logic
 
         private TimeLink _timeLink;
         private StHistory<ServerState> _history;
+        private ITweener<ServerState> _serverStateTweener;
 
         private readonly Dictionary<string, PeerView> _peerViews = new();
 
-        public void Init(TimeLink timeLink, StHistory<ServerState> serverHistory)
+        public void Init(TimeLink timeLink, StHistory<ServerState> serverHistory, TweenerProvider tweenerProvider)
         {
             _timeLink = timeLink;
             _history = serverHistory;
+            _serverStateTweener = tweenerProvider.Get<ServerState>();
         }
 
         private void OnDisable()
@@ -54,7 +57,7 @@ namespace Client.Logic
                     var value = key.Ms - from.Key.Ms;
                     var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
                     //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {_frameSessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
-                    _interpolatedState.Interpolate(from.Value, to.Value, t);
+                    _serverStateTweener.Process(ref from.Value, ref to.Value, t, ref _interpolatedState);
                 });
 
             foreach (var peerState in _interpolatedState.Peers)
