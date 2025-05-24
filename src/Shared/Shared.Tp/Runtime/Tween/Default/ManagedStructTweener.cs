@@ -32,30 +32,28 @@ namespace Shared.Tp.Tween.Default
             if (rttField.HasRuntimeOffset)
             {
                 var offset = rttField.RuntimeOffset;
-                RegisterProcessor((aPtr, bPtr, t, rPtr) =>
-                {
-                    if (tweener != null)
+                if (tweener != null)
+                    RegisterProcessor((aPtr, bPtr, t, rPtr) =>
                     {
                         ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + offset));
                         ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
                         ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
                         tweener.Process(ref a, ref b, t, ref r);
-                    }
-                    else
+                    });
+                else
+                    RegisterProcessor((_, bPtr, _, rPtr) =>
                     {
                         ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
                         ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
                         r = b;
-                    }
-                });
+                    });
             }
             else
             {
                 var field = rttField.FieldInfo;
                 Slog.Warn($"implicit boxing on field {field.Name} of type {typeof(T).FullName}");
-                RegisterProcessor((aPtr, bPtr, t, rPtr) =>
-                {
-                    if (tweener != null)
+                if (tweener != null)
+                    RegisterProcessor((aPtr, bPtr, t, rPtr) =>
                     {
                         ref var a = ref Unsafe.AsRef<T>((void*)(aPtr));
                         ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
@@ -67,15 +65,15 @@ namespace Shared.Tp.Tween.Default
                         tweener.Process(ref af, ref bf, t, ref rf);
                         if (!ReferenceEquals(af, orf))
                             field.SetValue(r, rf);
-                    }
-                    else
+                    });
+                else
+                    RegisterProcessor((_, bPtr, _, rPtr) =>
                     {
                         ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
                         ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
                         var bf = (TField)field.GetValue(b);
                         field.SetValue(r, bf);
-                    }
-                });
+                    });
             }
         }
 
