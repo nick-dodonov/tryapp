@@ -29,12 +29,10 @@ namespace Shared.Tp.Tween.Default
                 throw new InvalidOperationException($"Unsupported implicit boxing on field {field.Name} of type {typeof(T).FullName}");
             }
 
-            var tweenEnabled = rttField.FieldInfo.GetCustomAttribute<TweenAttribute>() != null;
-            var tweener = tweenEnabled 
-                ? Provider.Get<TField>()
-                : null;
+            var tweener = Provider.Get<TField>();
             var offset = rttField.RuntimeOffset;
-            if (tweener != null)
+            var tweenEnabled = rttField.FieldInfo.GetCustomAttribute<TweenAttribute>() != null;
+            if (tweenEnabled)
                 RegisterProcessor((srcInt0, srcInt1, t, dstInt) =>
                 {
                     ref var src0 = ref Unsafe.AsRef<TField>((void*)(srcInt0 + offset));
@@ -47,8 +45,14 @@ namespace Shared.Tp.Tween.Default
                 {
                     ref var src1 = ref Unsafe.AsRef<TField>((void*)(srcInt1 + offset));
                     ref var dst = ref Unsafe.AsRef<TField>((void*)(dstInt + offset));
-                    dst = src1;
+                    tweener.Replica(in src1, ref dst);
                 });
+        }
+
+        public void Replica(in T src, ref T dst)
+        {
+            dst = src;
+            //TODO: replicate all managed fields instead of shallow copy
         }
 
         public void Process(in T src0, in T src1, float t, ref T dst)

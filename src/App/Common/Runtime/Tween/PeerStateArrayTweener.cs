@@ -12,6 +12,14 @@ namespace Common.Tween
             _peerTweener = provider.Get<PeerState>();
         }
 
+        public void Replica(in PeerState[] src, ref PeerState[] dst)
+        {
+            var length = src.Length;
+            Array.Resize(ref dst, length);
+            for (var i = 0; i < length; ++i)
+                _peerTweener.Replica(src[i], ref dst[i]);
+        }
+
         public void Process(in PeerState[] src0, in PeerState[] src1, float t, ref PeerState[] dst)
         {
             var length = src1.Length;
@@ -26,7 +34,7 @@ namespace Common.Tween
                     _peerTweener.Process(in aPeer, in bPeer, t, ref rPeer);
                 }
                 else
-                    rPeer = bPeer;
+                    _peerTweener.Replica(bPeer, ref rPeer);
             }
         }
 
