@@ -38,7 +38,7 @@ namespace Shared.Tp.Tween.Default
                     ref var a = ref *(TField*)(aPtr + fieldOffset);
                     ref var b = ref *(TField*)(bPtr + fieldOffset);
                     ref var r = ref *(TField*)(rPtr + fieldOffset);
-                    tweener.Process(ref a, ref b, t, ref r);
+                    tweener.Process(in a, in b, t, ref r);
                 });
             else
                 RegisterProcessor((_, bPtr, _, rPtr) =>
@@ -49,7 +49,7 @@ namespace Shared.Tp.Tween.Default
                 });
         }
 
-        public void Process(ref T a, ref T b, float t, ref T r)
+        public void Process(in T a, in T b, float t, ref T r)
         {
             fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
             {

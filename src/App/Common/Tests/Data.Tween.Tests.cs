@@ -22,7 +22,7 @@ namespace Common.Tests
         }
         
         [Test]
-        public void TickState_Tweeners_Exist()
+        public void TickState_Tweens()
         {
             var provider = CommonSession.CreateTweenerProvider();
             provider.Get<ClientState>();
@@ -46,7 +46,7 @@ namespace Common.Tests
                 }
             };
             var r = new ServerState();
-            tweener.Process(ref a, ref b, 0.5f, ref r);
+            tweener.Process(in a, in b, 0.5f, ref r);
             
             Assert.AreEqual(a.Peers.Length, r.Peers.Length);
             Assert.That(r.Peers[0].Ms, Is.InRange(

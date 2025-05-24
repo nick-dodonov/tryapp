@@ -76,21 +76,21 @@ namespace Shared.Tp.Tween
 
     public class IntTweener : ITweener<int>
     {
-        public void Process(ref int a, ref int b, float t, ref int r) => r = (int)(a + (b - a) * t);
+        public void Process(in int a, in int b, float t, ref int r) => r = (int)(a + (b - a) * t);
     }
 
     public class LongTweener : ITweener<long>
     {
-        public void Process(ref long a, ref long b, float t, ref long r) => r = (long)(a + (b - a) * t);
+        public void Process(in long a, in long b, float t, ref long r) => r = (long)(a + (b - a) * t);
     }
 
     public class FloatTweener : ITweener<float>
     {
-        public void Process(ref float a, ref float b, float t, ref float r) => r = a + (b - a) * t;
+        public void Process(in float a, in float b, float t, ref float r) => r = a + (b - a) * t;
     }
 
     internal class StringTweener : ITweener<string>
     {
-        public void Process(ref string a, ref string b, float t, ref string r) => r = t < 0.5f ? a : b;
+        public void Process(in string a, in string b, float t, ref string r) => r = t < 0.5f ? a : b;
     }
 }

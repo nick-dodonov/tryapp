@@ -26,7 +26,7 @@ namespace Shared.Tp.Tests.Tween.Data
     
     public class CustomBasicUnmanagedTweener : ITweener<BasicUnmanaged>
     {
-        public void Process(ref BasicUnmanaged a, ref BasicUnmanaged b, float t, ref BasicUnmanaged r)
+        public void Process(in BasicUnmanaged a, in BasicUnmanaged b, float t, ref BasicUnmanaged r)
         {
             r.IntValue = (int)(a.IntValue * (1 - t) + b.IntValue * t);
             r.FloatValue = a.FloatValue * (1 - t) + b.FloatValue * t;

@@ -38,7 +38,7 @@ namespace Shared.Tp.Tween.Default
                         ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + offset));
                         ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
                         ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
-                        tweener.Process(ref a, ref b, t, ref r);
+                        tweener.Process(in a, in b, t, ref r);
                     });
                 else
                     RegisterProcessor((_, bPtr, _, rPtr) =>
@@ -62,7 +62,7 @@ namespace Shared.Tp.Tween.Default
                         var bf = (TField)field.GetValue(b);
                         var rf = (TField)field.GetValue(r);
                         var orf = rf;
-                        tweener.Process(ref af, ref bf, t, ref rf);
+                        tweener.Process(in af, in bf, t, ref rf);
                         if (!ReferenceEquals(af, orf))
                             field.SetValue(r, rf);
                     });
@@ -77,10 +77,10 @@ namespace Shared.Tp.Tween.Default
             }
         }
 
-        public void Process(ref T a, ref T b, float t, ref T r)
+        public void Process(in T a, in T b, float t, ref T r)
         {
-            var aPtr = Unsafe.AsPointer(ref a);
-            var bPtr = Unsafe.AsPointer(ref b);
+            var aPtr = Unsafe.AsPointer(ref Unsafe.AsRef(a));
+            var bPtr = Unsafe.AsPointer(ref Unsafe.AsRef(b));
             var rPtr = Unsafe.AsPointer(ref r);
 
             foreach (var processor in Processors)
