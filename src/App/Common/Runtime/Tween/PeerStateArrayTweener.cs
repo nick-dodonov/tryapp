@@ -12,17 +12,17 @@ namespace Common.Tween
             _peerTweener = provider.Get<PeerState>();
         }
 
-        public void Process(in PeerState[] a, in PeerState[] b, float t, ref PeerState[] r)
+        public void Process(in PeerState[] src0, in PeerState[] src1, float t, ref PeerState[] dst)
         {
-            var length = b.Length;
-            Array.Resize(ref r, length);
+            var length = src1.Length;
+            Array.Resize(ref dst, length);
             for (var i = 0; i < length; ++i)
             {
-                ref var rPeer = ref r[i];
-                ref var bPeer = ref b[i];
-                if (TryGetPeerStateIndex(a, bPeer.Id, out var fromPeerIndex))
+                ref var rPeer = ref dst[i];
+                ref var bPeer = ref src1[i];
+                if (TryGetPeerStateIndex(src0, bPeer.Id, out var idx0))
                 {
-                    ref var aPeer = ref a[fromPeerIndex];
+                    ref var aPeer = ref src0[idx0];
                     _peerTweener.Process(in aPeer, in bPeer, t, ref rPeer);
                 }
                 else

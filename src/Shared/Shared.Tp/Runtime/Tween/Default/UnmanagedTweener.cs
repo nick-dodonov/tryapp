@@ -33,33 +33,31 @@ namespace Shared.Tp.Tween.Default
                 : null;
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
             if (tweener != null)
-                RegisterProcessor((aPtr, bPtr, t, rPtr) =>
+                RegisterProcessor((srcInt0, srcInt1, t, dstInt) =>
                 {
-                    ref var a = ref *(TField*)(aPtr + fieldOffset);
-                    ref var b = ref *(TField*)(bPtr + fieldOffset);
-                    ref var r = ref *(TField*)(rPtr + fieldOffset);
-                    tweener.Process(in a, in b, t, ref r);
+                    ref var src0 = ref *(TField*)(srcInt0 + fieldOffset);
+                    ref var src1 = ref *(TField*)(srcInt1 + fieldOffset);
+                    ref var dst = ref *(TField*)(dstInt + fieldOffset);
+                    tweener.Process(in src0, in src1, t, ref dst);
                 });
             else
-                RegisterProcessor((_, bPtr, _, rPtr) =>
+                RegisterProcessor((_, srcInt1, _, dstInt) =>
                 {
-                    ref var b = ref *(TField*)(bPtr + fieldOffset);
-                    ref var r = ref *(TField*)(rPtr + fieldOffset);
-                    r = b;
+                    ref var src1 = ref *(TField*)(srcInt1 + fieldOffset);
+                    ref var dst = ref *(TField*)(dstInt + fieldOffset);
+                    dst = src1;
                 });
         }
 
-        public void Process(in T a, in T b, float t, ref T r)
+        public void Process(in T src0, in T src1, float t, ref T dst)
         {
-            fixed (T* aPtr = &a, bPtr = &b, rPtr = &r)
+            fixed (T* srcPtr0 = &src0, srcPtr1 = &src1, dstPtr = &dst)
             {
+                var srcInt0 = (IntPtr)srcPtr0;
+                var srcInt1 = (IntPtr)srcPtr1;
+                var dstInt = (IntPtr)dstPtr;
                 foreach (var processor in Processors)
-                {
-                    var aIntPtr = (IntPtr)aPtr;
-                    var bIntPtr = (IntPtr)bPtr;
-                    var rIntPtr = (IntPtr)rPtr;
-                    processor(aIntPtr, bIntPtr, t, rIntPtr);
-                }
+                    processor(srcInt0, srcInt1, t, dstInt);
             }
         }
     }

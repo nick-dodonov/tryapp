@@ -1,7 +1,6 @@
 using System;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using Shared.Log;
 using Shared.Sys.Rtt;
 
 namespace Shared.Tp.Tween.Default
@@ -24,72 +23,41 @@ namespace Shared.Tp.Tween.Default
 
         private void RegisterField<TField>(RttField rttField)
         {
+            if (!rttField.HasRuntimeOffset)
+            {
+                var field = rttField.FieldInfo;
+                throw new InvalidOperationException($"Unsupported implicit boxing on field {field.Name} of type {typeof(T).FullName}");
+            }
+
             var tweenEnabled = rttField.FieldInfo.GetCustomAttribute<TweenAttribute>() != null;
             var tweener = tweenEnabled 
                 ? Provider.Get<TField>()
                 : null;
-            
-            if (rttField.HasRuntimeOffset)
-            {
-                var offset = rttField.RuntimeOffset;
-                if (tweener != null)
-                    RegisterProcessor((aPtr, bPtr, t, rPtr) =>
-                    {
-                        ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + offset));
-                        ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
-                        ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
-                        tweener.Process(in a, in b, t, ref r);
-                    });
-                else
-                    RegisterProcessor((_, bPtr, _, rPtr) =>
-                    {
-                        ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
-                        ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
-                        r = b;
-                    });
-            }
+            var offset = rttField.RuntimeOffset;
+            if (tweener != null)
+                RegisterProcessor((srcInt0, srcInt1, t, dstInt) =>
+                {
+                    ref var src0 = ref Unsafe.AsRef<TField>((void*)(srcInt0 + offset));
+                    ref var src1 = ref Unsafe.AsRef<TField>((void*)(srcInt1 + offset));
+                    ref var dst = ref Unsafe.AsRef<TField>((void*)(dstInt + offset));
+                    tweener.Process(in src0, in src1, t, ref dst);
+                });
             else
-            {
-                var field = rttField.FieldInfo;
-                Slog.Warn($"implicit boxing on field {field.Name} of type {typeof(T).FullName}");
-                if (tweener != null)
-                    RegisterProcessor((aPtr, bPtr, t, rPtr) =>
-                    {
-                        ref var a = ref Unsafe.AsRef<T>((void*)(aPtr));
-                        ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
-                        ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
-                        var af = (TField)field.GetValue(a);
-                        var bf = (TField)field.GetValue(b);
-                        var rf = (TField)field.GetValue(r);
-                        var orf = rf;
-                        tweener.Process(in af, in bf, t, ref rf);
-                        if (!ReferenceEquals(af, orf))
-                            field.SetValue(r, rf);
-                    });
-                else
-                    RegisterProcessor((_, bPtr, _, rPtr) =>
-                    {
-                        ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
-                        ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
-                        var bf = (TField)field.GetValue(b);
-                        field.SetValue(r, bf);
-                    });
-            }
+                RegisterProcessor((_, srcInt1, _, dstInt) =>
+                {
+                    ref var src1 = ref Unsafe.AsRef<TField>((void*)(srcInt1 + offset));
+                    ref var dst = ref Unsafe.AsRef<TField>((void*)(dstInt + offset));
+                    dst = src1;
+                });
         }
 
-        public void Process(in T a, in T b, float t, ref T r)
+        public void Process(in T src0, in T src1, float t, ref T dst)
         {
-            var aPtr = Unsafe.AsPointer(ref Unsafe.AsRef(a));
-            var bPtr = Unsafe.AsPointer(ref Unsafe.AsRef(b));
-            var rPtr = Unsafe.AsPointer(ref r);
-
+            var srcInt0 = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(src0));
+            var srcInt1 = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(src1));
+            var dstInt = (IntPtr)Unsafe.AsPointer(ref dst);
             foreach (var processor in Processors)
-            {
-                var aIntPtr = (IntPtr)aPtr;
-                var bIntPtr = (IntPtr)bPtr;
-                var rIntPtr = (IntPtr)rPtr;
-                processor(aIntPtr, bIntPtr, t, rIntPtr);
-            }
+                processor(srcInt0, srcInt1, t, dstInt);
         }
     }
 }

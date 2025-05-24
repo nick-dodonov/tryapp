@@ -26,10 +26,10 @@ namespace Shared.Tp.Tests.Tween.Data
     
     public class CustomBasicUnmanagedTweener : ITweener<BasicUnmanaged>
     {
-        public void Process(in BasicUnmanaged a, in BasicUnmanaged b, float t, ref BasicUnmanaged r)
+        public void Process(in BasicUnmanaged src0, in BasicUnmanaged src1, float t, ref BasicUnmanaged dst)
         {
-            r.IntValue = (int)(a.IntValue * (1 - t) + b.IntValue * t);
-            r.FloatValue = a.FloatValue * (1 - t) + b.FloatValue * t;
+            dst.IntValue = (int)(src0.IntValue * (1 - t) + src1.IntValue * t);
+            dst.FloatValue = src0.FloatValue * (1 - t) + src1.FloatValue * t;
         }
     }
 }

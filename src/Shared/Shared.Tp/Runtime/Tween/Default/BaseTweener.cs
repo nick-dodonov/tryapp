@@ -7,7 +7,7 @@ namespace Shared.Tp.Tween.Default
     {
         protected readonly TweenerProvider Provider;
 
-        protected delegate void FieldProcessor(IntPtr aPtr, IntPtr bPtr, float t, IntPtr rPtr);
+        protected delegate void FieldProcessor(IntPtr srcInt0, IntPtr srcInt1, float t, IntPtr dstInt);
         protected readonly List<FieldProcessor> Processors = new();
 
         protected BaseTweener(TweenerProvider provider)
