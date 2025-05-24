@@ -24,7 +24,7 @@ namespace Shared.Tp.Tests.Tween.Data
         }
     }
     
-    public class CustomUnmanagedBasicTweener : ITweener<BasicUnmanaged>
+    public class CustomBasicUnmanagedTweener : ITweener<BasicUnmanaged>
     {
         public void Process(ref BasicUnmanaged a, ref BasicUnmanaged b, float t, ref BasicUnmanaged r)
         {

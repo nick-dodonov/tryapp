@@ -24,16 +24,29 @@ namespace Shared.Tp.Tween.Default
 
         private void RegisterField<TField>(RttField rttField)
         {
-            var tweener = Provider.Get<TField>();
+            var tweenEnabled = rttField.FieldInfo.GetCustomAttribute<TweenAttribute>() != null;
+            var tweener = tweenEnabled 
+                ? Provider.Get<TField>()
+                : null;
+            
             if (rttField.HasRuntimeOffset)
             {
                 var offset = rttField.RuntimeOffset;
                 RegisterProcessor((aPtr, bPtr, t, rPtr) =>
                 {
-                    ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + offset));
-                    ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
-                    ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
-                    tweener.Process(ref a, ref b, t, ref r);
+                    if (tweener != null)
+                    {
+                        ref var a = ref Unsafe.AsRef<TField>((void*)(aPtr + offset));
+                        ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
+                        ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
+                        tweener.Process(ref a, ref b, t, ref r);
+                    }
+                    else
+                    {
+                        ref var r = ref Unsafe.AsRef<TField>((void*)(rPtr + offset));
+                        ref var b = ref Unsafe.AsRef<TField>((void*)(bPtr + offset));
+                        r = b;
+                    }
                 });
             }
             else
@@ -42,16 +55,26 @@ namespace Shared.Tp.Tween.Default
                 Slog.Warn($"implicit boxing on field {field.Name} of type {typeof(T).FullName}");
                 RegisterProcessor((aPtr, bPtr, t, rPtr) =>
                 {
-                    ref var a = ref Unsafe.AsRef<T>((void*)(aPtr));
-                    ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
-                    ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
-                    var af = (TField)field.GetValue(a);
-                    var bf = (TField)field.GetValue(b);
-                    var rf = (TField)field.GetValue(r);
-                    var orf = rf;
-                    tweener.Process(ref af, ref bf, t, ref rf);
-                     if (!ReferenceEquals(af, orf))
-                         field.SetValue(r, rf);
+                    if (tweener != null)
+                    {
+                        ref var a = ref Unsafe.AsRef<T>((void*)(aPtr));
+                        ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
+                        ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
+                        var af = (TField)field.GetValue(a);
+                        var bf = (TField)field.GetValue(b);
+                        var rf = (TField)field.GetValue(r);
+                        var orf = rf;
+                        tweener.Process(ref af, ref bf, t, ref rf);
+                        if (!ReferenceEquals(af, orf))
+                            field.SetValue(r, rf);
+                    }
+                    else
+                    {
+                        ref var r = ref Unsafe.AsRef<T>((void*)(rPtr));
+                        ref var b = ref Unsafe.AsRef<T>((void*)(bPtr));
+                        var bf = (TField)field.GetValue(b);
+                        field.SetValue(r, bf);
+                    }
                 });
             }
         }

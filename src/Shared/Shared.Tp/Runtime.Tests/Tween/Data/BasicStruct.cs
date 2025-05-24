@@ -1,11 +1,9 @@
-using System.Runtime.InteropServices;
 using NUnit.Framework;
 using Shared.Sys.Rtt;
 using Shared.Tp.Tween;
 
 namespace Shared.Tp.Tests.Tween.Data
 {
-    [StructLayout(LayoutKind.Sequential)]
     public struct BasicStruct
     {
         [Tween] public int IntValue;

@@ -68,5 +68,23 @@ namespace Shared.Tp.Tests.Tween
             
             r.AssertInRange(a, b);
         }
+        
+        [Test]
+        public void NestedStruct_Tween_GCFree()
+        {
+            var (a, b, r) = MakeTestData(NestedStruct.Make);
+            
+            var provider = new TweenerProvider();
+            provider.Register(new CustomBasicUnmanagedTweener());
+            var tweener = provider.GetOfVar(ref a);
+
+            tweener.Process(ref a, ref b, 0.5f, ref r); // warmup (Mono.JIT->GC.Alloc)
+            Assert.That(() =>
+            {
+                tweener.Process(ref a, ref b, 0.5f, ref r);
+            }, Is.Not.AllocatingGCMemory());
+            
+            r.AssertInRange(a, b);
+        }
     }
 }

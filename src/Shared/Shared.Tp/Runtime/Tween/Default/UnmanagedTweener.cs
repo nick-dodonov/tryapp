@@ -34,15 +34,19 @@ namespace Shared.Tp.Tween.Default
             var fieldOffset = Marshal.OffsetOf<T>(field.Name).ToInt32();
             RegisterProcessor((aPtr, bPtr, t, rPtr) =>
             {
-                ref var b = ref *(TField*)(bPtr + fieldOffset);
-                ref var r = ref *(TField*)(rPtr + fieldOffset);
                 if (tweener != null)
                 {
                     ref var a = ref *(TField*)(aPtr + fieldOffset);
+                    ref var b = ref *(TField*)(bPtr + fieldOffset);
+                    ref var r = ref *(TField*)(rPtr + fieldOffset);
                     tweener.Process(ref a, ref b, t, ref r);
                 }
                 else
+                {
+                    ref var b = ref *(TField*)(bPtr + fieldOffset);
+                    ref var r = ref *(TField*)(rPtr + fieldOffset);
                     r = b;
+                }
             });
         }
 

@@ -13,7 +13,7 @@ namespace Shared.Tp.Tests.Tween
         {
             var (a, b, r) = MakeTestData(BasicUnmanaged.Make);
 
-            var tweener = new CustomUnmanagedBasicTweener();
+            var tweener = new CustomBasicUnmanagedTweener();
             Assert.That(() =>
             {
                 tweener.Process(ref a, ref b, 0.5f, ref r);
@@ -28,7 +28,7 @@ namespace Shared.Tp.Tests.Tween
             var (a, b, r) = MakeTestData(NestedUnmanaged.Make);
 
             var provider = new TweenerProvider();
-            provider.Register(new CustomUnmanagedBasicTweener());
+            provider.Register(new CustomBasicUnmanagedTweener());
             var tweener= provider.GetOfVar(ref a);
 
             tweener.Process(ref a, ref b, 0.5f, ref r); // warmup (Mono.JIT->GC.Alloc)
