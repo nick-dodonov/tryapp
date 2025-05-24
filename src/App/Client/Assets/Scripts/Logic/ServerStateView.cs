@@ -9,7 +9,7 @@ namespace Client.Logic
 {
     //TODO: !!!!! REWORK INTERPOLATIONS POC !!!!!
     
-    public class PeersView : MonoBehaviour, IViewHandler
+    public class ServerStateView : MonoBehaviour, IViewHandler
     {
         public GameObject peerPrefab;
 
@@ -39,9 +39,11 @@ namespace Client.Logic
         private void Update()
         {
             _frameSessionMs = _timeLink.RemoteMs;
+            if (_history.Count <= 0)
+                return;
 
             //TODO: currentMs using smoothed _timeLink.RttMs
-            var currentMs = _frameSessionMs - 210; //TODO: XXXXXXXX constant based on current server's send rate 
+            var currentMs = _frameSessionMs - 210; //TODO: XXXXXXXX constant based on current server's send rate
 
             _history.VisitExistingBounds(
                 (0, currentMs),
@@ -53,14 +55,14 @@ namespace Client.Logic
                     var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
                     //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {_frameSessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
                     _interpolatedState.Interpolate(from.Value, to.Value, t);
-                    
-                    foreach (var peerState in _interpolatedState.Peers)
-                    {
-                        var peerId = peerState.Id;
-                        if (_peerViews.TryGetValue(peerId, out var peerView)) 
-                            peerView.ApplyInterpolatedState(peerState);
-                    }
                 });
+
+            foreach (var peerState in _interpolatedState.Peers)
+            {
+                var peerId = peerState.Id;
+                if (_peerViews.TryGetValue(peerId, out var peerView)) 
+                    peerView.ApplyInterpolatedState(peerState);
+            }
         }
 
         public void RemoteUpdated()

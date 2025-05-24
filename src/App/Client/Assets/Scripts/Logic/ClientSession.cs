@@ -36,7 +36,7 @@ namespace Client.Logic
         public InfoControl infoControl;
 
         public Player player;
-        public PeersView peersView;
+        public ServerStateView serverStateView;
 
         public ClientContext context;
 
@@ -49,7 +49,7 @@ namespace Client.Logic
 
         private void OnEnable()
         {
-            peersView.gameObject.SetActive(false);
+            serverStateView.gameObject.SetActive(false);
             player.gameObject.SetActive(false);
             RuntimePanel.SetInspectorContext(context);
         }
@@ -90,9 +90,9 @@ namespace Client.Logic
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
 
-            // enable peers view / player input
-            peersView.Init(_timeLink, _stSync.RemoteHistory);
-            peersView.gameObject.SetActive(true);
+            // enable state view / player input
+            serverStateView.Init(_timeLink, _stSync.RemoteHistory);
+            serverStateView.gameObject.SetActive(true);
             player.gameObject.SetActive(true); 
         }
 
@@ -107,8 +107,8 @@ namespace Client.Logic
 
             if (player != null) // can be already destroyed
                 player.gameObject.SetActive(false);
-            if (peersView != null)
-                peersView.gameObject.SetActive(false);
+            if (serverStateView != null)
+                serverStateView.gameObject.SetActive(false);
 
             debugControl.SetServerVersion(null);
             
@@ -186,7 +186,7 @@ namespace Client.Logic
         }
 
         void ISyncHandler<ClientState, ServerState>.RemoteUpdated() 
-            => peersView.RemoteUpdated();
+            => serverStateView.RemoteUpdated();
 
         void ISyncHandler<ClientState, ServerState>.RemoteDisconnected()
         {

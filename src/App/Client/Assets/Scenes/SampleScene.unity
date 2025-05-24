@@ -130,7 +130,7 @@ GameObject:
   - component: {fileID: 33769753}
   - component: {fileID: 33769752}
   m_Layer: 0
-  m_Name: Client Session
+  m_Name: ClientSession
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -151,7 +151,7 @@ MonoBehaviour:
   debugControl: {fileID: 7885380990598071222}
   infoControl: {fileID: 1726573594}
   player: {fileID: 6864250239705647329}
-  peersView: {fileID: 1848551510}
+  serverStateView: {fileID: 1848551510}
   context: {fileID: 11400000, guid: 001f744c9ee894ffa9a3e7b9fed24330, type: 2}
 --- !u!4 &33769753
 Transform:
@@ -661,7 +661,7 @@ GameObject:
   - component: {fileID: 1848551509}
   - component: {fileID: 1848551510}
   m_Layer: 0
-  m_Name: Peers
+  m_Name: ServerStateView
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
