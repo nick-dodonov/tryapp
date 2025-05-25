@@ -6,11 +6,6 @@ using UnityEngine.UI;
 
 namespace Client.Logic
 {
-    public interface IViewHandler
-    {
-        public int SessionMs { get; }
-    }
-    
     /// <summary>
     /// TODO: mv interpolation logic to generic and customization
     /// 
@@ -23,9 +18,9 @@ namespace Client.Logic
 
         public LineRenderer lineRenderer;
 
-        private IViewHandler _viewHandler;
-        public void SetViewHandler(IViewHandler viewHandler) 
-            => _viewHandler = viewHandler;
+        private ITimeContext _timeContext;
+        public void SetViewHandler(ITimeContext timeContext) 
+            => _timeContext = timeContext;
 
         private bool _changed;
         public bool Changed => _changed;
@@ -91,7 +86,7 @@ namespace Client.Logic
 
         public void Update()
         {
-            var sessionMs = _viewHandler.SessionMs;
+            var sessionMs = _timeContext.CurrentSessionMs;
             var t = (sessionMs - _peerState.Ms) / FadeAlphaSec / 1000.0f;
             var alpha = Mathf.Lerp(1, FadeAlphaMin, t);
             _applyColor.a = alpha;

@@ -46,6 +46,7 @@ namespace Client.Logic
         private StSync<ClientState, ServerState> _stSync;
         private TimeLink _timeLink; //cached
         private DumpLink _dumpLink; //cached
+        private ClientTimeContext _timeContext;
 
         private void OnEnable()
         {
@@ -89,9 +90,13 @@ namespace Client.Logic
             _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
+            _timeContext = new(_timeLink);
 
             // enable state view / player input
-            serverStateView.Init(_timeLink, _stSync.RemoteHistory, CommonSession.CreateTweenerProvider());
+            serverStateView.Init(
+                _timeContext, 
+                _stSync.RemoteHistory, 
+                CommonSession.CreateTweenerProvider());
             serverStateView.gameObject.SetActive(true);
             player.gameObject.SetActive(true); 
         }
