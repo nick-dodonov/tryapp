@@ -57,7 +57,7 @@ namespace Client.Logic
                     var value = key.Ms - from.Key.Ms;
                     var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
                     //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {_frameSessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
-                    _serverStateTweener.Process(in from.Value, in to.Value, t, ref _interpolatedState);
+                    _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
                 });
 
             foreach (var peerState in _interpolatedState.Peers)

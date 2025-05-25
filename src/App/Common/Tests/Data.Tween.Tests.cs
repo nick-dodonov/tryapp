@@ -6,7 +6,7 @@ namespace Common.Tests
 {
     public class DataTweenTests
     {
-        private PeerState MakePeerState(int id, int offset)
+        private static PeerState MakePeerState(int id, int offset)
         {
             return new()
             {
@@ -46,7 +46,7 @@ namespace Common.Tests
                 }
             };
             var r = new ServerState();
-            tweener.Process(in a, in b, 0.5f, ref r);
+            tweener.Process(ref r, 0.5f, in a, in b);
             
             Assert.AreEqual(a.Peers.Length, r.Peers.Length);
             Assert.That(r.Peers[0].Ms, Is.InRange(

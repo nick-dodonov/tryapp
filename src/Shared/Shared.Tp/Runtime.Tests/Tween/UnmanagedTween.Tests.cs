@@ -16,7 +16,7 @@ namespace Shared.Tp.Tests.Tween
             var tweener = new CustomBasicUnmanagedTweener();
             Assert.That(() =>
             {
-                tweener.Process(in a, in b, 0.5f, ref r);
+                tweener.Process(ref r, 0.5f, in a, in b);
             }, Is.Not.AllocatingGCMemory());
 
             r.AssertInRange(a, b);
@@ -31,10 +31,10 @@ namespace Shared.Tp.Tests.Tween
             provider.Register(new CustomBasicUnmanagedTweener());
             var tweener= provider.GetOfVar(ref a);
 
-            tweener.Process(in a, in b, 0.5f, ref r); // warmup (Mono.JIT->GC.Alloc)
+            tweener.Process(ref r, 0.5f, in a, in b); // warmup (Mono.JIT->GC.Alloc)
             Assert.That(() =>
             {
-                tweener.Process(in a, in b, 0.5f, ref r);
+                tweener.Process(ref r, 0.5f, in a, in b);
             }, Is.Not.AllocatingGCMemory());
 
             r.AssertInRange(a, b);

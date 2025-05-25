@@ -38,7 +38,7 @@ namespace Shared.Tp.Tween.Default
                     ref var src0 = ref *(TField*)(srcInt0 + fieldOffset);
                     ref var src1 = ref *(TField*)(srcInt1 + fieldOffset);
                     ref var dst = ref *(TField*)(dstInt + fieldOffset);
-                    tweener.Process(in src0, in src1, t, ref dst);
+                    tweener.Process(ref dst, t, in src0, in src1);
                 });
             else
                 RegisterProcessor((_, srcInt1, _, dstInt) =>
@@ -49,8 +49,8 @@ namespace Shared.Tp.Tween.Default
                 });
         }
 
-        public void Replica(in T src, ref T dst) => dst = src;
-        public void Process(in T src0, in T src1, float t, ref T dst)
+        public void Replica(ref T dst, in T src) => dst = src;
+        public void Process(ref T dst, float t, in T src0, in T src1)
         {
             fixed (T* srcPtr0 = &src0, srcPtr1 = &src1, dstPtr = &dst)
             {

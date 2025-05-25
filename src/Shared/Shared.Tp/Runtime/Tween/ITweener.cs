@@ -4,7 +4,7 @@ namespace Shared.Tp.Tween
 
     public interface ITweener<T> : ITweener
     {
-        void Replica(in T src, ref T dst);
-        void Process(in T src0, in T src1, float t, ref T dst);
+        void Replica(ref T dst, in T src);
+        void Process(ref T dst, float t, in T src0, in T src1);
     }
 }

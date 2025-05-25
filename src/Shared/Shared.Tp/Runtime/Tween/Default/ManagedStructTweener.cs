@@ -38,24 +38,24 @@ namespace Shared.Tp.Tween.Default
                     ref var src0 = ref Unsafe.AsRef<TField>((void*)(srcInt0 + offset));
                     ref var src1 = ref Unsafe.AsRef<TField>((void*)(srcInt1 + offset));
                     ref var dst = ref Unsafe.AsRef<TField>((void*)(dstInt + offset));
-                    tweener.Process(in src0, in src1, t, ref dst);
+                    tweener.Process(ref dst, t, in src0, in src1);
                 });
             else
                 RegisterProcessor((_, srcInt1, _, dstInt) =>
                 {
                     ref var src1 = ref Unsafe.AsRef<TField>((void*)(srcInt1 + offset));
                     ref var dst = ref Unsafe.AsRef<TField>((void*)(dstInt + offset));
-                    tweener.Replica(in src1, ref dst);
+                    tweener.Replica(ref dst, in src1);
                 });
         }
 
-        public void Replica(in T src, ref T dst)
+        public void Replica(ref T dst, in T src)
         {
             dst = src;
             //TODO: replicate all managed fields instead of shallow copy
         }
 
-        public void Process(in T src0, in T src1, float t, ref T dst)
+        public void Process(ref T dst, float t, in T src0, in T src1)
         {
             var srcInt0 = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(src0));
             var srcInt1 = (IntPtr)Unsafe.AsPointer(ref Unsafe.AsRef(src1));
