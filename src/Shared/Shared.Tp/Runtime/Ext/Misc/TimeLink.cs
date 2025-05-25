@@ -4,6 +4,8 @@ using System.Runtime.CompilerServices;
 using Shared.Log;
 using Shared.Tp.Util;
 
+// ReSharper disable UseSymbolAlias
+
 namespace Shared.Tp.Ext.Misc
 {
     // Enough to keep 4 seconds in 60 fps sends.
@@ -158,26 +160,29 @@ namespace Shared.Tp.Ext.Misc
             fixed (byte* ptrStart = timeSpan)
             {
                 var ptr = ptrStart;
-                _receivedRemoteIdx = Unsafe.ReadUnaligned<TimeLinkLocalTicksIndex>(ptr);
-                ptr += sizeof(TimeLinkLocalTicksIndex);
-
+                _receivedRemoteIdx = ReadUnaligned<TimeLinkLocalTicksIndex>(ref ptr);
+                _receivedRemoteRt = ReadUnaligned<long>(ref ptr);
                 _receivedLocalRt = local;
-                _receivedRemoteRt = Unsafe.ReadUnaligned<long>(ptr);
-                ptr += sizeof(long);
 
-                var sentLocalIdx = Unsafe.ReadUnaligned<TimeLinkLocalTicksIndex>(ptr);
-                ptr += sizeof(TimeLinkLocalTicksIndex);
+                var sentLocalIdx = ReadUnaligned<TimeLinkLocalTicksIndex>(ref ptr);
 
-                var receivedSendingDelta = Unsafe.ReadUnaligned<short>(ptr);
-                //ptr += sizeof(short);
+                var receivedSendingDelta = ReadUnaligned<short>(ref ptr);
 
                 var sentLocal = _details.GetLocalTicks(sentLocalIdx);
                 _rttRt = (int)(local - sentLocal - receivedSendingDelta);
 
-                Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
+                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
             }
 
             return span[..^length];
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static unsafe T ReadUnaligned<T>(ref byte* ptr) where T : unmanaged
+        {
+            var result = Unsafe.ReadUnaligned<T>(ptr);
+            ptr += sizeof(T);
+            return result;
         }
     }
 }
