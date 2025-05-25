@@ -172,7 +172,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
     public int TimeMs => _timeApi.LocalMs;
     public ServerState GetServerState()
     {
-        var sessionMs = _timeApi.LocalMs;
+        var sessionMs = TimeMs;
         var peerStates = _peers
             .Where(static x => x.Key.PeerStateExists)
             .Select(static x => x.Key.GetPeerState())

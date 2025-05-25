@@ -15,7 +15,7 @@ namespace Shared.Tp.Ext.Misc
     // 
     // Anyway (in the case of a requirement of 1000 fps sending),
     //  we can change this type either and/or its serialize/deserialize technique. 
-    using TimeLinkLocalTicksIndex = Byte; 
+    using TimeTicksIndex = Byte; 
 
     /// <summary>
     /// TODO: add api for client/server session to obtain "session time"
@@ -26,9 +26,9 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
-        // run-tick is current time measure //TODO: decide to make in ns instead of ms
-        private const long TicksPerRt = TimeSpan.TicksPerMillisecond;
-        private const long RtPerMs = 1;
+        // run-tick is the current time measure
+        private const long RtPerMs = 10;
+        private const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
 
         public class Api : ExtApi<TimeLink>
         {
@@ -59,15 +59,34 @@ namespace Shared.Tp.Ext.Misc
                 new(_startTicks) { InnerLink = innerLink };
         }
 
+        private unsafe struct Details {
+            private TimeTicksIndex _historyIndex;
+            private fixed long _localTicksHistory[TimeTicksIndex.MaxValue + 1];
+
+            public TimeTicksIndex AddLocalTicks(long localTicks)
+            {
+                var historyIndex = _historyIndex++;
+                _localTicksHistory[historyIndex] = localTicks;
+                return historyIndex;
+            }
+
+            public long GetLocalTicks(TimeTicksIndex historyIndex)
+            {
+                return _localTicksHistory[historyIndex];
+            }
+        }
+
         private readonly long _startTicks;
 
-        private TimeLinkLocalTicksIndex _receivedRemoteIdx;
+        private TimeTicksIndex _receivedRemoteIdx;
 
         private long _receivedRemoteRt;
         private long _receivedLocalRt;
 
         private int _rttRt;
 
+        private Details _details;
+        
         public TimeLink() { }
         private TimeLink(long startTicks) => _startTicks = startTicks;
 
@@ -110,25 +129,6 @@ namespace Shared.Tp.Ext.Misc
             base.Received(link, span);
         }
 
-        private unsafe struct Details {
-            private TimeLinkLocalTicksIndex _historyIndex;
-            private fixed long _localTicksHistory[TimeLinkLocalTicksIndex.MaxValue + 1];
-
-            public TimeLinkLocalTicksIndex AddLocalTicks(long localTicks)
-            {
-                var historyIndex = _historyIndex++;
-                _localTicksHistory[historyIndex] = localTicks;
-                return historyIndex;
-            }
-
-            public long GetLocalTicks(TimeLinkLocalTicksIndex historyIndex)
-            {
-                return _localTicksHistory[historyIndex];
-            }
-        }
-
-        private Details _details;
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTime(IBufferWriter<byte> writer)
         {
@@ -153,18 +153,18 @@ namespace Shared.Tp.Ext.Misc
             var local = LocalRt;
 
             const int length = 
-                sizeof(TimeLinkLocalTicksIndex) + sizeof(long) +
-                sizeof(TimeLinkLocalTicksIndex) +
+                sizeof(TimeTicksIndex) + sizeof(long) +
+                sizeof(TimeTicksIndex) +
                 sizeof(short);
             var timeSpan = span[^length..];
             fixed (byte* ptrStart = timeSpan)
             {
                 var ptr = ptrStart;
-                _receivedRemoteIdx = ReadUnaligned<TimeLinkLocalTicksIndex>(ref ptr);
+                _receivedRemoteIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
                 _receivedRemoteRt = ReadUnaligned<long>(ref ptr);
                 _receivedLocalRt = local;
 
-                var sentLocalIdx = ReadUnaligned<TimeLinkLocalTicksIndex>(ref ptr);
+                var sentLocalIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
 
                 var receivedSendingDelta = ReadUnaligned<short>(ref ptr);
 
