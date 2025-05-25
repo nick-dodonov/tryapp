@@ -27,7 +27,7 @@ namespace Shared.Tp.Ext.Misc
     public class TimeLink : ExtLink
     {
         // run-tick is the current time measure
-        private const long RtPerMs = 10;
+        public const long RtPerMs = 10;
         private const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
 
         public class Api : ExtApi<TimeLink>
@@ -106,6 +106,12 @@ namespace Shared.Tp.Ext.Misc
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (int)((LocalRt - _receivedLocalRt + _rttRt / 2 + _receivedRemoteRt) / RtPerMs);
+        }
+
+        public int RttRt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _rttRt;
         }
 
         public int RttMs

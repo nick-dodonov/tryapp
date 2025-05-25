@@ -164,8 +164,8 @@ namespace Client.Logic
                 sb.AppendStatDir(stats.In);
                 sb.AppendLine();
 
-                sb.Append("rtt: ");
-                sb.Append(_timeLink.RttMs, "00");
+                sb.Append($"rtt: ");
+                sb.AppendAligned((float)_timeLink.RttRt / TimeLink.RtPerMs, "F1", 4);
                 sb.AppendLine(" ms");
 
                 infoControl.SetText(sb.AsArraySegment());
@@ -216,6 +216,24 @@ namespace Client.Logic
 
     public static class DumpStatsExtensions
     {
+        private const char FigureSpace = '\u2007';
+
+        public static void AppendAligned(this ref Utf16ValueStringBuilder sb, float value, string format, int width)
+        {
+            Span<char> buffer = stackalloc char[32];
+            if (!value.TryFormat(buffer, out var charsWritten, format.AsSpan()))
+            {
+                Slog.Error($"failed: {value} ({format})");
+                return;
+            }
+
+            var repeatCount = width - charsWritten;
+            if (repeatCount > 0)
+                sb.Append(FigureSpace, repeatCount);
+
+            sb.Append(buffer[..charsWritten]);
+        }
+        
         public static void AppendStatDir(this ref Utf16ValueStringBuilder sb, in DumpStats.Dir dir)
         {
             var bytesRate = dir.BytesRate;
