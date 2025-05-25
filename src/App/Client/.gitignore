@@ -12,3 +12,7 @@
 # Ignore IDE generated
 /obj/
 /.idea/
+
+
+# Testing Framework in Play mode
+/Assets/InitTestScene*.*

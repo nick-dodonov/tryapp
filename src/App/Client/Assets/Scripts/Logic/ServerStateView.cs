@@ -1,27 +1,27 @@
 using System.Collections.Generic;
 using Common.Data;
-using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
+using Shared.Tp.Tween;
 using Shared.Tp.Util;
 using UnityEngine;
 
 namespace Client.Logic
 {
-    //TODO: !!!!! REWORK INTERPOLATIONS POC !!!!!
-    
-    public class PeersView : MonoBehaviour, IViewHandler
+    public class ServerStateView : MonoBehaviour
     {
         public GameObject peerPrefab;
 
-        private TimeLink _timeLink;
+        private ITimeContext _timeContext;
         private StHistory<ServerState> _history;
+        private ITweener<ServerState> _serverStateTweener;
 
         private readonly Dictionary<string, PeerView> _peerViews = new();
 
-        public void Init(TimeLink timeLink, StHistory<ServerState> serverHistory)
+        public void Init(ITimeContext timeContext, StHistory<ServerState> serverHistory, TweenerProvider tweenerProvider)
         {
-            _timeLink = timeLink;
+            _timeContext = timeContext;
             _history = serverHistory;
+            _serverStateTweener = tweenerProvider.Get<ServerState>();
         }
 
         private void OnDisable()
@@ -31,36 +31,33 @@ namespace Client.Logic
             _peerViews.Clear();
         }
 
-        private int _frameSessionMs;
-        int IViewHandler.SessionMs => _frameSessionMs;
-
         private ServerState _interpolatedState;
 
         private void Update()
         {
-            _frameSessionMs = _timeLink.RemoteMs;
+            if (_history.Count <= 0)
+                return;
 
-            //TODO: currentMs using smoothed _timeLink.RttMs
-            var currentMs = _frameSessionMs - 210; //TODO: XXXXXXXX constant based on current server's send rate 
+            var historyMs = _timeContext.HistorySessionMs;
 
             _history.VisitExistingBounds(
-                (0, currentMs),
+                (0, historyMs),
                 //TODO: VisitExistingBounds with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
                 {
                     var interval = to.Key.Ms - from.Key.Ms;
                     var value = key.Ms - from.Key.Ms;
                     var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
-                    //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {_frameSessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
-                    _interpolatedState.Interpolate(from.Value, to.Value, t);
-                    
-                    foreach (var peerState in _interpolatedState.Peers)
-                    {
-                        var peerId = peerState.Id;
-                        if (_peerViews.TryGetValue(peerId, out var peerView)) 
-                            peerView.ApplyInterpolatedState(peerState);
-                    }
+                    //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {sessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
+                    _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
                 });
+
+            foreach (var peerState in _interpolatedState.Peers)
+            {
+                var peerId = peerState.Id;
+                if (_peerViews.TryGetValue(peerId, out var peerView)) 
+                    peerView.ApplyInterpolatedState(peerState);
+            }
         }
 
         public void RemoteUpdated()
@@ -84,7 +81,7 @@ namespace Client.Logic
                 {
                     var peerGameObject = Instantiate(peerPrefab, transform);
                     peerView = peerGameObject.GetComponent<PeerView>();
-                    peerView.SetViewHandler(this);
+                    peerView.SetViewHandler(_timeContext);
                     _peerViews.Add(peerId, peerView);
                 }
 

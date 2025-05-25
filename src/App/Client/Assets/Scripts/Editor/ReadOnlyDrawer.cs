@@ -1,4 +1,4 @@
-using Common.Editor;
+using Client.Attributes;
 using UnityEditor;
 using UnityEngine;
 

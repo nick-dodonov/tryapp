@@ -2,6 +2,7 @@
   <Folder Name="/App/">
     <Project Path="src\App\Common\Data\Common.Data.csproj" Type="Classic C#" />
     <Project Path="src\App\Common\Runtime\Common.csproj" Type="Classic C#" />
+    <Project Path="src\App\Common\Tests\Common.Tests.csproj" Type="Classic C#" />
     <Project Path="src\App\Server\Server.csproj" Type="Classic C#" />
   </Folder>
   <Folder Name="/Locator/">

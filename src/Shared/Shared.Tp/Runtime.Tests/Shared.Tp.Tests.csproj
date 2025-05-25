@@ -4,6 +4,7 @@
     <TargetFramework>net9.0</TargetFramework>
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Runtime\Shared.Tp.csproj" />
+    <ProjectReference Include="..\..\Shared.Sys\Runtime.Tests\Shared.Sys.Tests.csproj" />
   </ItemGroup>
 
 </Project>

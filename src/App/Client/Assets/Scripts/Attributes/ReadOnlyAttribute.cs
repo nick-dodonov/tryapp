@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace Common.Editor
+namespace Client.Attributes
 {
     public class ReadOnlyAttribute : PropertyAttribute { }
 }

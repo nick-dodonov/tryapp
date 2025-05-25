@@ -1,9 +1,8 @@
-// ReSharper disable UnusedMember.Global
-// ReSharper disable UnassignedField.Global
-// ReSharper disable NotAccessedField.Global
-
 using MemoryPack;
+using MemoryPack.Internal;
+using Shared.Sys.Rtt;
 using Shared.Tp.Data.Mem.Formatters;
+using Shared.Tp.Tween;
 
 namespace Common.Data
 {
@@ -15,8 +14,12 @@ namespace Common.Data
     [MemoryPackable]
     public partial struct ClientState
     {
+        //TODO: use Vector2 shim
+        [Tween]
         public float X;
+        [Tween]
         public float Y;
+
         public uint Color;
     }
 
@@ -25,14 +28,30 @@ namespace Common.Data
     {
         [QuickInternStringFormatter]
         public string Id;
-        public int Ms; // state fill time (current for virtual peers)
+        
+        [Tween]
+        public int Ms; // state fill time (current for virtual peers), used only for local visual diagnostics of network latency
 
+        [Tween]
         public ClientState ClientState;
+
+        [Preserve] // ReSharper disable once UnusedMember.Global // TODO: auto-create via Shared.Sys.SourceGen
+        public RttInfo GetRttInfo() => new RttInfo()
+            .Add(ref this, ref Id, nameof(Id))
+            .Add(ref this, ref Ms, nameof(Ms))
+            .Add(ref this, ref ClientState, nameof(ClientState))
+        ;
     }
 
     [MemoryPackable]
     public partial struct ServerState
     {
+        [Tween]
         public PeerState[] Peers;
+
+        [Preserve] // ReSharper disable once UnusedMember.Global // TODO: auto-create via Shared.Sys.SourceGen
+        public RttInfo GetRttInfo() => new RttInfo()
+            .Add(ref this, ref Peers, nameof(Peers))
+        ;
     }
 }
