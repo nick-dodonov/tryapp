@@ -17,9 +17,7 @@ namespace Shared.Tp.Ext.Misc
 
     /// <summary>
     /// TODO: add api for client/server session to obtain "session time"
-    /// TODO: make average and deviation RTT calculations, throw anything with 3-sigma rule
-    /// TODO: make protocol more efficient using cyclic buffer to store local ticks
-    ///     instead of sending and receiving it back with adjustment (send only index and adjustment)
+    /// TODO: make average and deviation RTT calculations without exceptions by 3-sigma rule
     /// TODO: use SequenceReader or analog to read data
     /// TODO: efficient (lock-free) atomic change for _receivedRemote/_receivedLocal (fix rare wrong calculation on send)
     /// 
@@ -32,7 +30,7 @@ namespace Shared.Tp.Ext.Misc
 
         public class Api : ExtApi<TimeLink>
         {
-            private readonly long _startTicks; //rt
+            private readonly long _startTicks;
 
             public Api(ITpApi innerApi) : base(innerApi)
             {
@@ -62,11 +60,11 @@ namespace Shared.Tp.Ext.Misc
         private readonly long _startTicks;
 
         private TimeLinkLocalTicksIndex _receivedRemoteIdx;
-        private long _receivedRemote; //rt
 
-        private long _receivedLocal; //rt
+        private long _receivedRemoteRt;
+        private long _receivedLocalRt;
 
-        private int _rtt; //rt
+        private int _rttRt;
 
         public TimeLink() { }
         private TimeLink(long startTicks) => _startTicks = startTicks;
@@ -86,13 +84,13 @@ namespace Shared.Tp.Ext.Misc
         public int RemoteMs
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((LocalRt - _receivedLocal + _rtt / 2 + _receivedRemote) / RtPerMs);
+            get => (int)((LocalRt - _receivedLocalRt + _rttRt / 2 + _receivedRemoteRt) / RtPerMs);
         }
 
         public int RttMs
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(_rtt / RtPerMs);
+            get => (int)(_rttRt / RtPerMs);
         }
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
@@ -138,13 +136,10 @@ namespace Shared.Tp.Ext.Misc
             writer.Write(localIdx);
             writer.Write(local);
 
-            //adjustment from previous reception, so the remote side can correctly calculate rtt
-            var passedLocal = _receivedLocal != 0 ? local - _receivedLocal : 0;
-            var receivedRemote = _receivedRemote;
-            receivedRemote += passedLocal;
             writer.Write(_receivedRemoteIdx);
-            writer.Write(receivedRemote);
-            var receivedSendingDelta = (short)(local - _receivedLocal);
+            
+            //adjustment from previous reception, so the remote side can correctly calculate rtt
+            var receivedSendingDelta = (short)(local - _receivedLocalRt);
             writer.Write(receivedSendingDelta);
 
             //Slog.Info($"localIdx={localIdx:000} local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
@@ -157,7 +152,7 @@ namespace Shared.Tp.Ext.Misc
 
             const int length = 
                 sizeof(TimeLinkLocalTicksIndex) + sizeof(long) +
-                sizeof(TimeLinkLocalTicksIndex) + sizeof(long) +
+                sizeof(TimeLinkLocalTicksIndex) +
                 sizeof(short);
             var timeSpan = span[^length..];
             fixed (byte* ptrStart = timeSpan)
@@ -166,26 +161,20 @@ namespace Shared.Tp.Ext.Misc
                 _receivedRemoteIdx = Unsafe.ReadUnaligned<TimeLinkLocalTicksIndex>(ptr);
                 ptr += sizeof(TimeLinkLocalTicksIndex);
 
-                _receivedLocal = local;
-                _receivedRemote = Unsafe.ReadUnaligned<long>(ptr);
+                _receivedLocalRt = local;
+                _receivedRemoteRt = Unsafe.ReadUnaligned<long>(ptr);
                 ptr += sizeof(long);
 
                 var sentLocalIdx = Unsafe.ReadUnaligned<TimeLinkLocalTicksIndex>(ptr);
                 ptr += sizeof(TimeLinkLocalTicksIndex);
-                var sentLocal = _details.GetLocalTicks(sentLocalIdx);
-                var rtt2 = (int)(local - sentLocal);
-
-                var sentLocalAdjusted = Unsafe.ReadUnaligned<long>(ptr);
-                ptr += sizeof(long);
 
                 var receivedSendingDelta = Unsafe.ReadUnaligned<short>(ptr);
                 //ptr += sizeof(short);
-                rtt2 -= receivedSendingDelta;
 
-                if (sentLocalAdjusted != 0)
-                    _rtt = (int)(local - sentLocalAdjusted);
+                var sentLocal = _details.GetLocalTicks(sentLocalIdx);
+                _rttRt = (int)(local - sentLocal - receivedSendingDelta);
 
-                Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemote} sentLocalAdjusted={sentLocalAdjusted} rtt={_rtt} rtt2={rtt2}");
+                Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
             }
 
             return span[..^length];
