@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using Shared.Log;
 using Shared.Tp.Util;
+using Shared.Tp.Util.Stat;
 
 // ReSharper disable UseSymbolAlias
 
@@ -84,6 +85,7 @@ namespace Shared.Tp.Ext.Misc
         private long _receivedLocalRt;
 
         private int _rttRt;
+        private CycleSampleSet32 _rttRtSet;
 
         private Details _details;
         
@@ -112,6 +114,18 @@ namespace Shared.Tp.Ext.Misc
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _rttRt;
+        }
+
+        public float RttRtMean
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _rttRtSet.Mean;
+        }
+
+        public float RttRtStdDev
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _rttRtSet.StdDeviation;
         }
 
         public int RttMs
@@ -176,6 +190,7 @@ namespace Shared.Tp.Ext.Misc
 
                 var sentLocal = _details.GetLocalTicks(sentLocalIdx);
                 _rttRt = (int)(local - sentLocal - receivedSendingDelta);
+                _rttRtSet.Add(_rttRt);
 
                 //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
             }

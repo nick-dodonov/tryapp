@@ -166,7 +166,11 @@ namespace Client.Logic
 
                 sb.Append($"rtt: ");
                 sb.AppendAligned((float)_timeLink.RttRt / TimeLink.RtPerMs, "F1", 4);
-                sb.AppendLine(" ms");
+                sb.Append(' ');
+                sb.AppendAligned((float)_timeLink.RttRtMean / TimeLink.RtPerMs, "F1", 4);
+                sb.Append("~ ");
+                sb.AppendAligned((float)_timeLink.RttRtStdDev / TimeLink.RtPerMs, "F1", 4);
+                sb.AppendLine("σ ms"); //'±'
 
                 infoControl.SetText(sb.AsArraySegment());
             }
