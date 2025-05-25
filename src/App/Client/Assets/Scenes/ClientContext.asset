@@ -18,14 +18,3 @@ MonoBehaviour:
     <LogEnabled>k__BackingField: 0
     <LogStartBytes>k__BackingField: 100
     <LogEndBytes>k__BackingField: 20
-  dumpLinkStats:
-    In:
-      CountTotal: 0
-      BytesTotal: 0
-      CountRate: 0
-      BytesRate: 0
-    Out:
-      CountTotal: 0
-      BytesTotal: 0
-      CountRate: 0
-      BytesRate: 0
