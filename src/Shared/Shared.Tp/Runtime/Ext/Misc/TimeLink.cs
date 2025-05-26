@@ -27,9 +27,20 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
-        // run-tick is the current time measure
-        public const long RtPerMs = 10;
+        public const long RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
+        public const long RtPerSec = RtPerMs * 1000;
         private const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
+
+        /// <summary>
+        /// CycleRt is a "packed" absolute time value. Required to synchronize remote sides.
+        /// 
+        /// With rt as 1/10 ms:
+        /// * 0xFFFF ~6.5 sec
+        /// * 0xF_FFFF ~105 sec
+        /// * 0xFF_FFFF ~27 min
+        /// 
+        /// </summary>
+        private const int MaxCycleRt = 0xFFFF; // TODO: make 0xFF_FFFF after logic stabilization
 
         public class Api : ExtApi<TimeLink>
         {
@@ -45,6 +56,12 @@ namespace Shared.Tp.Ext.Misc
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
+            }
+
+            public int LocalCycleRt
+            {
+                [MethodImpl(MethodImplOptions.AggressiveInlining)]
+                get => (int)((DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt & MaxCycleRt);
             }
 
             public int LocalMs
@@ -92,16 +109,16 @@ namespace Shared.Tp.Ext.Misc
         public TimeLink() { }
         private TimeLink(long startTicks) => _startTicks = startTicks;
 
-        private long LocalRt // same as Api.LocalRt
+        private long LocalRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
         }
 
-        public int LocalMs // same as Api.LocalMs
+        public int LocalCycleRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(LocalRt / RtPerMs);
+            get => (int)((DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt & MaxCycleRt);
         }
 
         public int RemoteMs
@@ -126,12 +143,6 @@ namespace Shared.Tp.Ext.Misc
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _rttRtSet.StdDeviation;
-        }
-
-        public int RttMs
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(_rttRt / RtPerMs);
         }
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
