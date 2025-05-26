@@ -152,17 +152,18 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTime(IBufferWriter<byte> writer)
         {
-            var local = LocalRt;
-            var localIdx = _details.AddLocalTicks(local);
+            var localRt = LocalRt;
+            var localIdx = _details.AddLocalTicks(localRt);
 
             writer.Write(localIdx);
-            writer.Write(local);
+            writer.Write(localRt);
 
             writer.Write(_receivedRemoteIdx);
-            
+
             //adjustment from previous reception, so the remote side can correctly calculate rtt
-            var receivedSendingDelta = (short)(local - _receivedLocalRt);
-            writer.Write(receivedSendingDelta);
+            var receivedLocalRt = _receivedLocalRt;
+            var receivedSentDeltaRt = receivedLocalRt > 0 ? (short)(localRt - receivedLocalRt): (short)0;
+            writer.Write(receivedSentDeltaRt);
 
             //Slog.Info($"localIdx={localIdx:000} local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
         }
@@ -170,7 +171,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
         {
-            var local = LocalRt;
+            var localRt = LocalRt;
 
             const int length = 
                 sizeof(TimeTicksIndex) + sizeof(long) +
@@ -182,15 +183,18 @@ namespace Shared.Tp.Ext.Misc
                 var ptr = ptrStart;
                 _receivedRemoteIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
                 _receivedRemoteRt = ReadUnaligned<long>(ref ptr);
-                _receivedLocalRt = local;
+                _receivedLocalRt = localRt;
 
                 var sentLocalIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
 
-                var receivedSendingDelta = ReadUnaligned<short>(ref ptr);
+                var receivedSentDeltaRt = ReadUnaligned<short>(ref ptr);
 
-                var sentLocal = _details.GetLocalTicks(sentLocalIdx);
-                _rttRt = (int)(local - sentLocal - receivedSendingDelta);
-                _rttRtSet.Add(_rttRt);
+                var sentLocalRt = _details.GetLocalTicks(sentLocalIdx);
+                if (sentLocalRt > 0 && receivedSentDeltaRt > 0)
+                {
+                    _rttRt = (int)(localRt - sentLocalRt - receivedSentDeltaRt);
+                    _rttRtSet.Add(_rttRt);
+                }
 
                 //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
             }
