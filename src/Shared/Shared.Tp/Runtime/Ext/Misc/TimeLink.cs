@@ -85,7 +85,7 @@ namespace Shared.Tp.Ext.Misc
         private long _receivedLocalRt;
 
         private int _rttRt;
-        private CycleSampleSet32 _rttRtSet;
+        private CycleSampleSet _rttRtSet;
 
         private Details _details;
         

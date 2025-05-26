@@ -4,10 +4,13 @@ using Shared.Log;
 
 namespace Shared.Tp.Util.Stat
 {
-    public unsafe struct CycleSampleSet32 // TODO generate via T4 or SG
+    public unsafe struct CycleSampleSet // TODO generate via T4 or SG
     {
-        private const int MinSizeToReject = 8;
-        private const int MaxSize = 64;
+        private const int MaxSize = 48;
+        private const int RejectStartCount = 8;
+        private const float RejectMinSigmas = 3.0f;
+        private const int RejectMaxCount = 4;
+
         private fixed int _values[MaxSize];
 
         private int _currentIndex;
@@ -19,23 +22,30 @@ namespace Shared.Tp.Util.Stat
         private float _mean;
         private float _stdDeviation;
 
+        private int _rejectedCount;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void Add(int value)
         {
-            if (_count >= MinSizeToReject && _stdDeviation > 0)
+            if (_count >= RejectStartCount && _stdDeviation > 0)
             {
                 var deviation = MathF.Abs(value - _mean);
                 var sigmas = deviation / _stdDeviation;
-                
-                //TODO: make adaptive allowing values leap (via exponential deviation or via trend detection or via reject count)
-                const float adaptiveThreshold = 3.0f;
-                if (sigmas > adaptiveThreshold)
+
+                // Use rejection constraint to allow value "leaps", for example during
+                //  * rtt estimation on network route changes 
+                //  * send rate estimation on network or logical throttle because of bandwidth  
+                // TODO: try adaptive sigma via exponential deviation or trend detection
+                //  (possible faster adoption to new values)
+                if (sigmas > RejectMinSigmas && _rejectedCount < RejectMaxCount)
                 {
-                    //TODO: rm log spamming
-                    Slog.Info($"Reject {value} by sigmas={sigmas:F1} mean={_mean:F1} stdDev={_stdDeviation:F1}");
+                    ++_rejectedCount;
+                    //Slog.Info($"Rejected ({_rejectedCount}/{RejectMaxCount}) {value} by sigmas {sigmas:F1} > {RejectMinSigmas} (mean={_mean:F1} stdDev={_stdDeviation:F1})");
                     return;
                 }
             }
+
+            _rejectedCount = 0;
 
             var oldValue = _values[_currentIndex];
 
@@ -50,7 +60,7 @@ namespace Shared.Tp.Util.Stat
 
             if (++_count >= MaxSize)
                 _count = MaxSize;
-            
+
             _mean = (float)_sum / _count;
             var besselCount = _count - 1; //https://en.wikipedia.org/wiki/Bessel%27s_correction
             if (besselCount > 0)
@@ -72,6 +82,15 @@ namespace Shared.Tp.Util.Stat
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _stdDeviation;
+        }
+    }
+
+    internal static class MathExtensions
+    {
+        public static float Lerp(float a, float b, float t)
+        {
+            t = t < 0f ? 0f : (t > 1f ? 1f : t);
+            return a + (b - a) * t;
         }
     }
 }
