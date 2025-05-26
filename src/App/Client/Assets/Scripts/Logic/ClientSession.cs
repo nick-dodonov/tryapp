@@ -165,12 +165,12 @@ namespace Client.Logic
                 sb.AppendLine();
 
                 sb.Append($"rtt: ");
-                sb.AppendAligned((float)_timeLink.RttRt / TimeLink.RtPerMs, "F1", 4);
-                sb.Append(' ');
-                sb.AppendAligned((float)_timeLink.RttRtMean / TimeLink.RtPerMs, "F1", 4);
+                sb.AppendAligned(_timeLink.RttRtMean / TimeLink.RtPerMs, "F1", 4);
                 sb.Append("~ ");
-                sb.AppendAligned((float)_timeLink.RttRtStdDev / TimeLink.RtPerMs, "F1", 4);
-                sb.AppendLine("σ ms"); //'±'
+                sb.AppendAligned(_timeLink.RttRtStdDev / TimeLink.RtPerMs, "F1", 4);
+                sb.Append("σ "); //'±'
+                sb.AppendAligned((float)_timeLink.RttRt / TimeLink.RtPerMs, "F1", 5);
+                sb.AppendLine(" ms");
 
                 infoControl.SetText(sb.AsArraySegment());
             }
