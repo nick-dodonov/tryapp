@@ -1,6 +1,7 @@
 using System;
 using System.Buffers;
 using System.Text;
+using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Shared.Log;
@@ -11,8 +12,13 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Shared.Tp.Ext.Misc
 {
-    //TODO: create Mere link wrapper above Ext to simplify declaration of just send/receive even more
-    //  possibly introduce separate LayerLink with custom processors list
+    /// <summary>
+    /// TODO: create Mere link wrapper above Ext to simplify declaration of just send/receive even more
+    ///     possibly introduce separate LayerLink with custom processors list
+    /// TODO: rename to DebugLink as it supports new feature now (delay)
+    /// TODO: add special feature like lagging (delay) and packet loss (drop)
+    /// 
+    /// </summary>
     public class DumpLink : ExtLink
     {
         private readonly Api _api = null!;
@@ -29,6 +35,9 @@ namespace Shared.Tp.Ext.Misc
             
             [field: SerializeField] [RequiredMember]
             public int LogEndBytes  { get; set; } = 20;
+            
+            [field: SerializeField] [RequiredMember]
+            public int DelayReceiveMs { get; set; }
         }
 
         private readonly DumpStats _stats = new();
@@ -96,11 +105,45 @@ namespace Shared.Tp.Ext.Misc
 
         public override void Received(ITpLink link, ReadOnlySpan<byte> span)
         {
+            var options = _api.Options;
+            var delayReceiveMs = options.DelayReceiveMs;
+            if (delayReceiveMs <= 0)
+                ReceiveNow(link, span);
+            else
+            {
+                var length = span.Length;
+                var memoryOwner = MemoryPool<byte>.Shared.Rent(length);
+                var memory = memoryOwner.Memory[..length];
+                span.CopyTo(memory.Span);
+                ReceiveDelayed(link, memory, memoryOwner, delayReceiveMs);
+            }
+        }
+
+        private void ReceiveNow(ITpLink link, ReadOnlySpan<byte> span)
+        {
             _stats.In.Add(span.Length);
             if (_api.Options.LogEnabled)
                 Log(_api.Logger, _api.Options, span, "in", link.ToString());
 
             base.Received(link, span);
+        }
+
+        private async void ReceiveDelayed(ITpLink link, ReadOnlyMemory<byte> memory, IMemoryOwner<byte> memoryOwner, int delayReceiveMs)
+        {
+            try
+            {
+                //TODO: cancellation on disconnect
+                await Task.Delay(delayReceiveMs);
+                ReceiveNow(link, memory.Span);
+            }
+            catch (Exception e)
+            {
+                Slog.Error(e.ToString());
+            }
+            finally
+            {
+                memoryOwner.Dispose();
+            }
         }
 
         private static readonly char[] _midEllipsis = { ' ', '…', ' ' }; // '⋯' '…' Unicode Ellipsis
