@@ -19,10 +19,8 @@ namespace Shared.Tp.Ext.Misc
     using TimeTicksIndex = Byte; 
 
     /// <summary>
-    /// TODO: add api for client/server session to obtain "session time"
-    /// TODO: make average and deviation RTT calculations without exceptions by 3-sigma rule
     /// TODO: use SequenceReader or analog to read data
-    /// TODO: efficient (lock-free) atomic change for _receivedRemote/_receivedLocal (fix rare wrong calculation on send)
+    /// TODO: atomic for _receivedRemoteIdx/_receivedLocalRt (fix rare wrong adjustment calculation in send despite they are ok because of 3-sigma rule)
     /// 
     /// </summary>
     public class TimeLink : ExtLink
