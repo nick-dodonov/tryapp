@@ -64,10 +64,10 @@ namespace Shared.Tp.Ext.Misc
         }
 
         private readonly Ticker _localTicker;
+        private OffsetTicker _remoteTicker;
 
         private TimeTicksIndex _receivedRemoteIdx;
 
-        private long _receivedRemoteRt;
         private long _receivedLocalRt;
 
         private int _rttRt;
@@ -76,33 +76,19 @@ namespace Shared.Tp.Ext.Misc
         private Details _details;
         
         public TimeLink() { }
-        private TimeLink(Ticker localTicker) => _localTicker = localTicker;
+        private TimeLink(Ticker localTicker)
+        {
+            _localTicker = localTicker;
+            _remoteTicker = new(localTicker);
+        }
 
         public Ticker LocalTicker => _localTicker;
+        public OffsetTicker RemoteTicker => _remoteTicker;
 
-        public int RemoteMs
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((_localTicker.Rt - _receivedLocalRt + _rttRt / 2 + _receivedRemoteRt) / Ticker.RtPerMs);
-        }
+        public int RemoteMs => _remoteTicker.Ms;
 
-        public int RttRt
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _rttRt;
-        }
-
-        public float RttRtMean
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _rttRtSet.Mean;
-        }
-
-        public float RttRtStdDev
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _rttRtSet.StdDeviation;
-        }
+        public int RttRt => _rttRt;
+        public ref CycleSampleSet RttRtSet => ref _rttRtSet;
 
         public override void Send<T>(TpWriteCb<T> writeCb, in T state)
         {
@@ -130,9 +116,14 @@ namespace Shared.Tp.Ext.Misc
 
             writer.Write(_receivedRemoteIdx);
 
-            //adjustment from previous reception, so the remote side can correctly calculate rtt
+            // Adjustment from the previous reception allowing the remote side to correctly calculate RTT.
+            // It's safe to occasionally send incorrect values
+            //  (e.g., during lag or in debug, the delta can be much larger than ~1/min(receiveRate|sendRate) or even exceed ushort.MaxValue|~6.5sec),
+            //  because the RTT sample set rejects such outliers using the 3-sigma rule.
             var receivedLocalRt = _receivedLocalRt;
-            var receivedSentDeltaRt = receivedLocalRt > 0 ? (short)(localRt - receivedLocalRt): (short)0;
+            var receivedSentDeltaRt = receivedLocalRt > 0 // Skip only the initial incorrect value (to start filling the sample set with the correct ones)
+                ? (ushort)(localRt - receivedLocalRt)
+                : (ushort)0;
             writer.Write(receivedSentDeltaRt);
 
             //Slog.Info($"localIdx={localIdx:000} local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
@@ -146,18 +137,17 @@ namespace Shared.Tp.Ext.Misc
             const int length = 
                 sizeof(TimeTicksIndex) + sizeof(long) +
                 sizeof(TimeTicksIndex) +
-                sizeof(short);
+                sizeof(ushort);
             var timeSpan = span[^length..];
             fixed (byte* ptrStart = timeSpan)
             {
                 var ptr = ptrStart;
                 _receivedRemoteIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
-                _receivedRemoteRt = ReadUnaligned<long>(ref ptr);
                 _receivedLocalRt = localRt;
+                var receivedRemoteRt = ReadUnaligned<long>(ref ptr);
 
                 var sentLocalIdx = ReadUnaligned<TimeTicksIndex>(ref ptr);
-
-                var receivedSentDeltaRt = ReadUnaligned<short>(ref ptr);
+                var receivedSentDeltaRt = ReadUnaligned<ushort>(ref ptr);
 
                 var sentLocalRt = _details.GetLocalTicks(sentLocalIdx);
                 if (sentLocalRt > 0 && receivedSentDeltaRt > 0)
@@ -166,7 +156,9 @@ namespace Shared.Tp.Ext.Misc
                     _rttRtSet.Add(_rttRt);
                 }
 
-                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={local} remote={_receivedRemoteRt} rtt={_rttRt}");
+                _remoteTicker.SetOffset((receivedRemoteRt - localRt + _rttRt / 2) * Ticker.TicksPerRt);
+
+                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={localRt} remote={receivedRemoteRt} rtt={_rttRt}");
             }
 
             return span[..^length];

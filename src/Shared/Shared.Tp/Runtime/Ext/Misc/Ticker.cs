@@ -7,7 +7,9 @@ namespace Shared.Tp.Ext.Misc
     {
         public const long RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
         public const long RtPerSec = RtPerMs * 1000;
-        private const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
+        public const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
+        public const long TicksPerMs = TimeSpan.TicksPerMillisecond;
+        public const long TicksPerSeconds = TimeSpan.TicksPerSecond;
 
         /// <summary>
         /// CycleRt is a "packed" absolute time value. Required to synchronize remote sides.
@@ -31,22 +33,60 @@ namespace Shared.Tp.Ext.Misc
             get => _startTicks;
         }
 
+        public long Ticks
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => DateTime.UtcNow.Ticks - _startTicks;
+        }
+
         public long Rt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
+            get => Ticks / TicksPerRt;
         }
 
         public int CycleRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt & MaxCycleRt);
+            get => (int)(Ticks / TicksPerRt & MaxCycleRt);
         }
 
         public int Ms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(Rt / RtPerMs);
+            get => (int)(Ticks / TicksPerMs);
         }
+    }
+
+    public struct OffsetTicker
+    {
+        private readonly Ticker _ticker;
+        private long _offset;
+
+        public OffsetTicker(Ticker ticker)
+        {
+            _ticker = ticker;
+            _offset = 0;
+        }
+
+        public long Rt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (_ticker.Ticks + _offset) / Ticker.TicksPerRt;
+        }
+
+        public int Ms
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (int)((_ticker.Ticks + _offset) / Ticker.TicksPerMs);
+        }
+
+        public float Seconds
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (_ticker.Ticks + _offset) / (float)Ticker.TicksPerSeconds;
+        }
+
+        public void SetOffset(long offset) => _offset = offset;
     }
 }

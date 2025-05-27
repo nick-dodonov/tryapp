@@ -55,7 +55,7 @@ namespace Shared.Tp.Ext.Misc
         //TODO: think to update on every Add 
         public DumpStats UpdateRates(int updateIntervalMs = 1000)
         {
-            var ticks = DateTime.UtcNow.Ticks;
+            var ticks = DateTime.UtcNow.Ticks; //TODO: use Stopwatch or Ticker for steady timer  
             In.UpdateRate(ticks, updateIntervalMs);
             Out.UpdateRate(ticks, updateIntervalMs);
             return this;

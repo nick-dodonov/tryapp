@@ -151,7 +151,7 @@ namespace Client.Logic
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");
-                sb.Append(_timeLink.RemoteMs / 1000.0f, "F1");
+                sb.Append(_timeLink.RemoteTicker.Seconds, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("st-hist: ");
@@ -169,9 +169,10 @@ namespace Client.Logic
                 sb.AppendLine();
 
                 sb.Append($"rtt: ");
-                sb.AppendAligned(_timeLink.RttRtMean / Ticker.RtPerMs, "F1", 4);
+                ref var rttRtSet = ref _timeLink.RttRtSet;
+                sb.AppendAligned(rttRtSet.Mean / Ticker.RtPerMs, "F1", 4);
                 sb.Append(" ± ");
-                sb.AppendAligned(_timeLink.RttRtStdDev / Ticker.RtPerMs, "F1", 3);
+                sb.AppendAligned(rttRtSet.StdDeviation / Ticker.RtPerMs, "F1", 3);
                 sb.Append("σ "); //''
                 sb.AppendAligned(_timeLink.RttRt / (float)Ticker.RtPerMs, "F1", 5);
                 sb.AppendLine(" ms");
