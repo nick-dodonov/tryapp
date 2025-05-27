@@ -168,8 +168,8 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
 
         return true;
     }
-    
-    public int TimeMs => _timeApi.LocalMs;
+
+    public int TimeMs => _timeApi.LocalTicker.Ms;
     public ServerState GetServerState()
     {
         var sessionMs = TimeMs;

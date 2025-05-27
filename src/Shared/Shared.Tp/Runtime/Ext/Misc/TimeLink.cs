@@ -27,54 +27,23 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
-        public const long RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
-        public const long RtPerSec = RtPerMs * 1000;
-        private const long TicksPerRt = TimeSpan.TicksPerMillisecond / RtPerMs;
-
-        /// <summary>
-        /// CycleRt is a "packed" absolute time value. Required to synchronize remote sides.
-        /// 
-        /// With rt as 1/10 ms:
-        /// * 0xFFFF ~6.5 sec
-        /// * 0xF_FFFF ~105 sec
-        /// * 0xFF_FFFF ~27 min
-        /// 
-        /// </summary>
-        private const int MaxCycleRt = 0xFFFF; // TODO: make 0xFF_FFFF after logic stabilization
-
         public class Api : ExtApi<TimeLink>
         {
-            private readonly long _startTicks;
+            private readonly Ticker _localTicker;
 
             public Api(ITpApi innerApi) : base(innerApi)
             {
-                _startTicks = DateTime.UtcNow.Ticks;
-                Slog.Info($"start ticks: {_startTicks}");
+                _localTicker = Ticker.StartNew();
+                Slog.Info($"start ticks: {_localTicker.StartTicks}");
             }
 
-            private long LocalRt
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
-            }
-
-            public int LocalCycleRt
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (int)((DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt & MaxCycleRt);
-            }
-
-            public int LocalMs
-            {
-                [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (int)(LocalRt / RtPerMs);
-            }
+            public Ticker LocalTicker => _localTicker;
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) =>
-                new(_startTicks) { Receiver = receiver };
+                new(_localTicker) { Receiver = receiver };
 
             protected override TimeLink CreateServerLink(ITpLink innerLink) =>
-                new(_startTicks) { InnerLink = innerLink };
+                new(_localTicker) { InnerLink = innerLink };
         }
 
         private unsafe struct Details {
@@ -94,7 +63,7 @@ namespace Shared.Tp.Ext.Misc
             }
         }
 
-        private readonly long _startTicks;
+        private readonly Ticker _localTicker;
 
         private TimeTicksIndex _receivedRemoteIdx;
 
@@ -107,24 +76,14 @@ namespace Shared.Tp.Ext.Misc
         private Details _details;
         
         public TimeLink() { }
-        private TimeLink(long startTicks) => _startTicks = startTicks;
+        private TimeLink(Ticker localTicker) => _localTicker = localTicker;
 
-        private long LocalRt
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt;
-        }
-
-        public int LocalCycleRt
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((DateTime.UtcNow.Ticks - _startTicks) / TicksPerRt & MaxCycleRt);
-        }
+        public Ticker LocalTicker => _localTicker;
 
         public int RemoteMs
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((LocalRt - _receivedLocalRt + _rttRt / 2 + _receivedRemoteRt) / RtPerMs);
+            get => (int)((_localTicker.Rt - _receivedLocalRt + _rttRt / 2 + _receivedRemoteRt) / Ticker.RtPerMs);
         }
 
         public int RttRt
@@ -163,7 +122,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTime(IBufferWriter<byte> writer)
         {
-            var localRt = LocalRt;
+            var localRt = _localTicker.Rt;
             var localIdx = _details.AddLocalTicks(localRt);
 
             writer.Write(localIdx);
@@ -182,7 +141,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
         {
-            var localRt = LocalRt;
+            var localRt = _localTicker.Rt;
 
             const int length = 
                 sizeof(TimeTicksIndex) + sizeof(long) +

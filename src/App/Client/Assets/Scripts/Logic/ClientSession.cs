@@ -147,7 +147,7 @@ namespace Client.Logic
             try
             {
                 sb.Append("local: ");
-                sb.Append(_timeLink.LocalCycleRt / (float)TimeLink.RtPerSec, "F1");
+                sb.Append(_timeLink.LocalTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");
@@ -169,11 +169,11 @@ namespace Client.Logic
                 sb.AppendLine();
 
                 sb.Append($"rtt: ");
-                sb.AppendAligned(_timeLink.RttRtMean / TimeLink.RtPerMs, "F1", 4);
+                sb.AppendAligned(_timeLink.RttRtMean / Ticker.RtPerMs, "F1", 4);
                 sb.Append(" ± ");
-                sb.AppendAligned(_timeLink.RttRtStdDev / TimeLink.RtPerMs, "F1", 3);
+                sb.AppendAligned(_timeLink.RttRtStdDev / Ticker.RtPerMs, "F1", 3);
                 sb.Append("σ "); //''
-                sb.AppendAligned(_timeLink.RttRt / (float)TimeLink.RtPerMs, "F1", 5);
+                sb.AppendAligned(_timeLink.RttRt / (float)Ticker.RtPerMs, "F1", 5);
                 sb.AppendLine(" ms");
 
                 infoControl.SetText(sb.AsArraySegment());
