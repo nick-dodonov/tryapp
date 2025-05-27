@@ -10,11 +10,10 @@ namespace Client.Logic
             _timeLink = timeLink;
         }
 
-        //TODO: currentMs using smoothed rtt
+        //TODO: use start of frame time point instead of instant value
         int ITimeContext.CurrentSessionMs => _timeLink.RemoteMs;
-        
-        //TODO: use frame start session ms instead
-        //TODO: constant based on current server's send rate
+
+        //TODO: use offset based on current smoothed server's send rate and rtt
         int ITimeContext.HistorySessionMs => _timeLink.RemoteMs - 210;
     }
 }

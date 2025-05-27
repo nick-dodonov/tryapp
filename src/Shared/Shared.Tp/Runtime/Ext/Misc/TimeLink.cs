@@ -154,7 +154,8 @@ namespace Shared.Tp.Ext.Misc
                     _rttRtSet.Add(_rttRt);
                 }
 
-                _remoteTicker.SetOffset((receivedRemoteRt - localRt + _rttRt / 2) * Ticker.TicksPerRt);
+                //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
+                _remoteTicker.SetOffset((receivedRemoteRt - localRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
 
                 //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={localRt} remote={receivedRemoteRt} rtt={_rttRt}");
             }

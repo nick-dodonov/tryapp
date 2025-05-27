@@ -1,6 +1,5 @@
 using System;
 using System.Runtime.CompilerServices;
-using Shared.Log;
 
 namespace Shared.Tp.Util.Stat
 {
@@ -19,6 +18,7 @@ namespace Shared.Tp.Util.Stat
         private long _sum; // for mean and deviation continuous calculations
         private long _sqrSum; // for standard deviation continuous calculation: `sum((x - mean)^2)` == `sum(x^2) - sum(x)^2 / n`
 
+        private int _meanInt;
         private float _mean;
         private float _stdDeviation;
 
@@ -61,6 +61,7 @@ namespace Shared.Tp.Util.Stat
             if (++_count >= MaxSize)
                 _count = MaxSize;
 
+            _meanInt = (int)(_sum / _count);
             _mean = (float)_sum / _count;
             var besselCount = _count - 1; //https://en.wikipedia.org/wiki/Bessel%27s_correction
             if (besselCount > 0)
@@ -70,6 +71,12 @@ namespace Shared.Tp.Util.Stat
                     lessDiff = -lessDiff;
                 _stdDeviation = MathF.Sqrt((float)lessDiff / besselCount);
             }
+        }
+
+        public int MeanInt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _meanInt;
         }
 
         public float Mean
