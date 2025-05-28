@@ -127,5 +127,18 @@ namespace Shared.Tp.Tests
             hist.ClearUntil((2, 0.0f));
             Assert.AreEqual(1, hist.Count);
         }
+        
+        [Test]
+        public void CycledKey_Test()
+        {
+            var hist = new History<byte, string>(4);
+            hist.AddValueRef(254) = "254";
+            hist.AddValueRef(1) = "1";
+            Assert.AreEqual(2, hist.Count);
+            
+            hist.ClearUntil(1);
+            Assert.AreEqual(1, hist.Count);
+        }
+        
     }
 }
