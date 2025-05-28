@@ -136,40 +136,43 @@ namespace Shared.Tp.Tests
         {
             return (byte _, ref History<byte, string>.Item from, ref History<byte, string>.Item to) =>
             {
-                Assert.AreEqual(expectFrom, from.Key);
-                Assert.AreEqual(expectTo, to.Key);
+                var fromKey = from.Key;
+                var toKey = to.Key;
+                Assert.AreEqual(expectFrom, fromKey);
+                Assert.AreEqual(expectTo, toKey);
             };
         }
 
         [Test]
-        public void Visit_Bounds_With_CycledKey_Base()
-        {
-            var hist = new History<byte, string>(4);
-            Add(hist, 250);
-            Add(hist, 10);
-            Assert.AreEqual(2, hist.Count);
-            Assert.IsTrue(hist.VisitExistingBounds((byte)0, ExpectKeys(250, 10)));
-        }
-
-        [Test]
-        public void Visit_Bounds_With_CycledKey_Complex()
+        public void Visit_Bounds_CycleKey_Edge_Case()
         {
             var hist = new History<byte, string>(4);
             Add(hist, 220);
             Add(hist, 240);
             Add(hist, 20);
             Add(hist, 40);
-            Assert.AreEqual(4, hist.Count);
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys(240, 20)));
+        }
 
-            Assert.IsTrue(hist.VisitExistingBounds((byte)50, ExpectKeys(40, 40)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)40, ExpectKeys(20, 40)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)30, ExpectKeys(20, 40)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)10, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)0, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)250, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)230, ExpectKeys(220, 240)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)220, ExpectKeys(220, 240)));
-            Assert.IsTrue(hist.VisitExistingBounds((byte)210, ExpectKeys(40, 40)));
+        [Test]
+        public void Visit_Bounds_CycleKey_Many_Ranges()
+        {
+            var hist = new History<byte, string>(4);
+            Add(hist, 220);
+            Add(hist, 240);
+            Add(hist, 20);
+            Add(hist, 40);
+
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)50, ExpectKeys(40, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)40, ExpectKeys(20, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)30, ExpectKeys(20, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)0, ExpectKeys(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)230, ExpectKeys(220, 240)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)220, ExpectKeys(220, 240)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)210, ExpectKeys(40, 40)));
         }
     }
 }

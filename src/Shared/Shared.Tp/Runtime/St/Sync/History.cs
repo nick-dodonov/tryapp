@@ -20,8 +20,8 @@ namespace Shared.Tp.St.Sync
         private int _first;
         private int _count;
 
-        private ref Item UnsafeFirstItemRef => ref _array[_first];
-        private ref Item UnsafeLastItemRef => ref _array[(_first + _count - 1) % _capacity];
+        internal ref Item UnsafeFirstItemRef => ref _array[_first]; // assert _count > 0
+        internal ref Item UnsafeLastItemRef => ref _array[(_first + _count - 1) % _capacity]; // assert _count > 0
 
         public History(int initCapacity)
         {
