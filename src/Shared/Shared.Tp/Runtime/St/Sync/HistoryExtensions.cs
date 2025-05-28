@@ -10,14 +10,13 @@ namespace Shared.Tp.St.Sync
             ref History<TKey, TValue>.Item to)
             where TKey : unmanaged, IComparable<TKey>;
 
-        public static void VisitExistingBounds<TKey, TValue>(
-            this History<TKey, TValue> history, 
-            TKey key, BoundsVisitor<TKey, TValue> visitor)
+        public static bool VisitExistingBounds<TKey, TValue>(
+            this History<TKey, TValue> history, TKey key, BoundsVisitor<TKey, TValue> visitor)
             where TKey : unmanaged, IComparable<TKey>
         {
             var enumerator = history.ReverseRefItems;
             if (!enumerator.MoveNext())
-                return; // no items
+                return false; // no items
 
             while (true)
             {
@@ -29,11 +28,11 @@ namespace Shared.Tp.St.Sync
                         continue;
 
                     visitor(key, ref from, ref to);
-                    return;
+                    return true;
                 }
 
                 visitor(key, ref to, ref to);
-                return;
+                return true;
             }
         }
     }
