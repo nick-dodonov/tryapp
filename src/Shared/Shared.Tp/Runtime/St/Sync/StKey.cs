@@ -11,10 +11,14 @@ namespace Shared.Tp.St.Sync
 
         public int CompareTo(StKey other)
         {
-            var otherFrame = other.Frame;
-            if (Frame != 0 && otherFrame != 0)
-                return Frame.CompareTo(otherFrame);
-            return Ms.CompareTo(other.Ms);
+            //var otherFrame = other.Frame;
+            // if (Frame != 0 && otherFrame != 0)
+            //     return Frame.CompareTo(otherFrame);
+            // return Ms.CompareTo(other.Ms);
+            var otherMs = other.Ms;
+            if (Ms != 0 && otherMs != 0)
+                return Ms.CompareTo(otherMs);
+            return Frame.CompareTo(other.Frame);
         }
 
         //public void Deconstruct(out int frame, out int ms) => (frame, ms) = (Frame, Ms);

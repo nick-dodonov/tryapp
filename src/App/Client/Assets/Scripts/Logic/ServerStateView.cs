@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using Common.Data;
+using Cysharp.Text;
+using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
 using Shared.Tp.Tween;
 using Shared.Tp.Util;
@@ -38,17 +40,31 @@ namespace Client.Logic
             if (_history.Count <= 0)
                 return;
 
-            var historyMs = _timeContext.HistorySessionMs;
-
-            _history.VisitExistingBounds(
-                (0, historyMs),
-                //TODO: VisitExistingBounds with state for static delegate
+            var debugHistory = DebugGetHistoryKeysArrayString();
+            
+            var historyCycleRt = _timeContext.HistoryCycleRt;
+            _history.VisitCycleKeyBounds((0, historyCycleRt),
+                //TODO: visitor with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
                 {
-                    var interval = to.Key.Ms - from.Key.Ms;
-                    var value = key.Ms - from.Key.Ms;
-                    var t = interval > 0 ? Mathf.Clamp01((float)value / interval) : 0;
-                    //Shared.Log.Slog.Info($"FRAME={Time.frameCount}: {sessionMs}-{key.Ms}: [{from.Key.Ms} {to.Key.Ms}]: {value}/{interval}: {t}");
+                    var time = key.Ms;
+                    var prevTime = from.Key.Ms;
+                    var nextTime = to.Key.Ms;
+                    var interval = nextTime - prevTime;
+                    //Debug.Assert(interval >= 0);
+                    if (interval < 0)
+                        interval += Ticker.MaxCycleRt;
+
+                    int diff;
+                    if (time >= prevTime)
+                        diff = time - prevTime;
+                    else
+                        diff = Ticker.MaxCycleRt - prevTime + time;
+
+                    var t = interval > 0 ? Mathf.Clamp01((float)diff / interval) : 0;
+
+                    Shared.Log.Slog.Info($"FR={Time.frameCount}: {time}: [{prevTime} {nextTime}]: {diff}/{interval}={t} - {debugHistory}");
+
                     _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
                 });
 
@@ -57,6 +73,28 @@ namespace Client.Logic
                 var peerId = peerState.Id;
                 if (_peerViews.TryGetValue(peerId, out var peerView)) 
                     peerView.ApplyInterpolatedState(peerState);
+            }
+        }
+
+        private string DebugGetHistoryKeysArrayString()
+        {
+            var sb = ZString.CreateStringBuilder(true);
+            try
+            {
+                sb.Append('[');
+                var idx = 0;
+                foreach (ref var item in _history.ReverseRefItems)
+                {
+                    if (idx++ > 0)
+                        sb.Append(", ");
+                    sb.Append(item.Key.Ms);
+                }
+                sb.Append(']');
+                return sb.ToString();
+            }
+            finally
+            {
+                sb.Dispose();
             }
         }
 

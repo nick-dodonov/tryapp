@@ -1,4 +1,5 @@
 using System;
+using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Cmd;
 
 namespace Shared.Tp.St.Sync
@@ -73,8 +74,8 @@ namespace Shared.Tp.St.Sync
         {
             _localHistory.ClearUntil((cmd.Known, 0)); //TODO: think to move to filling local state
 
-            _remoteHistory.ClearUntil((cmd.From - 2, 0)); //TODO: XXXXXXXX ClearUntil interpolation to keep
-            _remoteHistory.AddValueRef((cmd.To, cmd.Ms)) = cmd.Value; //TODO: From->To
+            _remoteHistory.ClearUntil((cmd.From - 2, 0)); //TODO: ClearUntil history interpolation interval to keep
+            _remoteHistory.AddValueRef((cmd.To, (cmd.Ms * Ticker.RtPerMs) & Ticker.MaxCycleRt)) = cmd.Value; //TODO: apply From->To diff
 
             _handler.RemoteUpdated();
         }

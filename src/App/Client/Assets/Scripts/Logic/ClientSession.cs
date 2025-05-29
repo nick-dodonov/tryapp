@@ -147,11 +147,17 @@ namespace Client.Logic
             try
             {
                 sb.Append("local: ");
-                sb.Append(_timeLink.LocalTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
+                var localTicker = _timeLink.LocalTicker;
+                sb.Append(localTicker.Seconds, "F1");
+                sb.Append(" - ");
+                sb.Append(localTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");
-                sb.Append(_timeLink.RemoteTicker.Seconds, "F1");
+                var remoteTicker = _timeLink.RemoteTicker;
+                sb.Append(remoteTicker.Seconds, "F1");
+                sb.Append(" - ");
+                sb.Append(remoteTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("st-hist: ");

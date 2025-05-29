@@ -12,17 +12,19 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public readonly struct Ticker
     {
-        public const long RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
+        public const int RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
         public const long RtPerSec = RtPerMs * 1000;
 
         /// <summary>
         /// CycleRt is a "packed" absolute time value. Required to synchronize remote sides.
-        /// With rt as 1/10 ms:
+        /// With Rt as 1/10 ms:
         /// - 0xFFFF ~6.5 sec
         /// - 0xF_FFFF ~105 sec
         /// - 0xFF_FFFF ~27 min
+        /// - 0xFFF_FFFF ~7.5 hours
+        /// - 0xFFFF_FFFF ~5 days
         /// </summary>
-        private const int MaxCycleRt = 0xFFFF; // TODO: make 0xFF_FFFF after logic stabilization
+        public const int MaxCycleRt = 0xFFFF; // TODO: make 0xFF_FFFF after logic stabilization
 
         // //DATETIME:
         // private static long NowTicks
@@ -79,9 +81,10 @@ namespace Shared.Tp.Ext.Misc
             get => (int)(Ticks / TicksPerMs);
         }
 
-        public readonly struct Point
+        public float Seconds
         {
-            private readonly long _value;
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => Ticks / (float)TicksPerSeconds;
         }
     }
 }

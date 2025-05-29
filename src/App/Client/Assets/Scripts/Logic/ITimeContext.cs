@@ -4,5 +4,6 @@ namespace Client.Logic
     {
         public int CurrentSessionMs { get; }
         public int HistorySessionMs { get; }
+        public int HistoryCycleRt { get; }
     }
 }

@@ -38,7 +38,20 @@ namespace Shared.Tp.St.Sync
                 return true;
             }
         }
-        
+
+        public static bool InCycleBounds(short key, short fromKey, short toKey)
+        {
+            throw new NotImplementedException();
+        }
+
+        public static bool InCycleBounds<TKey>(TKey key, TKey fromKey, TKey toKey)
+            where TKey : unmanaged, IComparable<TKey>
+        {
+            if (fromKey.CompareTo(toKey) <= 0)
+                return key.CompareTo(fromKey) >= 0 && key.CompareTo(toKey) <= 0;
+            return key.CompareTo(fromKey) >= 0 || key.CompareTo(toKey) <= 0; // toKey is cycled
+        }
+
         /// <summary>
         /// Naive implementation of cycled key bounds visitor.
         /// </summary>
@@ -51,15 +64,8 @@ namespace Shared.Tp.St.Sync
             if (!enumerator.MoveNext())
                 return false; // no items
 
-            static bool InBounds(TKey key, TKey fromKey, TKey toKey)
-            {
-                if (fromKey.CompareTo(toKey) <= 0)
-                    return key.CompareTo(fromKey) >= 0 && key.CompareTo(toKey) <= 0;
-                return key.CompareTo(fromKey) >= 0 || key.CompareTo(toKey) <= 0; // toKey is cycled
-            }
-
             ref var last = ref enumerator.Current;
-            if (!InBounds(key, history.UnsafeFirstItemRef.Key, last.Key))
+            if (!InCycleBounds(key, history.UnsafeFirstItemRef.Key, last.Key))
             {
                 visitor(key, ref last, ref last);
                 return true;
@@ -75,7 +81,7 @@ namespace Shared.Tp.St.Sync
                     var fromKey = from.Key;
 
                     // TODO: optimize as some InBounds if-branches can be skipped as already checked in previous loop iterations
-                    if (!InBounds(key, fromKey, toKey))
+                    if (!InCycleBounds(key, fromKey, toKey))
                         continue;
 
                     visitor(key, ref from, ref to);

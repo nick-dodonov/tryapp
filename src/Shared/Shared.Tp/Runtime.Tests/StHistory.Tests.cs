@@ -116,5 +116,28 @@ namespace Shared.Tp.Tests
                 Assert.AreEqual(1, visited);
             }
         }
+
+        private static int _frame;
+        private static void Add(StHistory<string> hist, int key) => hist.AddValueRef((++_frame, key)) = key.ToString();
+        
+        [Test]
+        public void Visit_Bounds_Edge_Case()
+        {
+            var hist = new StHistory<string>(4);
+            //Ⓢ ServerStateView: Update: FR=11531: 64805: [1268 1268]: 63537/0=0 - [1268, 64794, 62784, 60774]
+            Add(hist, 60774);
+            Add(hist, 62784);
+            Add(hist, 64794);
+            Add(hist, 1268);
+            Assert.IsTrue(hist.VisitCycleKeyBounds((0, 64805),(StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
+            {
+                var fromKey = from.Key.Ms;
+                var toKey = to.Key.Ms;
+                Assert.AreEqual(64794, fromKey);
+                Assert.AreEqual(1268, toKey);
+            }));
+        }
+
+
     }
 }

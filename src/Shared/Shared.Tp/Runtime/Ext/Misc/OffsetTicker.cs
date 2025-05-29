@@ -13,22 +13,34 @@ namespace Shared.Tp.Ext.Misc
             _offset = 0;
         }
 
+        public long Ticks
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _ticker.Ticks + _offset;
+        }
+        
         public long Rt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_ticker.Ticks + _offset) / Ticker.TicksPerRt;
+            get => Ticks / Ticker.TicksPerRt;
         }
 
+        public int CycleRt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (int)(Ticks / Ticker.TicksPerRt & Ticker.MaxCycleRt);
+        }
+        
         public int Ms
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)((_ticker.Ticks + _offset) / Ticker.TicksPerMs);
+            get => (int)(Ticks / Ticker.TicksPerMs);
         }
 
         public float Seconds
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (_ticker.Ticks + _offset) / (float)Ticker.TicksPerSeconds;
+            get => Ticks / (float)Ticker.TicksPerSeconds;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]

@@ -1,3 +1,4 @@
+using System;
 using NUnit.Framework;
 using Shared.Tp.St.Sync;
 
@@ -132,9 +133,10 @@ namespace Shared.Tp.Tests
         }
 
         private static void Add(History<byte, string> hist, byte key) => hist.AddValueRef(key) = key.ToString();
-        private static HistoryExtensions.BoundsVisitor<byte, string> ExpectKeys(byte expectFrom, byte expectTo)
+        private static HistoryExtensions.BoundsVisitor<TKey, string> ExpectKeys<TKey>(TKey expectFrom, TKey expectTo)
+            where TKey : unmanaged, IComparable<TKey>
         {
-            return (byte _, ref History<byte, string>.Item from, ref History<byte, string>.Item to) =>
+            return (TKey _, ref History<TKey, string>.Item from, ref History<TKey, string>.Item to) =>
             {
                 var fromKey = from.Key;
                 var toKey = to.Key;
@@ -151,8 +153,8 @@ namespace Shared.Tp.Tests
             Add(hist, 240);
             Add(hist, 20);
             Add(hist, 40);
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys<byte>(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys<byte>(240, 20)));
         }
 
         [Test]
@@ -164,15 +166,15 @@ namespace Shared.Tp.Tests
             Add(hist, 20);
             Add(hist, 40);
 
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)50, ExpectKeys(40, 40)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)40, ExpectKeys(20, 40)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)30, ExpectKeys(20, 40)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)0, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys(240, 20)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)230, ExpectKeys(220, 240)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)220, ExpectKeys(220, 240)));
-            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)210, ExpectKeys(40, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)50, ExpectKeys<byte>(40, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)40, ExpectKeys<byte>(20, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)30, ExpectKeys<byte>(20, 40)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)10, ExpectKeys<byte>(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)0, ExpectKeys<byte>(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)250, ExpectKeys<byte>(240, 20)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)230, ExpectKeys<byte>(220, 240)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)220, ExpectKeys<byte>(220, 240)));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((byte)210, ExpectKeys<byte>(40, 40)));
         }
     }
 }
