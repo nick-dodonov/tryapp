@@ -28,9 +28,9 @@ namespace Common.Data
     {
         [QuickInternStringFormatter]
         public string Id;
-        
+
         [Tween]
-        public int Ms; // state fill time (current for virtual peers), used only for local visual diagnostics of network latency
+        public ushort CycledRt; // state fill time (current for virtual peers), used only for local visual diagnostics of network latency
 
         [Tween]
         public ClientState ClientState;
@@ -38,7 +38,7 @@ namespace Common.Data
         [Preserve] // ReSharper disable once UnusedMember.Global // TODO: auto-create via Shared.Sys.SourceGen
         public RttInfo GetRttInfo() => new RttInfo()
             .Add(ref this, ref Id, nameof(Id))
-            .Add(ref this, ref Ms, nameof(Ms))
+            .Add(ref this, ref CycledRt, nameof(CycledRt))
             .Add(ref this, ref ClientState, nameof(ClientState))
         ;
     }

@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using Common.Data;
 using Cysharp.Text;
-using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
 using Shared.Tp.Tween;
 using Shared.Tp.Util;
@@ -40,30 +39,19 @@ namespace Client.Logic
             if (_history.Count <= 0)
                 return;
 
-            var debugHistory = DebugGetHistoryKeysArrayString();
-            
-            var historyCycleRt = _timeContext.HistoryCycleRt;
+            var historyCycleRt = _timeContext.HistorySessionCycledRt;
             _history.VisitCycleKeyBounds((0, historyCycleRt),
                 //TODO: visitor with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
                 {
-                    var time = key.Ms;
-                    var prevTime = from.Key.Ms;
-                    var nextTime = to.Key.Ms;
-                    var interval = nextTime - prevTime;
-                    //Debug.Assert(interval >= 0);
-                    if (interval < 0)
-                        interval += Ticker.MaxCycleRt;
-
-                    int diff;
-                    if (time >= prevTime)
-                        diff = time - prevTime;
-                    else
-                        diff = Ticker.MaxCycleRt - prevTime + time;
+                    var time = key.CycledRt;
+                    var prevTime = from.Key.CycledRt;
+                    var nextTime = to.Key.CycledRt;
+                    var interval = (ushort)(nextTime - prevTime);
+                    var diff = (ushort)(time - prevTime);
 
                     var t = interval > 0 ? Mathf.Clamp01((float)diff / interval) : 0;
-
-                    Shared.Log.Slog.Info($"FR={Time.frameCount}: {time}: [{prevTime} {nextTime}]: {diff}/{interval}={t} - {debugHistory}");
+                    //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {diff,4}/{interval}={t:F3} - {DebugGetHistoryKeysArrayString()}");
 
                     _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
                 });
@@ -87,7 +75,7 @@ namespace Client.Logic
                 {
                     if (idx++ > 0)
                         sb.Append(", ");
-                    sb.Append(item.Key.Ms);
+                    sb.Append(item.Key.CycledRt);
                 }
                 sb.Append(']');
                 return sb.ToString();

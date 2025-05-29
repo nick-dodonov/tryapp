@@ -3,18 +3,20 @@ using Common.Data;
 
 namespace Server.Logic.Virtual;
 
-public class LinearVirtualPeer(string id, uint color, Vector2 initPos, Vector2 initSpeed) 
+public class LinearVirtualPeer(
+    string id, uint color, 
+    Vector2 initPos, Vector2 initSpeed) 
     : IVirtualPeer
 {
     private Vector2 _pos = initPos;
     private Vector2 _speed = initSpeed;
 
-    PeerState IVirtualPeer.GetPeerState(int sessionMs)
+    PeerState IVirtualPeer.GetPeerState(ushort cycledRt)
     {
         return new()
         {
             Id = id,
-            Ms = sessionMs,
+            CycledRt = cycledRt,
             ClientState = new()
             {
                 X = _pos.X,

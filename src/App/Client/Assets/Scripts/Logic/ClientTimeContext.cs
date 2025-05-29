@@ -11,19 +11,9 @@ namespace Client.Logic
         }
 
         //TODO: use start of frame time point instead of instant value
-        int ITimeContext.CurrentSessionMs => _timeLink.RemoteMs;
+        ushort ITimeContext.CurrentSessionCycledRt => _timeLink.RemoteTicker.CycledRt;
 
         //TODO: use offset based on current smoothed server's send rate and rtt
-        int ITimeContext.HistorySessionMs => _timeLink.RemoteMs - 210;
-        int ITimeContext.HistoryCycleRt
-        {
-            get
-            {
-                var value = _timeLink.RemoteTicker.CycleRt - 210 * Ticker.RtPerMs;
-                if (value < 0)
-                    value += Ticker.MaxCycleRt;
-                return value;
-            }
-        }
+        ushort ITimeContext.HistorySessionCycledRt => (ushort)(_timeLink.RemoteTicker.CycledRt - 220 * Ticker.RtPerMs);
     }
 }

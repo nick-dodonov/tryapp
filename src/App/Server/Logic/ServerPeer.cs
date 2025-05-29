@@ -33,12 +33,15 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
 
     public bool PeerStateExists => _stSync.RemoteHistory.Count > 0; //TODO: remove adding first state to ClientConnectState
     public PeerState GetPeerState()
-        => new()
+    {
+        var remoteHistory = _stSync.RemoteHistory;
+        return new()
         {
             Id = _peerStateId,
-            Ms = _stSync.RemoteStateMs,
+            CycledRt = remoteHistory.LastKeyOrDefault.CycledRt,
             ClientState = _stSync.RemoteStateRef
         };
+    }
 
     public void Update(float deltaTime)
         => _stSync.LocalUpdate(deltaTime);
@@ -49,7 +52,7 @@ public sealed class ServerPeer : IDisposable, ISyncHandler<ServerState, ClientSt
     IObjReader<StCmd<ClientState>> ISyncHandler<ServerState, ClientState>.RemoteReader { get; } 
         = TickStateFactory.CreateObjReader<StCmd<ClientState>>();
 
-    int ISyncHandler<ServerState, ClientState>.TimeMs => _session.TimeMs;
+    ushort ISyncHandler<ServerState, ClientState>.CycledRt => _session.CycledRt;
     ServerState ISyncHandler<ServerState, ClientState>.MakeLocalState()
         => _session.GetServerState();
 

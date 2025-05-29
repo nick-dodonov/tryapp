@@ -7,16 +7,18 @@ public class CircleVirtualPeer(
     float initRadians, float radius, int circleTimeMs, int direction) 
     : IVirtualPeer
 {
-    PeerState IVirtualPeer.GetPeerState(int sessionMs)
+    private float _sessionMs;
+
+    PeerState IVirtualPeer.GetPeerState(ushort cycledRt)
     {
-        var angle = (float)(2 * Math.PI * (sessionMs % circleTimeMs) / circleTimeMs) * direction;
+        var angle = (float)(2 * Math.PI * ((int)(1000*_sessionMs) % circleTimeMs) / circleTimeMs) * direction;
         angle += initRadians;
         var x = -radius * MathF.Cos(angle);
         var y = radius * MathF.Sin(angle);
         return new()
         {
             Id = id,
-            Ms = sessionMs,
+            CycledRt = cycledRt,
             ClientState = new()
             {
                 X = x,
@@ -26,5 +28,8 @@ public class CircleVirtualPeer(
         };
     }
 
-    void IVirtualPeer.Update(float deltaTime) { }
+    void IVirtualPeer.Update(float deltaTime)
+    {
+        _sessionMs += deltaTime;
+    }
 }

@@ -1,5 +1,4 @@
 using System;
-using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Cmd;
 
 namespace Shared.Tp.St.Sync
@@ -22,7 +21,6 @@ namespace Shared.Tp.St.Sync
         public StHistory<TLocal> LocalHistory => _localHistory;
         public StHistory<TRemote> RemoteHistory => _remoteHistory;
 
-        public int RemoteStateMs => _remoteHistory.LastKeyOrDefault.Ms;
         public ref TRemote RemoteStateRef => ref _remoteHistory.LastValueRef;
 
         internal StSync(ISyncHandler<TLocal, TRemote> handler)
@@ -44,13 +42,13 @@ namespace Shared.Tp.St.Sync
                 From = _localHistory.FirstKeyOrDefault.Frame,
                 To = ++_localFrame,
                 Known = _remoteHistory.LastKeyOrDefault.Frame,
-                
-                Ms = _handler.TimeMs,
 
-                Value = _handler.MakeLocalState() //TODO: From->To
+                CycledRt = _handler.CycledRt,
+
+                Value = _handler.MakeLocalState() //TODO: From->To diff
             };
-            _localHistory.AddValueRef((cmd.To, cmd.Ms)) = cmd.Value;
-            
+            _localHistory.AddValueRef((cmd.To, cmd.CycledRt)) = cmd.Value;
+
             _cmdLink.CmdSend(in cmd);
         }
 
@@ -75,7 +73,7 @@ namespace Shared.Tp.St.Sync
             _localHistory.ClearUntil((cmd.Known, 0)); //TODO: think to move to filling local state
 
             _remoteHistory.ClearUntil((cmd.From - 2, 0)); //TODO: ClearUntil history interpolation interval to keep
-            _remoteHistory.AddValueRef((cmd.To, (cmd.Ms * Ticker.RtPerMs) & Ticker.MaxCycleRt)) = cmd.Value; //TODO: apply From->To diff
+            _remoteHistory.AddValueRef((cmd.To, cmd.CycledRt)) = cmd.Value; //TODO: From->To diff
 
             _handler.RemoteUpdated();
         }

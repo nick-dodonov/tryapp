@@ -11,7 +11,7 @@ namespace Common.Tests
             return new()
             {
                 Id = $"ID-{id}",
-                Ms = 10 * id + offset,
+                CycledRt = (ushort)(10 * id + offset),
                 ClientState = new()
                 {
                     X = id + offset,
@@ -49,9 +49,9 @@ namespace Common.Tests
             tweener.Process(ref r, 0.5f, in a, in b);
             
             Assert.AreEqual(a.Peers.Length, r.Peers.Length);
-            Assert.That(r.Peers[0].Ms, Is.InRange(
-                a.Peers[0].Ms, 
-                b.Peers[0].Ms));
+            Assert.That(r.Peers[0].CycledRt, Is.InRange(
+                a.Peers[0].CycledRt, 
+                b.Peers[0].CycledRt));
             Assert.That(r.Peers[0].ClientState.X, Is.InRange(
                 a.Peers[0].ClientState.X, 
                 b.Peers[0].ClientState.X));

@@ -4,6 +4,6 @@ namespace Server.Logic;
 
 public interface IVirtualPeer
 {
-    public PeerState GetPeerState(int sessionMs);
+    public PeerState GetPeerState(ushort cycledRt);
     public void Update(float deltaTime);
 }

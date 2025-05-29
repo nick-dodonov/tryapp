@@ -169,14 +169,14 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         return true;
     }
 
-    public int TimeMs => _timeApi.LocalTicker.Ms;
+    public ushort CycledRt => _timeApi.LocalTicker.CycledRt;
     public ServerState GetServerState()
     {
-        var sessionMs = TimeMs;
+        var cycledRt = CycledRt;
         var peerStates = _peers
             .Where(static x => x.Key.PeerStateExists)
             .Select(static x => x.Key.GetPeerState())
-            .Concat(_virtualPeers.Select(x => x.GetPeerState(sessionMs)))
+            .Concat(_virtualPeers.Select(x => x.GetPeerState(cycledRt)))
             .ToArray();
         return new()
         {

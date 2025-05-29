@@ -25,10 +25,10 @@ namespace Shared.Tp.Ext.Misc
             get => Ticks / Ticker.TicksPerRt;
         }
 
-        public int CycleRt
+        public ushort CycledRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(Ticks / Ticker.TicksPerRt & Ticker.MaxCycleRt);
+            get => (ushort)(Ticks / Ticker.TicksPerRt & Ticker.MaxCycledRt);
         }
         
         public int Ms

@@ -18,15 +18,17 @@ namespace Shared.Tp.Data.Mem.Formatters
 #endif
                 ref StCmd<T> value)
         {
-            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-            {
-                writer.DangerousWriteUnmanaged(value);
-                return;
-            }
+            //TODO: enable this after StCmd is layout packed
+            // if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            // {
+            //     writer.DangerousWriteUnmanaged(value);
+            //     return;
+            // }
+
             writer.WriteVarInt(value.From);
             writer.WriteVarInt(value.To);
             writer.WriteVarInt(value.Known);
-            writer.WriteVarInt(value.Ms);
+            writer.WriteUnmanaged(value.CycledRt);
             writer.WriteValue(value.Value);
         }
 
@@ -38,16 +40,17 @@ namespace Shared.Tp.Data.Mem.Formatters
 #endif
                 ref StCmd<T> value)
         {
-            if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
-            {
-                reader.DangerousReadUnmanaged(out value);
-                return;
-            }
+            //TODO: enable this after StCmd is layout packed
+            // if (!RuntimeHelpers.IsReferenceOrContainsReferences<T>())
+            // {
+            //     reader.DangerousReadUnmanaged(out value);
+            //     return;
+            // }
 
             value.From = reader.ReadVarIntInt32();
             value.To = reader.ReadVarIntInt32();
             value.Known = reader.ReadVarIntInt32();
-            value.Ms = reader.ReadVarIntInt32();
+            value.CycledRt = reader.ReadUnmanaged<ushort>();
             reader.ReadValue(ref value.Value!);
         }
     }

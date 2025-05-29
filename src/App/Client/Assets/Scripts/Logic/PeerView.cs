@@ -1,4 +1,5 @@
 using Common.Data;
+using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
 using TMPro;
 using UnityEngine;
@@ -82,15 +83,25 @@ namespace Client.Logic
         }
 
         private const float FadeAlphaMin = 0.1f;
-        private const float FadeAlphaSec = 4.0f;
+        
+        private const float FadeAlphaHeadSec = 1.0f;
+        private const float FadeAlphaTailSec = 4.0f;
 
         public void Update()
         {
-            var sessionMs = _timeContext.CurrentSessionMs;
-            var t = (sessionMs - _peerState.Ms) / FadeAlphaSec / 1000.0f;
-            var alpha = Mathf.Lerp(1, FadeAlphaMin, t);
-            _applyColor.a = alpha;
+            var sessionCycledRt = _timeContext.CurrentSessionCycledRt;
+            var ageSec = (ushort)(sessionCycledRt - _peerState.CycledRt) / (float)Ticker.RtPerSec;
 
+            float alpha;
+            if (ageSec < FadeAlphaHeadSec)
+                alpha = 1;
+            else
+            {
+                var t = (ageSec - FadeAlphaHeadSec) / FadeAlphaTailSec;
+                alpha = Mathf.Lerp(1, FadeAlphaMin, t);
+            }
+
+            _applyColor.a = alpha;
             ApplyColor();
         }
 

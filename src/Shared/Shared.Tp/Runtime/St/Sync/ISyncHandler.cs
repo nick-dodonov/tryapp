@@ -19,7 +19,7 @@ namespace Shared.Tp.St.Sync
         IObjWriter<StCmd<TLocal>> LocalWriter { get; }
         IObjReader<StCmd<TRemote>> RemoteReader { get; }
 
-        int TimeMs { get; }
+        ushort CycledRt { get; }
         TLocal MakeLocalState();
 
         void RemoteUpdated();

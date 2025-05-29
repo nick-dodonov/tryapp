@@ -11,27 +11,27 @@ namespace Shared.Tp.Tests
             var hist = new StHistory<string>(4);
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 5000),
+                hist.VisitExistingBounds((0, (ushort)5000),
                     (StKey _, ref StHistory<string>.Item _, ref StHistory<string>.Item _) => ++visited);
                 Assert.AreEqual(0, visited);
             }
 
-            var frame = 0;
+            ushort frame = 0;
             // ReSharper disable once UselessBinaryOperation
-            hist.AddValueRef((++frame, frame * 1000)) = frame.ToString();
-            hist.AddValueRef((++frame, frame * 1000)) = frame.ToString();
-            hist.AddValueRef((++frame, frame * 1000)) = frame.ToString();
+            hist.AddValueRef((++frame, (ushort)(frame * 1000))) = frame.ToString();
+            hist.AddValueRef((++frame, (ushort)(frame * 1000))) = frame.ToString();
+            hist.AddValueRef((++frame, (ushort)(frame * 1000))) = frame.ToString();
             Assert.AreEqual(3, hist.Count);
 
             // [1 2 3] X
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 5000),
+                hist.VisitExistingBounds((0, (ushort)5000),
                     (StKey key, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
                         Assert.AreEqual(0, key.Frame);
-                        Assert.AreEqual(5000, key.Ms);
+                        Assert.AreEqual(5000, key.CycledRt);
                         Assert.AreEqual(3, from.Key.Frame);
                         Assert.AreEqual(3, to.Key.Frame);
                     });
@@ -41,7 +41,7 @@ namespace Shared.Tp.Tests
             // [1 2 X 3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 2500),
+                hist.VisitExistingBounds((0, (ushort)2500),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -54,7 +54,7 @@ namespace Shared.Tp.Tests
             // [1 X 2 3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 1500),
+                hist.VisitExistingBounds((0, (ushort)1500),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -67,7 +67,7 @@ namespace Shared.Tp.Tests
             // X [1 2 3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 500),
+                hist.VisitExistingBounds((0, (ushort)500),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -80,7 +80,7 @@ namespace Shared.Tp.Tests
             // [1 2 X=3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 3000),
+                hist.VisitExistingBounds((0, (ushort)3000),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -93,7 +93,7 @@ namespace Shared.Tp.Tests
             // [1 2=X 3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 2000),
+                hist.VisitExistingBounds((0, (ushort)2000),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -106,7 +106,7 @@ namespace Shared.Tp.Tests
             // [1=X 2 3]
             {
                 var visited = 0;
-                hist.VisitExistingBounds((0, 1000),
+                hist.VisitExistingBounds((0, (ushort)1000),
                     (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
                     {
                         ++visited;
@@ -118,8 +118,9 @@ namespace Shared.Tp.Tests
         }
 
         private static int _frame;
-        private static void Add(StHistory<string> hist, int key) => hist.AddValueRef((++_frame, key)) = key.ToString();
-        
+        private static void Add(StHistory<string> hist, ushort key) => 
+            hist.AddValueRef((++_frame, key)) = key.ToString();
+
         [Test]
         public void Visit_Bounds_Edge_Case()
         {
@@ -129,15 +130,14 @@ namespace Shared.Tp.Tests
             Add(hist, 62784);
             Add(hist, 64794);
             Add(hist, 1268);
-            Assert.IsTrue(hist.VisitCycleKeyBounds((0, 64805),(StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
-            {
-                var fromKey = from.Key.Ms;
-                var toKey = to.Key.Ms;
-                Assert.AreEqual(64794, fromKey);
-                Assert.AreEqual(1268, toKey);
-            }));
+            Assert.IsTrue(hist.VisitCycleKeyBounds((0, (ushort)64805),
+                (StKey _, ref StHistory<string>.Item from, ref StHistory<string>.Item to) =>
+                {
+                    var fromKey = from.Key.CycledRt;
+                    var toKey = to.Key.CycledRt;
+                    Assert.AreEqual(64794, fromKey);
+                    Assert.AreEqual(1268, toKey);
+                }));
         }
-
-
     }
 }

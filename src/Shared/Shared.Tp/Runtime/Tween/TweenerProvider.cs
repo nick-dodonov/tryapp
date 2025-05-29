@@ -71,9 +71,19 @@ namespace Shared.Tp.Tween
             Register(new LongTweener());
             Register(new FloatTweener());
             Register(new StringTweener());
+            
+            //TODO: remove here to use only via customization only on selected Tween fields
+            Register(new CycleUShortTweener());
         }
     }
+    
+    public class CycleUShortTweener : ITweener<ushort>
+    {
+        public void Replica(ref ushort dst, in ushort src) => dst = src;
+        public void Process(ref ushort dst, float t, in ushort src0, in ushort src1) => dst = (ushort)(src0 + (ushort)(src1 - src0) * t);
+    }
 
+    //TODO: T4 or SG templating for standard tweener implementations
     public class IntTweener : ITweener<int>
     {
         public void Replica(ref int dst, in int src) => dst = src;

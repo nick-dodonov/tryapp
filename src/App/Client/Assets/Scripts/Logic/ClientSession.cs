@@ -150,14 +150,14 @@ namespace Client.Logic
                 var localTicker = _timeLink.LocalTicker;
                 sb.Append(localTicker.Seconds, "F1");
                 sb.Append(" - ");
-                sb.Append(localTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
+                sb.Append(localTicker.CycledRt / (float)Ticker.RtPerSec, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");
                 var remoteTicker = _timeLink.RemoteTicker;
                 sb.Append(remoteTicker.Seconds, "F1");
                 sb.Append(" - ");
-                sb.Append(remoteTicker.CycleRt / (float)Ticker.RtPerSec, "F1");
+                sb.Append(remoteTicker.CycledRt / (float)Ticker.RtPerSec, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("st-hist: ");
@@ -197,7 +197,7 @@ namespace Client.Logic
         IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
             = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
-        int ISyncHandler<ClientState, ServerState>.TimeMs => _timeLink.RemoteMs;
+        ushort ISyncHandler<ClientState, ServerState>.CycledRt => _timeLink.RemoteTicker.CycledRt;
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
             var clientState = new ClientState();

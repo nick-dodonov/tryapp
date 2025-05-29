@@ -16,7 +16,9 @@ namespace Shared.Tp.Ext.Misc
         public const long RtPerSec = RtPerMs * 1000;
 
         /// <summary>
-        /// CycleRt is a "packed" absolute time value. Required to synchronize remote sides.
+        /// CycledRt is a "packed" absolute time value. Used to synchronize remote sides.
+        /// Events to associate cannot have a time interval more than max value (re-sync happens in this case).
+        /// 
         /// With Rt as 1/10 ms:
         /// - 0xFFFF ~6.5 sec
         /// - 0xF_FFFF ~105 sec
@@ -24,7 +26,7 @@ namespace Shared.Tp.Ext.Misc
         /// - 0xFFF_FFFF ~7.5 hours
         /// - 0xFFFF_FFFF ~5 days
         /// </summary>
-        public const int MaxCycleRt = 0xFFFF; // TODO: make 0xFF_FFFF after logic stabilization
+        public const ushort MaxCycledRt = 0xFFFF;
 
         // //DATETIME:
         // private static long NowTicks
@@ -69,10 +71,10 @@ namespace Shared.Tp.Ext.Misc
             get => Ticks / TicksPerRt;
         }
 
-        public int CycleRt
+        public ushort CycledRt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(Ticks / TicksPerRt & MaxCycleRt);
+            get => (ushort)(Ticks / TicksPerRt & MaxCycledRt);
         }
 
         public int Ms
