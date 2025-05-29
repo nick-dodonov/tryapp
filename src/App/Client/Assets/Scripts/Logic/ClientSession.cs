@@ -135,6 +135,7 @@ namespace Client.Logic
             if (_stSync == null)
                 return;
 
+            _timeContext.Update();
             UpdateInfoControl();
 
             _stSync.LocalUpdate(Time.deltaTime);

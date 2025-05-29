@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Common.Data;
 using Cysharp.Text;
+using Shared.Log;
 using Shared.Tp.St.Sync;
 using Shared.Tp.Tween;
 using Shared.Tp.Util;
@@ -38,6 +39,8 @@ namespace Client.Logic
         {
             if (_history.Count <= 0)
                 return;
+
+            //Slog.Info($"{Time.frameCount}: {Time.deltaTime}");
 
             var historyCycleRt = _timeContext.HistorySessionCycledRt;
             _history.VisitCycleKeyBounds((0, historyCycleRt),

@@ -1,4 +1,5 @@
 using Common.Data;
+using Shared.Log;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
 using TMPro;
@@ -89,8 +90,8 @@ namespace Client.Logic
 
         public void Update()
         {
-            var sessionCycledRt = _timeContext.CurrentSessionCycledRt;
-            var ageSec = (ushort)(sessionCycledRt - _peerState.CycledRt) / (float)Ticker.RtPerSec;
+            var currentSessionCycledRt = _timeContext.CurrentSessionCycledRt + 100*Ticker.RtPerMs;
+            var ageSec = (ushort)(currentSessionCycledRt - _peerState.CycledRt) / (float)Ticker.RtPerSec;
 
             float alpha;
             if (ageSec < FadeAlphaHeadSec)
