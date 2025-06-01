@@ -169,7 +169,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         return true;
     }
 
-    public ushort CycledRt => _timeApi.LocalTicker.CycledRt;
+    public ushort CycledRt => _timeApi.LocalTicker.Point.CycledRt;
     public ServerState GetServerState()
     {
         var cycledRt = CycledRt;

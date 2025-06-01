@@ -1,3 +1,4 @@
+using System;
 using Shared.Tp.Ext.Misc;
 using UnityEngine;
 
@@ -23,8 +24,9 @@ namespace Client.Logic
         public void Update()
         {
             var remoteTicker = _timeLink.RemoteTicker;
-
             var ticks = remoteTicker.Ticks;
+            var unityTime = Time.time;
+            
             var rt = ticks / Ticker.TicksPerRt;
             
             //var deltaRt = (ushort)(rt - _frameCycledRt);
@@ -33,6 +35,8 @@ namespace Client.Logic
             var roundedTicks = rt * Ticker.TicksPerRt;
             var remainTicks = ticks - roundedTicks;
             _frameCycledRtFraction = (float)remainTicks / Ticker.TicksPerRt;
+            
+            //var frameCycledRtFloat = (_frameCycledRt + _frameCycledRtFraction) / Ticker.RtPerSec;
 
             // var remoteDeltaTime = (float)deltaRt / Ticker.RtPerSec;
             // Shared.Log.Slog.Info($"{Time.frameCount}: {Time.deltaTime} - {remoteDeltaTime} - {_frameCycledRt} - {_frameCycledRtFraction}");

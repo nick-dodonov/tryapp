@@ -29,28 +29,30 @@ namespace Shared.Tp.Ext.Misc
         public const ushort MaxCycledRt = 0xFFFF;
 
         // //DATETIME:
+        // public const long TicksPerSeconds = System.TimeSpan.TicksPerSecond;
         // private static long NowTicks
         // {
         //     [MethodImpl(MethodImplOptions.AggressiveInlining)]
         //     get => System.DateTime.UtcNow.Ticks;
         // }
-        // public const long TicksPerSeconds = System.TimeSpan.TicksPerSecond;
 
         //STOPWATCH:
+        public static readonly long TicksPerSeconds = System.Diagnostics.Stopwatch.Frequency;
         private static long NowTicks
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => System.Diagnostics.Stopwatch.GetTimestamp();
         }
-        public static readonly long TicksPerSeconds = System.Diagnostics.Stopwatch.Frequency;
 
         public static readonly long TicksPerMs = TicksPerSeconds / 1000;
         public static readonly long TicksPerRt = TicksPerMs / RtPerMs;
 
         private readonly long _startTicks;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static Ticker StartNew(long offsetTicks = 0) => new(NowTicks - offsetTicks);
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private Ticker(long startTicks) => _startTicks = startTicks;
 
         public long StartTicks
@@ -65,28 +67,42 @@ namespace Shared.Tp.Ext.Misc
             get => NowTicks - _startTicks;
         }
 
+        public TickPoint Point
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => new(Ticks);
+        }
+    }
+
+    public readonly struct TickPoint
+    {
+        private readonly long _ticks;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public TickPoint(long ticks) => _ticks = ticks;
+
         public long Rt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ticks / TicksPerRt;
-        }
-
-        public ushort CycledRt
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (ushort)(Ticks / TicksPerRt & MaxCycledRt);
-        }
-
-        public int Ms
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => (int)(Ticks / TicksPerMs);
+            get => _ticks / Ticker.TicksPerRt;
         }
 
         public float Seconds
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => Ticks / (float)TicksPerSeconds;
+            get => _ticks / (float)Ticker.TicksPerSeconds;
+        }
+
+        public ushort CycledRt
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => (ushort)(_ticks / Ticker.TicksPerRt & Ticker.MaxCycledRt);
+        }
+
+        public float CycledSeconds
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => CycledRt / (float)Ticker.RtPerSec;
         }
     }
 }

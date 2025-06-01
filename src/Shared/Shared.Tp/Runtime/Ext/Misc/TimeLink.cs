@@ -101,7 +101,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTime(IBufferWriter<byte> writer)
         {
-            var localRt = _localTicker.Rt;
+            var localRt = _localTicker.Point.Rt;
             var localIdx = _details.AddLocalTicks(localRt);
 
             writer.Write(localIdx);
@@ -125,7 +125,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
         {
-            var localRt = _localTicker.Rt;
+            var localRt = _localTicker.Point.Rt;
 
             const int length = 
                 sizeof(TimeTicksIndex) + sizeof(long) +

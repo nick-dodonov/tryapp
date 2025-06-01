@@ -148,17 +148,17 @@ namespace Client.Logic
             try
             {
                 sb.Append("local: ");
-                var localTicker = _timeLink.LocalTicker;
-                sb.Append(localTicker.Seconds, "F1");
+                var localTickPoint = _timeLink.LocalTicker.Point;
+                sb.Append(localTickPoint.Seconds, "F1");
                 sb.Append(" - ");
-                sb.Append(localTicker.CycledRt / (float)Ticker.RtPerSec, "F1");
+                sb.Append(localTickPoint.CycledSeconds, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");
-                var remoteTicker = _timeLink.RemoteTicker;
-                sb.Append(remoteTicker.Seconds, "F1");
+                var remoteTickPoint = _timeLink.RemoteTicker.Point;
+                sb.Append(remoteTickPoint.Seconds, "F1");
                 sb.Append(" - ");
-                sb.Append(remoteTicker.CycledRt / (float)Ticker.RtPerSec, "F1");
+                sb.Append(remoteTickPoint.CycledSeconds, "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("st-hist: ");
@@ -198,7 +198,7 @@ namespace Client.Logic
         IObjReader<StCmd<ServerState>> ISyncHandler<ClientState, ServerState>.RemoteReader { get; } 
             = TickStateFactory.CreateObjReader<StCmd<ServerState>>();
 
-        ushort ISyncHandler<ClientState, ServerState>.CycledRt => _timeLink.RemoteTicker.CycledRt;
+        ushort ISyncHandler<ClientState, ServerState>.CycledRt => _timeLink.RemoteTicker.Point.CycledRt;
         ClientState ISyncHandler<ClientState, ServerState>.MakeLocalState()
         {
             var clientState = new ClientState();
