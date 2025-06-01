@@ -55,17 +55,14 @@ namespace Shared.Tp.Ext.Misc
                 return historyIndex;
             }
 
-            public long GetLocalTicks(TimeTicksIndex historyIndex)
-            {
-                return _localTicksHistory[historyIndex];
-            }
+            public long GetLocalTicks(TimeTicksIndex historyIndex) => 
+                _localTicksHistory[historyIndex];
         }
 
         private readonly Ticker _localTicker;
-        private OffsetTicker _remoteTicker;
+        private Ticker _remoteTicker;
 
         private TimeTicksIndex _receivedRemoteIdx;
-
         private long _receivedLocalRt;
 
         private int _rttRt;
@@ -77,13 +74,11 @@ namespace Shared.Tp.Ext.Misc
         private TimeLink(Ticker localTicker)
         {
             _localTicker = localTicker;
-            _remoteTicker = new(localTicker);
+            _remoteTicker = new();
         }
 
         public Ticker LocalTicker => _localTicker;
-        public OffsetTicker RemoteTicker => _remoteTicker;
-
-        public int RemoteMs => _remoteTicker.Ms;
+        public Ticker RemoteTicker => _remoteTicker;
 
         public int RttRt => _rttRt;
         public ref CycleSampleSet RttRtSet => ref _rttRtSet;
@@ -155,7 +150,7 @@ namespace Shared.Tp.Ext.Misc
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
-                _remoteTicker.SetOffset((receivedRemoteRt - localRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
+                _remoteTicker.RestartWithOffsetTicks((receivedRemoteRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
 
                 //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={localRt} remote={receivedRemoteRt} rtt={_rttRt}");
             }

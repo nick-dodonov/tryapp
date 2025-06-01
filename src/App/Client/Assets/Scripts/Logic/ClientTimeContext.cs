@@ -33,8 +33,8 @@ namespace Client.Logic
             var remainTicks = ticks - roundedTicks;
             _frameCycledRtFraction = (float)remainTicks / Ticker.TicksPerRt;
 
-            var deltaTimeByRt = (float)deltaRt / Ticker.RtPerSec;
-            Shared.Log.Slog.Info($"{Time.frameCount}: {Time.deltaTime} - {deltaTimeByRt} - {_frameCycledRt} - {_frameCycledRtFraction}");
+            //var remoteDeltaTime = (float)deltaRt / Ticker.RtPerSec;
+            //Shared.Log.Slog.Info($"{Time.frameCount}: {Time.deltaTime} - {remoteDeltaTime} - {_frameCycledRt} - {_frameCycledRtFraction}");
         }
 
         //TODO: use start of frame time point instead of instant value
