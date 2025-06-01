@@ -90,7 +90,7 @@ namespace Client.Logic
             _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
-            _timeContext = new(_timeLink);
+            _timeContext = new(_timeLink, context.clientTimeOptions);
 
             // enable state view / player input
             serverStateView.Init(

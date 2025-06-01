@@ -12,6 +12,8 @@ namespace Client.Logic
 
         public DumpLink.Options dumpLinkOptions;
 
+        public ClientTimeOptions clientTimeOptions;
+        
         [ReadOnly]
         public DumpStats dumpLinkStats;
     }
