@@ -4,5 +4,6 @@ namespace Client.Logic
     {
         public ushort CurrentSessionCycledRt { get; }
         public ushort HistorySessionCycledRt { get; }
+        public float HistorySessionCycledRtFraction { get; }
     }
 }

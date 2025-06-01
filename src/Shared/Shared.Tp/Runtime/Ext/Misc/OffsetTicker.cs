@@ -44,6 +44,9 @@ namespace Shared.Tp.Ext.Misc
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void SetOffset(long offset) => _offset = offset;
+        public void SetOffset(long offset)
+        {
+            _offset = offset;
+        }
     }
 }

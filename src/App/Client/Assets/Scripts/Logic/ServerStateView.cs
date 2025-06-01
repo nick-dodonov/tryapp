@@ -43,6 +43,7 @@ namespace Client.Logic
             //Slog.Info($"{Time.frameCount}: {Time.deltaTime}");
 
             var historyCycleRt = _timeContext.HistorySessionCycledRt;
+            var historyCycleRtFraction = _timeContext.HistorySessionCycledRtFraction;
             _history.VisitCycleKeyBounds((0, historyCycleRt),
                 //TODO: visitor with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
@@ -51,9 +52,11 @@ namespace Client.Logic
                     var prevTime = from.Key.CycledRt;
                     var nextTime = to.Key.CycledRt;
                     var interval = (ushort)(nextTime - prevTime);
-                    var diff = (ushort)(time - prevTime);
+                    var delta = (ushort)(time - prevTime);
 
-                    var t = interval > 0 ? Mathf.Clamp01((float)diff / interval) : 0;
+                    var deltaPrecise = delta + historyCycleRtFraction;
+                    var t = interval > 0 ? Mathf.Clamp01(deltaPrecise / interval) : 0;
+
                     //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {diff,4}/{interval}={t:F3} - {DebugGetHistoryKeysArrayString()}");
 
                     _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
