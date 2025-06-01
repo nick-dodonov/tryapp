@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using Common.Data;
-using Cysharp.Text;
-using Shared.Log;
 using Shared.Tp.St.Sync;
 using Shared.Tp.Tween;
 using Shared.Tp.Util;
@@ -54,11 +52,11 @@ namespace Client.Logic
                     var interval = (ushort)(nextTime - prevTime);
                     var delta = (ushort)(time - prevTime);
 
-                    var deltaPrecise = delta + historyCycleRtFraction;
+                    var deltaPrecise = (float)delta;
+                    deltaPrecise += historyCycleRtFraction;
                     var t = interval > 0 ? Mathf.Clamp01(deltaPrecise / interval) : 0;
 
-                    //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {diff,4}/{interval}={t:F3} - {DebugGetHistoryKeysArrayString()}");
-
+                    //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {delta,4}/{interval}={t:F3} - {_history.DebugGetHistoryKeysArrayString()}");
                     _serverStateTweener.Process(ref _interpolatedState, t, in from.Value, in to.Value);
                 });
 
@@ -67,28 +65,6 @@ namespace Client.Logic
                 var peerId = peerState.Id;
                 if (_peerViews.TryGetValue(peerId, out var peerView)) 
                     peerView.ApplyInterpolatedState(peerState);
-            }
-        }
-
-        private string DebugGetHistoryKeysArrayString()
-        {
-            var sb = ZString.CreateStringBuilder(true);
-            try
-            {
-                sb.Append('[');
-                var idx = 0;
-                foreach (ref var item in _history.ReverseRefItems)
-                {
-                    if (idx++ > 0)
-                        sb.Append(", ");
-                    sb.Append(item.Key.CycledRt);
-                }
-                sb.Append(']');
-                return sb.ToString();
-            }
-            finally
-            {
-                sb.Dispose();
             }
         }
 
