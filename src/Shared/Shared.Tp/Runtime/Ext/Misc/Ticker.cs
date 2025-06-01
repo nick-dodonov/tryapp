@@ -10,7 +10,7 @@ namespace Shared.Tp.Ext.Misc
     /// TODO: Check UnityEngine.Time.unscaledTime accuracy, research ticker can be re-implemented on js 
     ///  
     /// </summary>
-    public struct Ticker
+    public readonly struct Ticker
     {
         public const int RtPerMs = 10; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
         public const long RtPerSec = RtPerMs * 1000;
@@ -47,10 +47,9 @@ namespace Shared.Tp.Ext.Misc
         public static readonly long TicksPerMs = TicksPerSeconds / 1000;
         public static readonly long TicksPerRt = TicksPerMs / RtPerMs;
 
-        private long _startTicks;
+        private readonly long _startTicks;
 
-        public static Ticker StartNew() => new(NowTicks);
-        public void RestartWithOffsetTicks(long offsetTicks) => _startTicks = NowTicks - offsetTicks;
+        public static Ticker StartNew(long offsetTicks = 0) => new(NowTicks - offsetTicks);
 
         private Ticker(long startTicks) => _startTicks = startTicks;
 

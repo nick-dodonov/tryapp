@@ -150,7 +150,7 @@ namespace Shared.Tp.Ext.Misc
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
-                _remoteTicker.RestartWithOffsetTicks((receivedRemoteRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
+                _remoteTicker = Ticker.StartNew((receivedRemoteRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
 
                 //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={localRt} remote={receivedRemoteRt} rtt={_rttRt}");
             }
