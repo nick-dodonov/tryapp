@@ -177,27 +177,20 @@ namespace Shared.Tp.Rtc.Sip
 
         string ITpLink.GetRemotePeerId() => _remotePeerId;
 
+        private string? _lastSendSkipReason;
         private void Send(ReadOnlySpan<byte> span)
         {
-            if (_dataChannel?.readyState != RTCDataChannelState.open)
+            var skipReason = CanSend();
+            if (skipReason != null)
             {
-                _logger.Warn($"skip: readyState={_dataChannel?.readyState}");
+                if (_lastSendSkipReason == skipReason)
+                    return; // less spam on disconnect
+                _lastSendSkipReason = skipReason;
+                _logger.Warn(skipReason);
                 return;
             }
 
-            var connectionState = _peerConnection?.connectionState;
-            if (connectionState != RTCPeerConnectionState.connected)
-            {
-                _logger.Warn($"skip: connectionState={connectionState}");
-                return;
-            }
-
-            var sctpState = _peerConnection?.sctp.state;
-            if (sctpState != RTCSctpTransportState.Connected)
-            {
-                _logger.Warn($"skip: sctp.state={sctpState}");
-                return;
-            }
+            _lastSendSkipReason = skipReason;
 
             // //TODO: with diagnostics flags
             // var content = Encoding.UTF8.GetString(bytes);
@@ -220,6 +213,22 @@ namespace Shared.Tp.Rtc.Sip
             {
                 _logger.Error($"failed: {e}");
             }
+        }
+
+        private string? CanSend()
+        {
+            if (_dataChannel?.readyState != RTCDataChannelState.open)
+                return $"skip: readyState={_dataChannel?.readyState}";
+
+            var connectionState = _peerConnection?.connectionState;
+            if (connectionState != RTCPeerConnectionState.connected)
+                return $"skip: connectionState={connectionState}";
+
+            var sctpState = _peerConnection?.sctp.state;
+            if (sctpState != RTCSctpTransportState.Connected)
+                return $"skip: sctp.state={sctpState}";
+
+            return null;
         }
 
         private void CallConnected()
