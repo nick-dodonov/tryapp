@@ -1,0 +1,6 @@
+<#@ template debug="false" hostspecific="false" language="C#" #>
+<#@ import namespace="System.Text" #>
+<#@ import namespace="System.Collections.Generic" #>
+<#@ output extension="cs" #>
+
+//TODO: generate *Tweener for known types
