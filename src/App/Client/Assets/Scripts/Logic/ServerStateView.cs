@@ -40,9 +40,8 @@ namespace Client.Logic
 
             //Slog.Info($"{Time.frameCount}: {Time.deltaTime}");
 
-            var historyCycleRt = _timeContext.HistorySessionCycledRt;
-            var historyCycleRtFraction = _timeContext.HistorySessionCycledRtFraction;
-            _history.VisitCycleKeyBounds((0, historyCycleRt),
+            var historyTickPoint = _timeContext.HistoryTickPoint;
+            _history.VisitCycleKeyBounds((0, historyTickPoint.CycledRt),
                 //TODO: visitor with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
                 {
@@ -53,7 +52,7 @@ namespace Client.Logic
                     var delta = (ushort)(time - prevTime);
 
                     var deltaPrecise = (float)delta;
-                    deltaPrecise += historyCycleRtFraction;
+                    deltaPrecise += historyTickPoint.RtFraction;
                     var t = interval > 0 ? Mathf.Clamp01(deltaPrecise / interval) : 0;
 
                     //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {delta,4}/{interval}={t:F3} - {_history.DebugGetHistoryKeysArrayString()}");

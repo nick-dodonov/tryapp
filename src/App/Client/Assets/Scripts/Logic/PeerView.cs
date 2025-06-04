@@ -90,7 +90,7 @@ namespace Client.Logic
 
         public void Update()
         {
-            var currentSessionCycledRt = _timeContext.CurrentSessionCycledRt + 100*Ticker.RtPerMs;
+            var currentSessionCycledRt = _timeContext.NowTickPoint.CycledRt + 100*Ticker.RtPerMs;
             var ageSec = (ushort)(currentSessionCycledRt - _peerState.CycledRt) / (float)Ticker.RtPerSec;
 
             float alpha;

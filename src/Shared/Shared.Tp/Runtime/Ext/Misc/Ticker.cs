@@ -81,10 +81,25 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TickPoint(long ticks) => _ticks = ticks;
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TickPoint FromMs(long ms) => new(ms * Ticker.TicksPerMs);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TickPoint operator -(TickPoint a, TickPoint b) => new(a._ticks - b._ticks);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static TickPoint operator +(TickPoint a, TickPoint b) => new(a._ticks + b._ticks);
+
         public long Rt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _ticks / Ticker.TicksPerRt;
+        }
+
+        public float RtFraction
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _ticks % Ticker.TicksPerRt / (float)Ticker.TicksPerRt;
         }
 
         public float Seconds
@@ -102,7 +117,7 @@ namespace Shared.Tp.Ext.Misc
         public float CycledSeconds
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => CycledRt / (float)Ticker.RtPerSec;
+            get => (CycledRt + RtFraction) / Ticker.RtPerSec;
         }
     }
 }

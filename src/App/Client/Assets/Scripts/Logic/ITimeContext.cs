@@ -1,9 +1,10 @@
+using Shared.Tp.Ext.Misc;
+
 namespace Client.Logic
 {
     public interface ITimeContext
     {
-        public ushort CurrentSessionCycledRt { get; }
-        public ushort HistorySessionCycledRt { get; }
-        public float HistorySessionCycledRtFraction { get; }
+        public TickPoint NowTickPoint { get; }
+        public TickPoint HistoryTickPoint { get; }
     }
 }

@@ -1,6 +1,4 @@
-using System;
 using Shared.Tp.Ext.Misc;
-using UnityEngine;
 
 namespace Client.Logic
 {
@@ -9,9 +7,7 @@ namespace Client.Logic
         private readonly TimeLink _timeLink;
         private readonly ClientTimeOptions _options;
 
-        private ushort _frameCycledRt;
-        
-        private float _frameCycledRtFraction;
+        private TickPoint _remoteTickPoint;
 
         public ClientTimeContext(TimeLink timeLink, ClientTimeOptions options)
         {
@@ -23,30 +19,12 @@ namespace Client.Logic
 
         public void Update()
         {
-            var remoteTicker = _timeLink.RemoteTicker;
-            var ticks = remoteTicker.Ticks;
-            var unityTime = Time.time;
-            
-            var rt = ticks / Ticker.TicksPerRt;
-            
-            //var deltaRt = (ushort)(rt - _frameCycledRt);
-            _frameCycledRt = (ushort)(rt & Ticker.MaxCycledRt);
-
-            var roundedTicks = rt * Ticker.TicksPerRt;
-            var remainTicks = ticks - roundedTicks;
-            _frameCycledRtFraction = (float)remainTicks / Ticker.TicksPerRt;
-            
-            //var frameCycledRtFloat = (_frameCycledRt + _frameCycledRtFraction) / Ticker.RtPerSec;
-
-            // var remoteDeltaTime = (float)deltaRt / Ticker.RtPerSec;
-            // Shared.Log.Slog.Info($"{Time.frameCount}: {Time.deltaTime} - {remoteDeltaTime} - {_frameCycledRt} - {_frameCycledRtFraction}");
+            _remoteTickPoint = _timeLink.RemoteTicker.Point;
         }
 
-        //TODO: use start of frame time point instead of instant value
-        ushort ITimeContext.CurrentSessionCycledRt => _frameCycledRt;
+        TickPoint ITimeContext.NowTickPoint => _remoteTickPoint;
 
         //TODO: use offset based on current smoothed server's send rate and rtt
-        ushort ITimeContext.HistorySessionCycledRt => (ushort)(_frameCycledRt - _options.HistoryOffsetMs * Ticker.RtPerMs);
-        float ITimeContext.HistorySessionCycledRtFraction => _frameCycledRtFraction;
+        TickPoint ITimeContext.HistoryTickPoint => _remoteTickPoint - TickPoint.FromMs(_options.HistoryOffsetMs);
     }
 }
