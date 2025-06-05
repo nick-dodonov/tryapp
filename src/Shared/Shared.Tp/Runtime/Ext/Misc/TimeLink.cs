@@ -150,9 +150,13 @@ namespace Shared.Tp.Ext.Misc
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
-                _remoteTicker = Ticker.StartNew((receivedRemoteRt + (_rttRtSet.MeanInt >> 1)) * Ticker.TicksPerRt);
+                var newRemoteRt = receivedRemoteRt + (_rttRtSet.MeanInt >> 1);
 
-                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} local={localRt} remote={receivedRemoteRt} rtt={_rttRt}");
+                //var remoteRt = _remoteTicker.Point.Rt;
+                //var deltaRemoteRt = newRemoteRt - remoteRt;
+                _remoteTicker = Ticker.StartNew(newRemoteRt * Ticker.TicksPerRt);
+
+                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
             }
 
             return span[..^length];

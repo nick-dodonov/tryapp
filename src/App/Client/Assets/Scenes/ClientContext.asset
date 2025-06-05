@@ -20,7 +20,7 @@ MonoBehaviour:
     <LogEndBytes>k__BackingField: 20
     <DelayReceiveMs>k__BackingField: 0
   clientTimeOptions:
-    HistoryOffsetMs: 520
+    HistoryOffsetMs: 1020
   dumpLinkStats:
     In:
       CountTotal: 0

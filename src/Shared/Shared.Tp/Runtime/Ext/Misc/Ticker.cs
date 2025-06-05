@@ -90,6 +90,12 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static TickPoint operator +(TickPoint a, TickPoint b) => new(a._ticks + b._ticks);
 
+        public long Ticks
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _ticks;
+        }
+        
         public long Rt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
