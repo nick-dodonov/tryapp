@@ -13,7 +13,7 @@ using Shared.Tp;
 using Shared.Tp.Data;
 using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
-using Shared.Tp.Rtc;
+using Shared.Tp.Rtc.Unity;
 using Shared.Tp.St.Sync;
 using Shared.Web;
 using UnityEngine;

@@ -1,6 +1,4 @@
-using System;
-
-namespace Shared.Tp.Rtc
+namespace Shared.Tp.Rtc.Unity
 {
     public static class RtcApiFactory
     {
@@ -15,9 +13,10 @@ namespace Shared.Tp.Rtc
             if (platform == UnityEngine.RuntimePlatform.WebGLPlayer)
                 return new Webgl.WebglRtcApi(service);
 
-            throw new NotSupportedException($"Unsupported platform: {platform}");
+            // desktop / android / ios
+            return new Unity.UnityRtcApi(service);
 #else
-            throw new NotSupportedException("TODO: use this factory add SipRtcService to ASP hosting");
+            throw new System.NotSupportedException("TODO: use this factory add SipRtcService to ASP hosting");
 #endif
         }
     }

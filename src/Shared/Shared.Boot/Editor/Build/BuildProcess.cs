@@ -3,8 +3,9 @@ using Shared.Log;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
+using UnityEngine;
 
-namespace Shared.Editor.Build
+namespace Shared.Boot.Editor.Build
 {
     public class BuildProcess : IPreprocessBuildWithReport
     {
@@ -13,7 +14,8 @@ namespace Shared.Editor.Build
         [InitializeOnLoadMethod]
         private static void InitOnLoad()
         {
-            BuildPlayerWindow.RegisterBuildPlayerHandler(OnBuildPlayer);
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+                BuildPlayerWindow.RegisterBuildPlayerHandler(OnBuildPlayer);
         }
 
         private static void OnBuildPlayer(BuildPlayerOptions options)
