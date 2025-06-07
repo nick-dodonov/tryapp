@@ -146,17 +146,19 @@ namespace Shared.Tp.Ext.Misc
                 if (sentLocalRt > 0 && receivedSentDeltaRt > 0)
                 {
                     _rttRt = (int)(localRt - sentLocalRt - receivedSentDeltaRt);
-                    _rttRtSet.Add(_rttRt);
+                    if (_rttRtSet.Check(_rttRt))
+                        _rttRtSet.Add(_rttRt);
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
                 var newRemoteRt = receivedRemoteRt + (_rttRtSet.MeanInt >> 1);
 
-                //var remoteRt = _remoteTicker.Point.Rt;
-                //var deltaRemoteRt = newRemoteRt - remoteRt;
                 _remoteTicker = Ticker.StartNew(newRemoteRt * Ticker.TicksPerRt);
 
-                //Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
+                // diagnostics
+                var remoteRt = _remoteTicker.Point.Rt;
+                var deltaRemoteRt = newRemoteRt - remoteRt;
+                Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
             }
 
             return span[..^length];

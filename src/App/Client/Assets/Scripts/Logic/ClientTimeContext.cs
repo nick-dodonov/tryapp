@@ -1,5 +1,6 @@
 using Shared.Log;
 using Shared.Tp.Ext.Misc;
+using Shared.Tp.Util.Stat;
 using UnityEngine;
 
 namespace Client.Logic
@@ -11,8 +12,6 @@ namespace Client.Logic
 
         private TickPoint _remotePoint;
         private TickPoint _historyPoint;
-        private float _historyDeltaSeconds;
-        private float _historyDeltaSecondsSpeed;
 
         public ClientTimeContext(TimeLink timeLink, ClientTimeOptions options)
         {
@@ -22,37 +21,38 @@ namespace Client.Logic
             Update();
         }
 
+
+        private CycleSampleSet _historyDeltaDeviationSet;
         public void Update()
         {
             _remotePoint = _timeLink.RemoteTicker.Point;
 
-            //TODO: use offset based on current smoothed server's send rate and rtt
-            var previousPoint = _historyPoint;
-            _historyPoint = _remotePoint - TickPoint.FromMs(_options.HistoryOffsetMs);
+            var previousHistoryPoint = _historyPoint;
+            var desireHistoryPoint = _remotePoint - TickPoint.FromMs(_options.HistoryOffsetMs); //TODO: use offset based on current smoothed server's send rate and rtt
 
-            if (previousPoint.Ticks != 0)
+            if (previousHistoryPoint.Ticks != 0)
             {
-                var remoteDelta = _historyPoint - previousPoint;
-                var remoteDeltaTicks = remoteDelta.Ticks;
+                var desireDelta = desireHistoryPoint - previousHistoryPoint;
+                var desireDeltaTicks = desireDelta.Ticks;
 
                 var unityDeltaSeconds = Time.unscaledDeltaTime;
                 var unityDeltaTicks = (long)(unityDeltaSeconds * Ticker.TicksPerSeconds);
-                //Slog.Info($"DELTA-TICKS: |{remoteDeltaTicks,6} - {unityDeltaTicks,6}| = {remoteDeltaTicks - unityDeltaTicks,5} / {Ticker.TicksPerMs}");
+                var deltaDeviationTicks = desireDeltaTicks - unityDeltaTicks;
+                
+                _historyDeltaDeviationSet.Add((int)deltaDeviationTicks);
 
-                var remoteDeltaSeconds = remoteDelta.Seconds;
-                Slog.Info($"DELTA-SECONDS: |{remoteDeltaSeconds:F7} - {unityDeltaSeconds:F7}| = {Mathf.Abs(remoteDeltaSeconds - unityDeltaSeconds):F7}");
-                
-                _historyDeltaSeconds = Mathf.SmoothDamp(
-                    _historyDeltaSeconds, remoteDeltaSeconds, 
-                    ref _historyDeltaSecondsSpeed, 0.1f);
-                var historyDeltaTicks = (long)(_historyDeltaSeconds * Ticker.TicksPerSeconds);
-                _historyPoint = previousPoint + new TickPoint(historyDeltaTicks);
-                
-                Slog.Info($"DELTA-REAL-TICKS: |{historyDeltaTicks,6} - {unityDeltaTicks,6}| = {historyDeltaTicks - unityDeltaTicks,6} / {Ticker.TicksPerMs}");
+                // diagnostics
+                Slog.Info($"DELTA-TICKS: {desireDeltaTicks,6} - {unityDeltaTicks,6} = {deltaDeviationTicks,6} ({_historyDeltaDeviationSet.MeanInt,7} ± {(int)_historyDeltaDeviationSet.StdDeviation,-6})", string.Empty, string.Empty);
+
+                // var remoteDeltaSeconds = remoteDelta.Seconds;
+                // Slog.Info($"DELTA-SECONDS: |{remoteDeltaSeconds:F7} - {unityDeltaSeconds:F7}| = {Mathf.Abs(remoteDeltaSeconds - unityDeltaSeconds):F7}");
+
+                //_historyPoint += new TickPoint(unityDeltaTicks);
+                _historyPoint += new TickPoint(desireDeltaTicks);
             }
             else
             {
-                _historyDeltaSeconds = Time.unscaledDeltaTime;
+                _historyPoint = desireHistoryPoint;
             }
         }
 

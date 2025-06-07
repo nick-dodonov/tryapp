@@ -25,7 +25,7 @@ namespace Shared.Tp.Util.Stat
         private int _rejectedCount;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void Add(int value)
+        public bool Check(int value)
         {
             if (_count >= RejectStartCount && _stdDeviation > 0)
             {
@@ -41,10 +41,16 @@ namespace Shared.Tp.Util.Stat
                 {
                     ++_rejectedCount;
                     //Slog.Info($"Rejected ({_rejectedCount}/{RejectMaxCount}) {value} by sigmas {sigmas:F1} > {RejectMinSigmas} (mean={_mean:F1} stdDev={_stdDeviation:F1})");
-                    return;
+                    return false;
                 }
             }
 
+            return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public void Add(int value)
+        {
             _rejectedCount = 0;
 
             var oldValue = _values[_currentIndex];
