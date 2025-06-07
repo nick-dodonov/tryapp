@@ -77,6 +77,7 @@ namespace Client.Logic
                 RtcApiFactory.CreateApi(_meta.RtcService),
                 new(peerId),
                 (_) => $"{peerId}",
+                new StaticOptionsMonitor<TimeLink.Options>(context.timeLinkOptions),
                 new StaticOptionsMonitor<DumpLink.Options>(context.dumpLinkOptions),
                 Slog.Factory
             );
@@ -92,7 +93,7 @@ namespace Client.Logic
             _timeLink = link.Find<TimeLink>() ?? throw new("TimeLink not found");
             _dumpLink = link.Find<DumpLink>() ?? throw new("DumpLink not found");
             context.dumpLinkStats = _dumpLink.Stats;
-            _timeContext = new(_timeLink, context.clientTimeOptions);
+            _timeContext = new(_timeLink, context.timeLinkOptions);
 
             // enable state view / player input
             serverStateView.Init(

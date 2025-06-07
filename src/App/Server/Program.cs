@@ -28,12 +28,14 @@ builder.Services
     .Configure<SipRtcConfig>(configuration.GetSection(nameof(SipRtcConfig)))
     .AddSingleton<SipRtcService>()
     .AddSingleton<IRtcService>(sp => sp.GetRequiredService<SipRtcService>())
+    .Configure<TimeLink.Options>(configuration.GetSection(nameof(TimeLink)))
     .Configure<DumpLink.Options>(configuration.GetSection(nameof(DumpLink)))
     .Configure<SyncOptions>(configuration.GetSection($"{nameof(ServerSession)}:{nameof(SyncOptions)}"))
     .AddSingleton<ITpApi>(sp => CommonSession.CreateApi<ServerConnectState, ClientConnectState>(
         sp.GetRequiredService<SipRtcService>(),
         new(AspVersionProvider.BuildVersion),
         static (link) => $"{link.RemoteState?.PeerId}/{link.InnerLink.GetRemotePeerId()}",
+        sp.GetRequiredService<IOptionsMonitor<TimeLink.Options>>(),
         sp.GetRequiredService<IOptionsMonitor<DumpLink.Options>>(),
         sp.GetRequiredService<ILoggerFactory>()))
     .AddSingleton<ServerSession>()

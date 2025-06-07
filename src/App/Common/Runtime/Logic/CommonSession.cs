@@ -15,6 +15,7 @@ namespace Common.Logic
             ITpApi rtcApi,
             TLocalState localState,
             HandLink<TRemoteState>.LinkIdProvider linkIdProvider,
+            IOptionsMonitor<TimeLink.Options> timeLinkOptions,
             IOptionsMonitor<DumpLink.Options> dumpLinkOptions,
             ILoggerFactory loggerFactory)
         {
@@ -25,7 +26,8 @@ namespace Common.Logic
                         rtcApi,
                         dumpLinkOptions,
                         loggerFactory
-                    )
+                    ),
+                    timeLinkOptions
                 ),
                 HandStateFactory.CreateOwnWriter(localState),
                 HandStateFactory.CreateObjReader<TRemoteState>(),

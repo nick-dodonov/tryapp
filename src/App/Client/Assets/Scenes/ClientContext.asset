@@ -15,14 +15,15 @@ MonoBehaviour:
   sampleOptions:
     Enabled: 0
   syncOptions:
-    <BasicSendRate>k__BackingField: 5
+    <BasicSendRate>k__BackingField: 2
+  timeLinkOptions:
+    <DebugLog>k__BackingField: 1
+    HistoryOffsetMs: 1050
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
     <LogStartBytes>k__BackingField: 100
     <LogEndBytes>k__BackingField: 20
     <DelayReceiveMs>k__BackingField: 0
-  clientTimeOptions:
-    HistoryOffsetMs: 1020
   dumpLinkStats:
     In:
       CountTotal: 0

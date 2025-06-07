@@ -59,8 +59,7 @@ namespace Shared.Tp.Ext.Misc
             {
                 _logger = loggerFactory.CreateLogger<DumpLink>();
                 _options = options.CurrentValue;
-                //TODO: dispose change tracking
-                options.OnChange((o, _) => _options = o);
+                options.OnChange((o, _) => _options = o); //TODO: dispose change tracking
             }
 
             protected override DumpLink CreateClientLink(ITpReceiver receiver) 

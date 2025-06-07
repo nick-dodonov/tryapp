@@ -1,9 +1,12 @@
 using System;
 using System.Buffers;
 using System.Runtime.CompilerServices;
+using Microsoft.Extensions.Options;
 using Shared.Log;
 using Shared.Tp.Util;
 using Shared.Tp.Util.Stat;
+using UnityEngine;
+using UnityEngine.Scripting;
 
 // ReSharper disable UseSymbolAlias
 
@@ -25,12 +28,33 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
+        private readonly Api _api = null!;
+
+        [Serializable]
+        public class Options
+        {
+            [field: SerializeField] [RequiredMember]
+            public bool DebugLog { get; set; }
+            
+            [field: SerializeField] [RequiredMember]
+            public int HistoryOffsetMs; //TODO: move to client
+        }
+
         public class Api : ExtApi<TimeLink>
         {
             private readonly Ticker _localTicker;
 
-            public Api(ITpApi innerApi) : base(innerApi)
+            private Options _options;
+            internal Options Options => _options;
+
+            public Api(
+                ITpApi innerApi,
+                IOptionsMonitor<Options> options) 
+                : base(innerApi)
             {
+                _options = options.CurrentValue;
+                options.OnChange((o, _) => _options = o); //TODO: dispose change tracking
+
                 _localTicker = Ticker.StartNew();
                 Slog.Info($"start ticks: {_localTicker.StartTicks}");
             }
@@ -38,10 +62,10 @@ namespace Shared.Tp.Ext.Misc
             public Ticker LocalTicker => _localTicker;
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) =>
-                new(_localTicker) { Receiver = receiver };
+                new(this, _localTicker) { Receiver = receiver };
 
             protected override TimeLink CreateServerLink(ITpLink innerLink) =>
-                new(_localTicker) { InnerLink = innerLink };
+                new(this, _localTicker) { InnerLink = innerLink };
         }
 
         private unsafe struct Details {
@@ -69,10 +93,11 @@ namespace Shared.Tp.Ext.Misc
         private CycleSampleSet _rttRtSet;
 
         private Details _details;
-        
+
         public TimeLink() { }
-        private TimeLink(Ticker localTicker)
+        private TimeLink(Api api, Ticker localTicker)
         {
+            _api = api;
             _localTicker = localTicker;
             _remoteTicker = new();
         }
@@ -119,7 +144,8 @@ namespace Shared.Tp.Ext.Misc
                 : (ushort)0;
             writer.Write(receivedSentDeltaRt);
 
-            //Slog.Info($"localIdx={localIdx:000} local={local} remoteAdjusted={receivedRemote} (passed={passedLocal})");
+            if (_api.Options.DebugLog)
+                Slog.Info($"localIdx={localIdx:000} localRt={localRt} receivedRemoteIdx={_receivedRemoteIdx:000} receivedSentDeltaRt={receivedSentDeltaRt}");
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -155,10 +181,12 @@ namespace Shared.Tp.Ext.Misc
 
                 _remoteTicker = Ticker.StartNew(newRemoteRt * Ticker.TicksPerRt);
 
-                // diagnostics
-                var remoteRt = _remoteTicker.Point.Rt;
-                var deltaRemoteRt = newRemoteRt - remoteRt;
-                Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
+                if (_api.Options.DebugLog)
+                {
+                    var remoteRt = _remoteTicker.Point.Rt;
+                    var deltaRemoteRt = newRemoteRt - remoteRt;
+                    Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
+                }
             }
 
             return span[..^length];

@@ -12,10 +12,8 @@ namespace Client.Logic
         public SampleOptions sampleOptions;
         
         public SyncOptions syncOptions;
-
+        public TimeLink.Options timeLinkOptions;
         public DumpLink.Options dumpLinkOptions;
-
-        public ClientTimeOptions clientTimeOptions;
         
         [ReadOnly]
         public DumpStats dumpLinkStats;

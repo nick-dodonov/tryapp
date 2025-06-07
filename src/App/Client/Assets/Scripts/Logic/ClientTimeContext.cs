@@ -8,12 +8,13 @@ namespace Client.Logic
     public class ClientTimeContext : ITimeContext
     {
         private readonly TimeLink _timeLink;
-        private readonly ClientTimeOptions _options;
+        private readonly TimeLink.Options _options;
 
         private TickPoint _remotePoint;
         private TickPoint _historyPoint;
+        private CycleSampleSet _historyDeltaDeviationSet;
 
-        public ClientTimeContext(TimeLink timeLink, ClientTimeOptions options)
+        public ClientTimeContext(TimeLink timeLink, TimeLink.Options options)
         {
             _timeLink = timeLink;
             _options = options;
@@ -21,8 +22,6 @@ namespace Client.Logic
             Update();
         }
 
-
-        private CycleSampleSet _historyDeltaDeviationSet;
         public void Update()
         {
             _remotePoint = _timeLink.RemoteTicker.Point;
@@ -41,14 +40,17 @@ namespace Client.Logic
                 
                 _historyDeltaDeviationSet.Add((int)deltaDeviationTicks);
 
-                // diagnostics
-                Slog.Info($"DELTA-TICKS: {desireDeltaTicks,6} - {unityDeltaTicks,6} = {deltaDeviationTicks,6} ({_historyDeltaDeviationSet.MeanInt,7} ± {(int)_historyDeltaDeviationSet.StdDeviation,-6})", string.Empty, string.Empty);
-
-                // var remoteDeltaSeconds = remoteDelta.Seconds;
-                // Slog.Info($"DELTA-SECONDS: |{remoteDeltaSeconds:F7} - {unityDeltaSeconds:F7}| = {Mathf.Abs(remoteDeltaSeconds - unityDeltaSeconds):F7}");
-
                 //_historyPoint += new TickPoint(unityDeltaTicks);
                 _historyPoint += new TickPoint(desireDeltaTicks);
+                
+                if (_options.DebugLog)
+                {
+                    // ReSharper disable once ExplicitCallerInfoArgument
+                    Slog.Info($"DELTA-TICKS: {desireDeltaTicks,6} - {unityDeltaTicks,6} = {deltaDeviationTicks,6} ({_historyDeltaDeviationSet.MeanInt,7} ± {(int)_historyDeltaDeviationSet.StdDeviation,-6})", string.Empty, string.Empty);
+
+                    // var remoteDeltaSeconds = remoteDelta.Seconds;
+                    // Slog.Info($"DELTA-SECONDS: |{remoteDeltaSeconds:F7} - {unityDeltaSeconds:F7}| = {Mathf.Abs(remoteDeltaSeconds - unityDeltaSeconds):F7}");
+                }
             }
             else
             {
