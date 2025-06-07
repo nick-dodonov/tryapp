@@ -25,25 +25,25 @@ namespace Client.Logic
         public void Update()
         {
             _remotePoint = _timeLink.RemoteTicker.Point;
-
-            var previousHistoryPoint = _historyPoint;
             var desireHistoryPoint = _remotePoint - TickPoint.FromMs(_options.HistoryOffsetMs); //TODO: use offset based on current smoothed server's send rate and rtt
 
-            if (previousHistoryPoint.Ticks != 0)
+            if (_historyPoint.Ticks != 0)
             {
-                var desireDelta = desireHistoryPoint - previousHistoryPoint;
+                var desireDelta = desireHistoryPoint - _historyPoint;
                 var desireDeltaTicks = desireDelta.Ticks;
 
                 var unityDeltaSeconds = Time.unscaledDeltaTime;
                 var unityDeltaTicks = (long)(unityDeltaSeconds * Ticker.TicksPerSeconds);
                 var deltaDeviationTicks = desireDeltaTicks - unityDeltaTicks;
-                
+
                 _historyDeltaDeviationSet.Add((int)deltaDeviationTicks);
 
-                //_historyPoint += new TickPoint(unityDeltaTicks);
-                _historyPoint += new TickPoint(desireDeltaTicks);
-                
-                if (_options.DebugLog)
+                //var historyDeltaTicks = desireDeltaTicks;
+                var historyDeltaTicks = unityDeltaTicks + deltaDeviationTicks / 10; //XXXXXXX
+
+                _historyPoint += new TickPoint(historyDeltaTicks);
+
+                if (_options.LogHistory)
                 {
                     // ReSharper disable once ExplicitCallerInfoArgument
                     Slog.Info($"DELTA-TICKS: {desireDeltaTicks,6} - {unityDeltaTicks,6} = {deltaDeviationTicks,6} ({_historyDeltaDeviationSet.MeanInt,7} ± {(int)_historyDeltaDeviationSet.StdDeviation,-6})", string.Empty, string.Empty);

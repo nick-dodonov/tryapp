@@ -17,8 +17,10 @@ MonoBehaviour:
   syncOptions:
     <BasicSendRate>k__BackingField: 2
   timeLinkOptions:
-    <DebugLog>k__BackingField: 1
-    HistoryOffsetMs: 1050
+    <LogWrite>k__BackingField: 0
+    <LogRead>k__BackingField: 1
+    <LogHistory>k__BackingField: 1
+    HistoryOffsetMs: 1000
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
     <LogStartBytes>k__BackingField: 100

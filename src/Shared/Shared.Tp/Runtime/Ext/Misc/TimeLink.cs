@@ -34,10 +34,15 @@ namespace Shared.Tp.Ext.Misc
         public class Options
         {
             [field: SerializeField] [RequiredMember]
-            public bool DebugLog { get; set; }
-            
+            public bool LogWrite { get; set; }
             [field: SerializeField] [RequiredMember]
-            public int HistoryOffsetMs; //TODO: move to client
+            public bool LogRead { get; set; }
+            
+            //TODO: move to client in case calculate not here
+            [field: SerializeField] [RequiredMember]
+            public bool LogHistory { get; set; }
+            [field: SerializeField] [RequiredMember]
+            public int HistoryOffsetMs;
         }
 
         public class Api : ExtApi<TimeLink>
@@ -144,7 +149,7 @@ namespace Shared.Tp.Ext.Misc
                 : (ushort)0;
             writer.Write(receivedSentDeltaRt);
 
-            if (_api.Options.DebugLog)
+            if (_api.Options.LogWrite)
                 Slog.Info($"localIdx={localIdx:000} localRt={localRt} receivedRemoteIdx={_receivedRemoteIdx:000} receivedSentDeltaRt={receivedSentDeltaRt}");
         }
 
@@ -179,7 +184,7 @@ namespace Shared.Tp.Ext.Misc
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
                 var newRemoteRt = receivedRemoteRt + (_rttRtSet.MeanInt >> 1);
 
-                if (_api.Options.DebugLog)
+                if (_api.Options.LogRead)
                 {
                     var remoteRt = _remoteTicker.Point.Rt;
                     var deltaRemoteRt = newRemoteRt - remoteRt;
