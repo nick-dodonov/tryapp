@@ -28,6 +28,8 @@ namespace Shared.Tp.Ext.Misc
     /// </summary>
     public class TimeLink : ExtLink
     {
+        private static readonly Slog.Area _log = new();
+
         private readonly Api _api = null!;
 
         [Serializable]
@@ -96,6 +98,7 @@ namespace Shared.Tp.Ext.Misc
 
         private int _rttRt;
         private CycleSampleSet _rttRtSet;
+        private CycleSampleSet _deltaRemoteRtSet;
 
         private Details _details;
 
@@ -150,7 +153,11 @@ namespace Shared.Tp.Ext.Misc
             writer.Write(receivedSentDeltaRt);
 
             if (_api.Options.LogWrite)
-                Slog.Info($"localIdx={localIdx:000} localRt={localRt} receivedRemoteIdx={_receivedRemoteIdx:000} receivedSentDeltaRt={receivedSentDeltaRt}");
+            {
+                _log.Info( // ReSharper disable once ExplicitCallerInfoArgument
+                    $"SL=({localIdx:000}){localRt,5} SdR=({_receivedRemoteIdx:000}){receivedSentDeltaRt,-4}",
+                    $"W {localRt,5}"); //→
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -182,14 +189,22 @@ namespace Shared.Tp.Ext.Misc
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
-                var newRemoteRt = receivedRemoteRt + (_rttRtSet.MeanInt >> 1);
+                var rttMean = _rttRtSet.MeanInt;
+                var newRemoteRt = receivedRemoteRt + (rttMean >> 1);
 
                 if (_api.Options.LogRead)
                 {
                     var remoteRt = _remoteTicker.Point.Rt;
                     var deltaRemoteRt = newRemoteRt - remoteRt;
-                    Slog.Info($"remoteIdx={_receivedRemoteIdx:000} localRt={localRt} remoteRt={newRemoteRt} rttRt={_rttRt} deltaRemoteRt={deltaRemoteRt}");
+
+                    if (_remoteTicker.StartTicks != 0)
+                        _deltaRemoteRtSet.Add((int)deltaRemoteRt);
+
+                    _log.Info( // ReSharper disable once ExplicitCallerInfoArgument
+                        $"RL=({sentLocalIdx:000}){sentLocalRt,5} RdR=({_receivedRemoteIdx:000}){receivedSentDeltaRt,-4} rtt={_rttRt,4}~{rttMean,-3}/{_rttRtSet.Count} RR={receivedRemoteRt,5} dR={deltaRemoteRt,4:+0;-0}~{_deltaRemoteRtSet.MeanInt:+0;-0}/{_deltaRemoteRtSet.Count}", 
+                        $"R {localRt,5}"); //←
                 }
+
                 _remoteTicker = Ticker.StartNew(newRemoteRt * Ticker.TicksPerRt);
             }
 

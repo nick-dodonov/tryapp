@@ -79,6 +79,12 @@ namespace Shared.Tp.Util.Stat
             }
         }
 
+        public int Count
+        {
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            get => _count;
+        }
+
         public int MeanInt
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
