@@ -186,7 +186,7 @@ namespace Client.Logic
                 sb.AppendAligned(rttRtSet.Mean / Ticker.RtPerMs, "F1", 4);
                 sb.Append(" ± ");
                 sb.AppendAligned(rttRtSet.StdDeviation / Ticker.RtPerMs, "F1", 3);
-                sb.Append("σ "); //''
+                sb.Append("σ ");
                 sb.AppendAligned(_timeLink.RttRt / (float)Ticker.RtPerMs, "F1", 5);
                 sb.AppendLine(" ms");
 
