@@ -9,7 +9,9 @@ using Shared.Log;
 using Shared.Web;
 using TMPro;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
+using Task = System.Threading.Tasks.Task;
 
 namespace Client.UI
 {
@@ -40,6 +42,17 @@ namespace Client.UI
             }
         }
 
+        private EventTrigger ServerDropdownEventTrigger
+        {
+            get
+            {
+                var trigger = 
+                    serverDropdown.gameObject.GetComponent<EventTrigger>() ?? 
+                    serverDropdown.gameObject.AddComponent<EventTrigger>();
+                return trigger;
+            }
+        } 
+        
         private async void OnEnable()
         {
             await ClientOptions.InstanceAsync;
@@ -53,6 +66,22 @@ namespace Client.UI
             serverRequestButton.onClick.RemoveAllListeners();
             serverRequestButton.onClick.AddListener(OnServerRequestButtonClick);
 
+            // handle dropdown click to update stands only when it's requested
+            var entry = new EventTrigger.Entry
+            {
+                eventID = EventTriggerType.PointerClick,
+            };
+            entry.callback.AddListener((_) => { OnServerDropdownClicked(); });
+            ServerDropdownEventTrigger.triggers.Add(entry);
+        }
+
+        private void OnDisable()
+        {
+            ServerDropdownEventTrigger.triggers.Clear();
+        }
+
+        private void OnServerDropdownClicked()
+        {
             UpdateStands(gameObject.GetCancellationTokenOnDestroy());
         }
 
@@ -73,6 +102,10 @@ namespace Client.UI
             try
             {
                 SetSpinnerActive(true);
+                
+                //XXXXXXXXXXXXXXXXXXXX
+                await Task.Delay(5000, cancellationToken);
+                
                 var standsList = await ServerList.CreateStandsAsync(cancellationToken);
                 SetServerList(standsList);
             }

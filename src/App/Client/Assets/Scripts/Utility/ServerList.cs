@@ -95,9 +95,7 @@ namespace Client.Utility
 
         public static async ValueTask<ServerList> CreateStandsAsync(CancellationToken cancellationToken)
         {
-            var result = new ServerList();
-            result.AddLocalhostItems();
-            result.AddDefaultItem();
+            var result = CreateDefault();
 
             await ClientOptions.InstanceAsync;
             await result.AddStandsAsync(cancellationToken);
@@ -145,7 +143,7 @@ namespace Client.Utility
                 ? url[..url.LastIndexOf('/')]
                 : url.TrimEnd('/');
 
-            // get last path part as stand name
+            // get the last path part as stand name
             var name = url[(url.LastIndexOf('/') + 1)..];
 
             Add(new(name, url, "default"));
