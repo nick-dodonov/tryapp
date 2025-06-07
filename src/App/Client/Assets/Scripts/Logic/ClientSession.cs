@@ -1,6 +1,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Client.LocalSample;
 using Client.UI;
 using Common.Data;
 using Common.Logic;
@@ -35,6 +36,7 @@ namespace Client.Logic
         public DebugControl debugControl;
         public InfoControl infoControl;
 
+        public SampleObject sampleObject;
         public Player player;
         public ServerStateView serverStateView;
 
@@ -132,6 +134,9 @@ namespace Client.Logic
 
         private void Update()
         {
+            if (sampleObject)
+                sampleObject.UpdateOptions(context.sampleOptions);
+
             if (_stSync == null)
                 return;
 

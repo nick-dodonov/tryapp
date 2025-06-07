@@ -12,6 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ea05eb3290bb4e2d85f7498761444bf8, type: 3}
   m_Name: ClientContext
   m_EditorClassIdentifier: 
+  sampleOptions:
+    Enabled: 0
   syncOptions:
     <BasicSendRate>k__BackingField: 5
   dumpLinkOptions:

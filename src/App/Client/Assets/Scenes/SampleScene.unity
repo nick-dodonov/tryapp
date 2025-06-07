@@ -150,6 +150,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   debugControl: {fileID: 7885380990598071222}
   infoControl: {fileID: 1726573594}
+  sampleObject: {fileID: 1021829375}
   player: {fileID: 6864250239705647329}
   serverStateView: {fileID: 1848551510}
   context: {fileID: 11400000, guid: 001f744c9ee894ffa9a3e7b9fed24330, type: 2}
@@ -168,6 +169,7 @@ Transform:
   m_Children:
   - {fileID: 6864250239705647328}
   - {fileID: 1848551509}
+  - {fileID: 1021829374}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &106520927
@@ -539,12 +541,12 @@ GameObject:
   - component: {fileID: 1021829374}
   - component: {fileID: 1021829375}
   m_Layer: 0
-  m_Name: _LocalSample
+  m_Name: SampleObject
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1021829374
 Transform:
   m_ObjectHideFlags: 0
@@ -553,13 +555,13 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1021829373}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: -10, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 1194670617}
-  m_Father: {fileID: 0}
+  m_Father: {fileID: 33769753}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &1021829375
 MonoBehaviour:
@@ -1632,7 +1634,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5990686352420442097, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 387.33322
+      value: 416
       objectReference: {fileID: 0}
     - target: {fileID: 5990838454373032489, guid: 8d948b2e9d2264c7cbb3498381802759, type: 3}
       propertyPath: m_AnchorMax.x
@@ -1740,4 +1742,3 @@ SceneRoots:
   - {fileID: 33769753}
   - {fileID: 1987657742}
   - {fileID: 1449201880}
-  - {fileID: 1021829374}
