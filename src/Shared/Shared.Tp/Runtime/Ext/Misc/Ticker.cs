@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using Shared.Tp.Tick;
 
 namespace Shared.Tp.Ext.Misc
 {
@@ -28,20 +29,12 @@ namespace Shared.Tp.Ext.Misc
         /// </summary>
         public const ushort MaxCycledRt = 0xFFFF;
 
-        // //DATETIME:
-        // public const long TicksPerSeconds = System.TimeSpan.TicksPerSecond;
-        // private static long NowTicks
-        // {
-        //     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        //     get => System.DateTime.UtcNow.Ticks;
-        // }
-
-        //STOPWATCH:
-        public static readonly long TicksPerSeconds = System.Diagnostics.Stopwatch.Frequency;
+        private static readonly Clock<long, SystemClock> _clock = new(new());
+        public static readonly long TicksPerSeconds = _clock.CountPerSec;
         private static long NowTicks
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => System.Diagnostics.Stopwatch.GetTimestamp();
+            get => _clock.Count;
         }
 
         public static readonly long TicksPerMs = TicksPerSeconds / 1000;

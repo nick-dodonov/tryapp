@@ -18,8 +18,8 @@ MonoBehaviour:
     <BasicSendRate>k__BackingField: 2
   timeLinkOptions:
     <LogWrite>k__BackingField: 0
-    <LogRead>k__BackingField: 1
-    <LogHistory>k__BackingField: 1
+    <LogRead>k__BackingField: 0
+    <LogHistory>k__BackingField: 0
     HistoryOffsetMs: 1000
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
