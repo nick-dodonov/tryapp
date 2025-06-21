@@ -9,12 +9,12 @@ namespace Shared.Tp.Rtc.Unity
             if (UnityEngine.Application.isEditor)
                 return new Unity.UnityRtcApi(service);
 #endif
-            var platform = UnityEngine.Application.platform;
-            if (platform == UnityEngine.RuntimePlatform.WebGLPlayer)
-                return new Webgl.WebglRtcApi(service);
-
+#if UNITY_WEBGL
+            return new Webgl.WebglRtcApi(service);
+#else
             // desktop / android / ios
             return new Unity.UnityRtcApi(service);
+#endif
 #else
             throw new System.NotSupportedException("TODO: use this factory add SipRtcService to ASP hosting");
 #endif
