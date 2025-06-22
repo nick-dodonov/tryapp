@@ -2,16 +2,26 @@ using System.Runtime.CompilerServices;
 
 namespace Shared.Tp.Tick
 {
-    public interface IClock<out T> where T : unmanaged
+    public interface IPeriod
     {
-        T Count { get; }
-        public long CountPerSec { get; }
+        public long InstanceCountPerSec { get; }
     }
 
-    public readonly struct Clock<T, TSourceClock> : IClock<T>
-        where TSourceClock : IClock<T>
-        where T : unmanaged
+    public interface IClock<out T, TPeriod> where T 
+        : unmanaged where TPeriod : IPeriod, new()
     {
+        public static readonly TPeriod Period = new();
+
+        T Count { get; }
+    }
+
+    public readonly struct Clock<T, TPeriod, TSourceClock> : IClock<T, TPeriod>
+        where T : unmanaged
+        where TPeriod : IPeriod, new()
+        where TSourceClock : IClock<T, TPeriod>
+    {
+        public static long CountPerSec => new TPeriod().InstanceCountPerSec;
+
         private readonly TSourceClock _sourceClock;
         private readonly T _startCount;
 
@@ -21,16 +31,26 @@ namespace Shared.Tp.Tick
             _startCount = sourceClock.Count;
         }
 
+        public Clock(TSourceClock sourceClock, T sourceOffset)
+        {
+            _sourceClock = sourceClock;
+            _startCount = NumericHelper.Add(_sourceClock.Count, sourceOffset);
+        }
+
+        public T StartCount => _startCount;
+
         public T Count => NumericHelper.Sub(_sourceClock.Count, _startCount);
-        public long CountPerSec => _sourceClock.CountPerSec;
     }
 
-    public readonly struct ClockPoint<T> where T : unmanaged
+    public readonly struct Tick<T, TPeriod> 
+        where T : unmanaged 
+        where TPeriod : IPeriod, new()
     {
+        public static readonly TPeriod Period = new();
         private readonly T _count;
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public ClockPoint(T count) => _count = count;
+        public Tick(T count) => _count = count;
         
         public T Count
         {
@@ -41,17 +61,15 @@ namespace Shared.Tp.Tick
 
     public static class ClockExtensions
     {
-        public static ClockPoint<T> ClockPoint<T>(this IClock<T> clock) 
-            where T : unmanaged => 
-            new(clock.Count);
+        public static Tick<T, TPeriod> Tick<T, TPeriod>(this IClock<T, TPeriod> clock) 
+            where T : unmanaged 
+            where TPeriod : IPeriod, new()
+            => new(clock.Count);
     }
 
-    public static class ClockPointExtensions
+    public static class TickExtensions
     {
-        public static ClockPoint<ushort> ToCycled(this ClockPoint<long> point, ushort maxCount = ushort.MaxValue) => 
-            new((ushort)(point.Count % (maxCount + 1)));
-        
-        public static float ToSeconds(this ClockPoint<long> point, long countPerSec) => (float)((double)point.Count / countPerSec);
-        public static float ToSeconds(this ClockPoint<ushort> point, long countPerSec) => (float)point.Count / countPerSec;
+        // public static Tick<ushort, RtClock> ToCycled(this Tick<long, RtClock> point, ushort maxCount = ushort.MaxValue) => 
+        //     new((ushort)(point.Count % (maxCount + 1)));
     }
 }

@@ -5,6 +5,7 @@ namespace Shared.Tp.Tick
 {
     public static class NumericHelper
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long GetLongMaxValue<T>() where T : unmanaged
         {
             if (typeof(T) == typeof(byte)) return byte.MaxValue;
@@ -18,6 +19,7 @@ namespace Shared.Tp.Tick
             throw new ArgumentException($"Type {typeof(T)} is not supported");
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Add<T>(T a, T b) where T : unmanaged
         {
             if (typeof(T) == typeof(int))
@@ -41,9 +43,11 @@ namespace Shared.Tp.Tick
                 }
             }
             
-            throw new NotSupportedException($"Type {typeof(T)} is not supported for addition");
+            ThrowNotSupported<T>();
+            return default;
         }
         
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Sub<T>(T a, T b) where T : unmanaged
         {
             if (typeof(T) == typeof(int))
@@ -66,8 +70,37 @@ namespace Shared.Tp.Tick
                     return Unsafe.As<ushort, T>(ref result);
                 }
             }
-            
-            throw new NotSupportedException($"Type {typeof(T)} is not supported for addition");
+
+            ThrowNotSupported<T>();
+            return default;
         }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float Div<T>(T a, long b) where T : unmanaged
+        {
+            if (typeof(T) == typeof(int))
+            {
+                var ra = Unsafe.As<T, int>(ref a);
+                return (float)((double)ra / b);
+            }
+
+            if (typeof(T) == typeof(long))
+            {
+                var ra = Unsafe.As<T, long>(ref a);
+                return (float)((double)ra / b);
+            }
+
+            if (typeof(T) == typeof(ushort))
+            {
+                var ra = Unsafe.As<T, ushort>(ref a);
+                return (float)ra / b;
+            }
+
+            ThrowNotSupported<T>();
+            return 0;
+        }
+        
+        private static void ThrowNotSupported<T>() => 
+            throw new NotSupportedException($"Type {typeof(T)} is not supported");
     }
 }
