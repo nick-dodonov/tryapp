@@ -7,6 +7,7 @@ using Client.Utility;
 using Shared.Boot.Audit;
 using Shared.Boot.Version;
 using Shared.Log;
+using Shared.Sys;
 using UnityEngine;
 using Utilities.Async;
 
@@ -25,6 +26,9 @@ namespace Client
         // ReSharper disable once AsyncVoidMethod
         private static async void Initialize()
         {
+            if (UnitySharedSystem.IsRunningTests)
+                return;
+
             _log.Info($">>>> starting {Application.productName}: {UnityVersionProvider.BuildVersion.ToShortInfo(true)}");
             await ClientOptions.InstanceAsync;
             // var logger = Slog.Factory.CreateLogger<MainHud>();
