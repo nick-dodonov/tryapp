@@ -1,4 +1,4 @@
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     public sealed class UserClock<T, TPeriod> : IClock<T, TPeriod> 
         where T : unmanaged 

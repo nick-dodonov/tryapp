@@ -3,7 +3,7 @@ using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Unity.IL2CPP.CompilerServices;
 
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     public interface IPeriod
     {

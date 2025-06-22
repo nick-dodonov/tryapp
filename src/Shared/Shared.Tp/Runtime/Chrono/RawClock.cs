@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     /// <summary>
     /// NOTE: Unfortunately, either Stopwatch.GetTimestamp() or DateTime.UtcNow.Ticks doesn't give

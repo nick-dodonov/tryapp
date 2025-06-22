@@ -1,5 +1,5 @@
 using System.Runtime.CompilerServices;
-using Shared.Tp.Tick;
+using Shared.Tp.Chrono;
 
 namespace Shared.Tp.Ext.Misc
 {

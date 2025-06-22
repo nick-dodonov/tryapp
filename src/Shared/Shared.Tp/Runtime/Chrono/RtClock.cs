@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     using RtTick = Tick<long, RtPeriod>;
     using CycledRtTick = Tick<ushort, RtPeriod>;

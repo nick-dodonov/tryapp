@@ -3,7 +3,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
 using Shared.Log;
-using Shared.Tp.Tick;
+using Shared.Tp.Chrono;
 using Shared.Tp.Util;
 using Shared.Tp.Util.Stat;
 using UnityEngine;

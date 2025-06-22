@@ -2,7 +2,7 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Shared.Log;
-using Shared.Tp.Tick;
+using Shared.Tp.Chrono;
 
 // ReSharper disable once CheckNamespace
 namespace Shared.Tp.Tests
@@ -24,8 +24,8 @@ namespace Shared.Tp.Tests
         public const long CountPerSec = 1;
         public long InstanceCountPerSec => CountPerSec;
     }
-    
-    public class ClockTests
+
+    public class Chrono_Tests
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
         private static ushort CalcCycled(long raw)

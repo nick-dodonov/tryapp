@@ -1,24 +1,10 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     public static class NumericHelper
     {
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long GetLongMaxValue<T>() where T : unmanaged
-        {
-            if (typeof(T) == typeof(byte)) return byte.MaxValue;
-            if (typeof(T) == typeof(sbyte)) return sbyte.MaxValue;
-            if (typeof(T) == typeof(short)) return short.MaxValue;
-            if (typeof(T) == typeof(ushort)) return ushort.MaxValue;
-            if (typeof(T) == typeof(int)) return int.MaxValue;
-            if (typeof(T) == typeof(uint)) return uint.MaxValue;
-            if (typeof(T) == typeof(long)) return long.MaxValue;
-    
-            throw new ArgumentException($"Type {typeof(T)} is not supported");
-        }
-        
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static T Add<T>(T a, T b) where T : unmanaged
         {

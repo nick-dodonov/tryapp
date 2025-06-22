@@ -7,7 +7,7 @@ using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
-using Shared.Tp.Tick;
+using Shared.Tp.Chrono;
 
 namespace Server.Logic;
 

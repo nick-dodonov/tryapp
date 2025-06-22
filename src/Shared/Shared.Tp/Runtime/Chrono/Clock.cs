@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 
-namespace Shared.Tp.Tick
+namespace Shared.Tp.Chrono
 {
     public interface IClock<T, TPeriod> where T
         : unmanaged
