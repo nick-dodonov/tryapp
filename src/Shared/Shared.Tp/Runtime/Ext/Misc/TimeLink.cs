@@ -3,6 +3,7 @@ using System.Buffers;
 using System.Runtime.CompilerServices;
 using Microsoft.Extensions.Options;
 using Shared.Log;
+using Shared.Tp.Tick;
 using Shared.Tp.Util;
 using Shared.Tp.Util.Stat;
 using UnityEngine;
@@ -12,6 +13,8 @@ using UnityEngine.Scripting;
 
 namespace Shared.Tp.Ext.Misc
 {
+    using LocalClock = Clock<long, RawPeriod, RawClock>;
+
     // Enough to keep 4 seconds in 60 fps sends.
     //  In case of long lag (>4 sec) rtt calculation will be wrong.
     //  However, we don't need more because history to restore the state cannot keep more than 1 second of states,
@@ -49,7 +52,7 @@ namespace Shared.Tp.Ext.Misc
 
         public class Api : ExtApi<TimeLink>
         {
-            private readonly Ticker _localTicker;
+            private readonly LocalClock _localClock;
 
             private Options _options;
             internal Options Options => _options;
@@ -62,17 +65,17 @@ namespace Shared.Tp.Ext.Misc
                 _options = options.CurrentValue;
                 options.OnChange((o, _) => _options = o); //TODO: dispose change tracking
 
-                _localTicker = Ticker.StartNew();
-                Slog.Info($"start ticks: {_localTicker.StartTicks}");
+                _localClock = new(RawClock.Instance);
+                Slog.Info($"start ticks: {_localClock.StartCount}");
             }
 
-            public Ticker LocalTicker => _localTicker;
+            public LocalClock LocalClock => _localClock;
 
             protected override TimeLink CreateClientLink(ITpReceiver receiver) =>
-                new(this, _localTicker) { Receiver = receiver };
+                new(this, _localClock) { Receiver = receiver };
 
             protected override TimeLink CreateServerLink(ITpLink innerLink) =>
-                new(this, _localTicker) { InnerLink = innerLink };
+                new(this, _localClock) { InnerLink = innerLink };
         }
 
         private unsafe struct Details {
@@ -90,7 +93,7 @@ namespace Shared.Tp.Ext.Misc
                 _localTicksHistory[historyIndex];
         }
 
-        private readonly Ticker _localTicker;
+        private readonly LocalClock _localClock;
         private Ticker _remoteTicker;
 
         private TimeTicksIndex _receivedRemoteIdx;
@@ -103,14 +106,14 @@ namespace Shared.Tp.Ext.Misc
         private Details _details;
 
         public TimeLink() { }
-        private TimeLink(Api api, Ticker localTicker)
+        private TimeLink(Api api, LocalClock localClock)
         {
             _api = api;
-            _localTicker = localTicker;
+            _localClock = localClock;
             _remoteTicker = new();
         }
 
-        public Ticker LocalTicker => _localTicker;
+        public LocalClock LocalClock => _localClock;
         public Ticker RemoteTicker => _remoteTicker;
 
         public int RttRt => _rttRt;
@@ -134,7 +137,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void WriteTime(IBufferWriter<byte> writer)
         {
-            var localRt = _localTicker.Point.Rt;
+            var localRt = _localClock.RtCount();
             var localIdx = _details.AddLocalTicks(localRt);
 
             writer.Write(localIdx);
@@ -163,7 +166,7 @@ namespace Shared.Tp.Ext.Misc
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private unsafe ReadOnlySpan<byte> ReadTime(ReadOnlySpan<byte> span)
         {
-            var localRt = _localTicker.Point.Rt;
+            var localRt = _localClock.RtCount();
 
             const int length = 
                 sizeof(TimeTicksIndex) + sizeof(long) +

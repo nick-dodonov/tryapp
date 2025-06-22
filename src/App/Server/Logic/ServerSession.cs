@@ -7,6 +7,7 @@ using Shared.Log;
 using Shared.Tp;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.St.Sync;
+using Shared.Tp.Tick;
 
 namespace Server.Logic;
 
@@ -169,7 +170,7 @@ public sealed class ServerSession : IDisposable, IHostedService, ITpListener
         return true;
     }
 
-    public ushort CycledRt => _timeApi.LocalTicker.Point.CycledRt;
+    public ushort CycledRt => _timeApi.LocalClock.Tick().RtTick().Cycled().Count;
     public ServerState GetServerState()
     {
         var cycledRt = CycledRt;

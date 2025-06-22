@@ -16,6 +16,7 @@ using Shared.Tp.Ext.Hand;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Rtc.Unity;
 using Shared.Tp.St.Sync;
+using Shared.Tp.Tick;
 using Shared.Web;
 using UnityEngine;
 
@@ -154,10 +155,10 @@ namespace Client.Logic
             try
             {
                 sb.Append("local: ");
-                var localTickPoint = _timeLink.LocalTicker.Point;
-                sb.Append(localTickPoint.Seconds, "F1");
+                var localTick = _timeLink.LocalClock.Tick();
+                sb.Append(localTick.Seconds(), "F1");
                 sb.Append(" - ");
-                sb.Append(localTickPoint.CycledSeconds, "F1");
+                sb.Append(localTick.RtTick().Cycled().Seconds(), "F1");
                 sb.AppendLine(" sec");
 
                 sb.Append("remote: ");

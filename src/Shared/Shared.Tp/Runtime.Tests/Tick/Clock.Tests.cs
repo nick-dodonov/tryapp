@@ -31,8 +31,8 @@ namespace Shared.Tp.Tests
         private static ushort CalcCycled(long raw)
         {
             var rawTick = new RawTick(raw);
-            var rtTick = rawTick.ToRt();
-            var cycledRtTick = rtTick.ToCycled();
+            var rtTick = rawTick.RtTick();
+            var cycledRtTick = rtTick.Cycled();
             var cycledRt = cycledRtTick.Count;
             return cycledRt;
         }
@@ -58,14 +58,14 @@ namespace Shared.Tp.Tests
             const int testSeconds = 123;
             var testRawTick = new Tick<long, TestRawPeriod>(testSeconds * TestRawPeriod.CountPerSec);
             var testSecTick = new Tick<long, TestSecPeriod>(testSeconds * TestSecPeriod.CountPerSec);
-            var rtRawTick = testRawTick.ToRt();
-            var rtSecTick = testSecTick.ToRt();
+            var rtRawTick = testRawTick.RtTick();
+            var rtSecTick = testSecTick.RtTick();
             Assert.AreEqual(testSeconds, rtRawTick.Count / RtPeriod.CountPerSec);
             Assert.AreEqual(testSeconds, rtSecTick.Count / RtPeriod.CountPerSec);
 
             const ushort testCycledRt = 321;
             var testRtTick = new RtTick((ushort.MaxValue + 1) + testCycledRt);
-            var testCycledRtTick = testRtTick.ToCycled();
+            var testCycledRtTick = testRtTick.Cycled();
             Assert.AreEqual(testCycledRt, testCycledRtTick.Count);
         }
 
