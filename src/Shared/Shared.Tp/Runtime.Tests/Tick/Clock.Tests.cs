@@ -6,6 +6,9 @@ using Shared.Tp.Tick;
 // ReSharper disable once CheckNamespace
 namespace Shared.Tp.Tests
 {
+    using RtTick = Tick<long, RtPeriod>;
+    using CycledRtTick = Tick<ushort, RtPeriod>;
+
     using TestClock = UserClock<long, TestRawPeriod>;
 
     internal readonly struct TestRawPeriod: IPeriod
@@ -28,13 +31,18 @@ namespace Shared.Tp.Tests
             Slog.Info($"sizeof(RtTick) = {sizeof(Tick<long, RtPeriod>)})");
             Slog.Info($"sizeof(CycledRtTick) = {sizeof(Tick<ushort, RtPeriod>)})");
 
-            const int testSeconds = 117;
+            const int testSeconds = 123;
             var testRawTick = new Tick<long, TestRawPeriod>(testSeconds * TestRawPeriod.CountPerSec);
             var testSecTick = new Tick<long, TestSecPeriod>(testSeconds * TestSecPeriod.CountPerSec);
             var rtRawTick = testRawTick.ToRt();
             var rtSecTick = testSecTick.ToRt();
             Assert.AreEqual(testSeconds, rtRawTick.Count / RtPeriod.CountPerSec);
             Assert.AreEqual(testSeconds, rtSecTick.Count / RtPeriod.CountPerSec);
+
+            const ushort testCycledRt = 321;
+            var testRtTick = new RtTick((ushort.MaxValue + 1) + testCycledRt);
+            var testCycledRtTick = testRtTick.ToCycled();
+            Assert.AreEqual(testCycledRt, testCycledRtTick.Count);
         }
 
         [Test]

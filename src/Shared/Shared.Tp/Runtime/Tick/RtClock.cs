@@ -1,3 +1,5 @@
+using System.Runtime.CompilerServices;
+
 namespace Shared.Tp.Tick
 {
     using RtTick = Tick<long, RtPeriod>;
@@ -25,10 +27,12 @@ namespace Shared.Tp.Tick
 
     public static class RtTickExtensions
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RtTick ToRt<TPeriod>(this Tick<long, TPeriod> tick)
             where TPeriod : IPeriod, new()
             => new(PeriodConvert<TPeriod, RtPeriod>.Convert(tick.Count));
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static CycledRtTick ToCycled(this RtTick tick, ushort maxCount = ushort.MaxValue)
             => new((ushort)(tick.Count % (maxCount + 1)));
     }
