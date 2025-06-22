@@ -9,33 +9,27 @@ namespace Shared.Tp.Tick
         public long InstanceCountPerSec => CountPerSec;
     }
 
-    public readonly struct RtClock<TPeriod, TSourceClock> : IClock<long, RtPeriod>
-        where TPeriod : IPeriod, new()
-        where TSourceClock : IClock<long, TPeriod> 
+    public readonly struct RtClock<TSourcePeriod, TSourceClock> : IClock<long, RtPeriod>
+        where TSourcePeriod : IPeriod, new()
+        where TSourceClock : IClock<long, TSourcePeriod> 
     {
         private readonly TSourceClock _sourceClock;
-        private readonly long _sourceCountRate; 
         
         public RtClock(TSourceClock sourceClock)
         {
             _sourceClock = sourceClock;
-            _sourceCountRate = new TPeriod().InstanceCountPerSec / RtPeriod.CountPerSec;
         }
 
-        public long Count => _sourceClock.Count / _sourceCountRate;
+        public long Count => PeriodConvert<TSourcePeriod, RtPeriod>.Convert(_sourceClock.Count);
     }
 
     public static class RtTickExtensions
     {
-        public static RtTick ToRt<TPeriod>(this Tick<long, TPeriod> tick) 
-            where TPeriod : IPeriod, new() 
-            => new(tick.Count / (new TPeriod().InstanceCountPerSec / RtPeriod.CountPerSec));
+        public static RtTick ToRt<TPeriod>(this Tick<long, TPeriod> tick)
+            where TPeriod : IPeriod, new()
+            => new(PeriodConvert<TPeriod, RtPeriod>.Convert(tick.Count));
 
-        public static CycledRtTick ToCycledRt<TPeriod>(this Tick<long, TPeriod> tick, ushort maxCount = ushort.MaxValue)
-            where TPeriod : IPeriod, new() 
+        public static CycledRtTick ToCycled(this RtTick tick, ushort maxCount = ushort.MaxValue)
             => new((ushort)(tick.Count % (maxCount + 1)));
-        
-        // public static float ToSeconds(this Tick<long, RtClock> point) => (float)((double)point.Count / RtPeriod.CountPerSec);
-        // public static float ToSeconds(this Tick<ushort, RtClock> point) => (float)point.Count / RtPeriod.CountPerSec;
     }
 }

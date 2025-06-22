@@ -6,11 +6,18 @@ using Shared.Tp.Tick;
 // ReSharper disable once CheckNamespace
 namespace Shared.Tp.Tests
 {
-    using TestClock = UserClock<long, TestPeriod>;
-    
-    internal readonly struct TestPeriod: IPeriod
+    using TestClock = UserClock<long, TestRawPeriod>;
+
+    internal readonly struct TestRawPeriod: IPeriod
     {
-        public long InstanceCountPerSec => 1_000_000;
+        public const long CountPerSec = 1_000_000;
+        public long InstanceCountPerSec => CountPerSec;
+    }
+
+    internal readonly struct TestSecPeriod: IPeriod
+    {
+        public const long CountPerSec = 1;
+        public long InstanceCountPerSec => CountPerSec;
     }
     
     public class ClockTests
@@ -18,10 +25,16 @@ namespace Shared.Tp.Tests
         [Test]
         public unsafe void Tick_Cast()
         {
-            var testTick = new Tick<long, TestPeriod>(100);
-            var rtTick = testTick.ToRt();
             Slog.Info($"sizeof(RtTick) = {sizeof(Tick<long, RtPeriod>)})");
             Slog.Info($"sizeof(CycledRtTick) = {sizeof(Tick<ushort, RtPeriod>)})");
+
+            const int testSeconds = 117;
+            var testRawTick = new Tick<long, TestRawPeriod>(testSeconds * TestRawPeriod.CountPerSec);
+            var testSecTick = new Tick<long, TestSecPeriod>(testSeconds * TestSecPeriod.CountPerSec);
+            var rtRawTick = testRawTick.ToRt();
+            var rtSecTick = testSecTick.ToRt();
+            Assert.AreEqual(testSeconds, rtRawTick.Count / RtPeriod.CountPerSec);
+            Assert.AreEqual(testSeconds, rtSecTick.Count / RtPeriod.CountPerSec);
         }
 
         [Test]
@@ -58,7 +71,7 @@ namespace Shared.Tp.Tests
         {
             var rawClock = new TestClock(1000);
             rawClock.Set(333);
-            var clock = new Clock<long, TestPeriod, UserClock<long, TestPeriod>>(rawClock);
+            var clock = new Clock<long, TestRawPeriod, UserClock<long, TestRawPeriod>>(rawClock);
             Assert.AreEqual(0, clock.Count);
             rawClock.Add(100);
             Assert.AreEqual(100, clock.Count);

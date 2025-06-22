@@ -1,3 +1,4 @@
+using System;
 using System.Runtime.CompilerServices;
 
 namespace Shared.Tp.Tick
@@ -5,6 +6,17 @@ namespace Shared.Tp.Tick
     public interface IPeriod
     {
         public long InstanceCountPerSec { get; }
+    }
+
+    public readonly struct PeriodConvert<TFromPeriod, TToPeriod>
+        where TFromPeriod : IPeriod, new()
+        where TToPeriod : IPeriod, new()
+    {
+        private static readonly long SourceCountNum = Math.Max(1, new TToPeriod().InstanceCountPerSec / new TFromPeriod().InstanceCountPerSec);
+        private static readonly long SourceCountDen = Math.Max(1, new TFromPeriod().InstanceCountPerSec / new TToPeriod().InstanceCountPerSec);
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static long Convert(long fromCount) => SourceCountNum * fromCount / SourceCountDen;
     }
 
     public interface IClock<out T, TPeriod> where T 
