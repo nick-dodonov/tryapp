@@ -1,3 +1,4 @@
+#if UNITY_EDITOR || UNITY_WEBGL
 using System;
 using System.Runtime.InteropServices;
 
@@ -30,3 +31,4 @@ namespace Shared.Tp.Rtc.Webgl
         public static extern unsafe void RtcSend(int nativeHandle, byte* bytes, int size);
     }
 }
+#endif

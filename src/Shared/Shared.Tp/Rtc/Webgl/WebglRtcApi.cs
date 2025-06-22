@@ -1,4 +1,4 @@
-#if UNITY_5_6_OR_NEWER
+#if UNITY_EDITOR || UNITY_WEBGL
 using System;
 using System.Threading;
 using System.Threading.Tasks;
