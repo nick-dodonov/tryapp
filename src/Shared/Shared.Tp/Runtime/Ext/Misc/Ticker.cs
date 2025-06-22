@@ -49,16 +49,10 @@ namespace Shared.Tp.Ext.Misc
             get => _clock.StartCount;
         }
 
-        public long Ticks
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _clock.Count;
-        }
-
         public TickPoint Point
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(Ticks);
+            get => new(_clock.Count);
         }
     }
 

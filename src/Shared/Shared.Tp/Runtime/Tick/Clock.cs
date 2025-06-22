@@ -1,24 +1,7 @@
-using System;
 using System.Runtime.CompilerServices;
 
 namespace Shared.Tp.Tick
 {
-    public interface IPeriod
-    {
-        public long InstanceCountPerSec { get; }
-    }
-
-    public readonly struct PeriodConvert<TFromPeriod, TToPeriod>
-        where TFromPeriod : IPeriod, new()
-        where TToPeriod : IPeriod, new()
-    {
-        private static readonly long SourceCountNum = Math.Max(1, new TToPeriod().InstanceCountPerSec / new TFromPeriod().InstanceCountPerSec);
-        private static readonly long SourceCountDen = Math.Max(1, new TFromPeriod().InstanceCountPerSec / new TToPeriod().InstanceCountPerSec);
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static long Convert(long fromCount) => SourceCountNum * fromCount / SourceCountDen;
-    }
-
     public interface IClock<out T, TPeriod> where T 
         : unmanaged where TPeriod : IPeriod, new()
     {
@@ -27,12 +10,12 @@ namespace Shared.Tp.Tick
         T Count { get; }
     }
 
-    public readonly struct Clock<T, TPeriod, TSourceClock> : IClock<T, TPeriod>
+    public readonly struct Clock<T, TSourcePeriod, TSourceClock> : IClock<T, TSourcePeriod>
         where T : unmanaged
-        where TPeriod : IPeriod, new()
-        where TSourceClock : IClock<T, TPeriod>
+        where TSourcePeriod : IPeriod, new()
+        where TSourceClock : IClock<T, TSourcePeriod>
     {
-        public static long CountPerSec => new TPeriod().InstanceCountPerSec;
+        public static long CountPerSec => new TSourcePeriod().InstanceCountPerSec;
 
         private readonly TSourceClock _sourceClock;
         private readonly T _startCount;
@@ -69,19 +52,5 @@ namespace Shared.Tp.Tick
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             get => _count;
         }
-    }
-
-    public static class ClockExtensions
-    {
-        public static Tick<T, TPeriod> Tick<T, TPeriod>(this IClock<T, TPeriod> clock) 
-            where T : unmanaged 
-            where TPeriod : IPeriod, new()
-            => new(clock.Count);
-    }
-
-    public static class TickExtensions
-    {
-        // public static Tick<ushort, RtClock> ToCycled(this Tick<long, RtClock> point, ushort maxCount = ushort.MaxValue) => 
-        //     new((ushort)(point.Count % (maxCount + 1)));
     }
 }

@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Shared.Log;
@@ -8,6 +9,7 @@ namespace Shared.Tp.Tests
 {
     using RtTick = Tick<long, RtPeriod>;
     using CycledRtTick = Tick<ushort, RtPeriod>;
+    using RawTick = Tick<long, TestRawPeriod>;
 
     using TestClock = UserClock<long, TestRawPeriod>;
 
@@ -25,11 +27,33 @@ namespace Shared.Tp.Tests
     
     public class ClockTests
     {
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private static ushort CalcCycled(long raw)
+        {
+            var rawTick = new RawTick(raw);
+            var rtTick = rawTick.ToRt();
+            var cycledRtTick = rtTick.ToCycled();
+            var cycledRt = cycledRtTick.Count;
+            return cycledRt;
+        }
+
+        [Test]
+        public void Tick_Print()
+        {
+            const long initRaw = 17 * TestRawPeriod.CountPerSec;
+            for (var i = 0; i < 5; ++i)
+            {
+                var raw = initRaw + i;
+                var cycledRt = CalcCycled(raw);
+                Slog.Info($"Tick_Print: {raw} - {cycledRt}");
+            }
+        }
+
         [Test]
         public unsafe void Tick_Cast()
         {
-            Slog.Info($"sizeof(RtTick) = {sizeof(Tick<long, RtPeriod>)})");
-            Slog.Info($"sizeof(CycledRtTick) = {sizeof(Tick<ushort, RtPeriod>)})");
+            Slog.Info($"sizeof(RtTick) = {sizeof(RtTick)})");
+            Slog.Info($"sizeof(CycledRtTick) = {sizeof(CycledRtTick)})");
 
             const int testSeconds = 123;
             var testRawTick = new Tick<long, TestRawPeriod>(testSeconds * TestRawPeriod.CountPerSec);
