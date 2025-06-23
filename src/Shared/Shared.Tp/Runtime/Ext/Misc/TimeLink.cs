@@ -13,8 +13,8 @@ using UnityEngine.Scripting;
 
 namespace Shared.Tp.Ext.Misc
 {
-    using LocalClock = Clock<long, RawPeriod, RawClock>;
-    using RemoteClock = Clock<long, RawPeriod, RawClock>;
+    using LocalClock = DeltaClock<long, RawPeriod, RawClock>;
+    using RemoteClock = DeltaClock<long, RawPeriod, RawClock>;
 
     // Enough to keep 4 seconds in 60 fps sends.
     //  In case of long lag (>4 sec) rtt calculation will be wrong.
@@ -209,7 +209,7 @@ namespace Shared.Tp.Ext.Misc
                         $"R {localRt,5}"); //←
                 }
 
-                _remoteClock = new(RawClock.Instance, PeriodConvert<RtPeriod, RawPeriod>.Convert(newRemoteRt));
+                _remoteClock = new(RawClock.Instance, PeriodConverter<RtPeriod, RawPeriod>.Convert(newRemoteRt));
             }
 
             return span[..^length];

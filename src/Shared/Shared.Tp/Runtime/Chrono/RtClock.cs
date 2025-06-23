@@ -22,19 +22,19 @@ namespace Shared.Tp.Chrono
             _sourceClock = sourceClock;
         }
 
-        public long Count => PeriodConvert<TSourcePeriod, RtPeriod>.Convert(_sourceClock.Count);
+        public long Count => PeriodConverter<TSourcePeriod, RtPeriod>.Convert(_sourceClock.Count);
     }
 
     public static class RtExtensions
     {
         public static long RtCount<TPeriod>(this IClock<long, TPeriod> clock)
             where TPeriod : IPeriod, new()
-            => PeriodConvert<TPeriod, RtPeriod>.Convert(clock.Count);
+            => PeriodConverter<TPeriod, RtPeriod>.Convert(clock.Count);
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static RtTick RtTick<TPeriod>(this Tick<long, TPeriod> tick)
             where TPeriod : IPeriod, new()
-            => new(PeriodConvert<TPeriod, RtPeriod>.Convert(tick.Count));
+            => new(PeriodConverter<TPeriod, RtPeriod>.Convert(tick.Count));
 
         /// <summary>
         /// CycledRtTick is a "packed" absolute time value. Used to synchronize remote sides.

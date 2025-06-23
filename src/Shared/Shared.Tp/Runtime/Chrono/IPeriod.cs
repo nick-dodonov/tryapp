@@ -11,7 +11,7 @@ namespace Shared.Tp.Chrono
     }
 
     [Il2CppSetOption(Option.DivideByZeroChecks, false)]
-    public readonly struct PeriodConvert<TFromPeriod, TToPeriod>
+    public readonly struct PeriodConverter<TFromPeriod, TToPeriod>
         where TFromPeriod : IPeriod, new()
         where TToPeriod : IPeriod, new()
     {
@@ -20,7 +20,7 @@ namespace Shared.Tp.Chrono
         private static readonly long SourceCountDen;
         // ReSharper restore StaticMemberInGenericType
 
-        static PeriodConvert()
+        static PeriodConverter()
         {
             var fromCountPerSec = new TFromPeriod().InstanceCountPerSec;
             var toCountPerSec = new TToPeriod().InstanceCountPerSec;

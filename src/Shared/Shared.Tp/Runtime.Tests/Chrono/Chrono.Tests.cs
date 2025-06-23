@@ -103,7 +103,7 @@ namespace Shared.Tp.Tests
         {
             var rawClock = new TestClock(1000);
             rawClock.Set(333);
-            var clock = new Clock<long, TestRawPeriod, UserClock<long, TestRawPeriod>>(rawClock);
+            var clock = new DeltaClock<long, TestRawPeriod, UserClock<long, TestRawPeriod>>(rawClock);
             Assert.AreEqual(0, clock.Count);
             rawClock.Add(100);
             Assert.AreEqual(100, clock.Count);

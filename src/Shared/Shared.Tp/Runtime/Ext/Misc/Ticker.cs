@@ -3,7 +3,7 @@ using Shared.Tp.Chrono;
 
 namespace Shared.Tp.Ext.Misc
 {
-    using TickerClock = Clock<long, RawPeriod, RawClock>;
+    using TickerClock = DeltaClock<long, RawPeriod, RawClock>;
     
     public readonly struct Ticker
     {
