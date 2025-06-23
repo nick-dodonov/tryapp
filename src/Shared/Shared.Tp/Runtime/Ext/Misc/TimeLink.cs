@@ -66,7 +66,7 @@ namespace Shared.Tp.Ext.Misc
                 _options = options.CurrentValue;
                 options.OnChange((o, _) => _options = o); //TODO: dispose change tracking
 
-                _localClock = new(RawClock.Instance);
+                _localClock = new(new());
                 Slog.Info($"start ticks: {_localClock.StartCount}");
             }
 
@@ -209,7 +209,7 @@ namespace Shared.Tp.Ext.Misc
                         $"R {localRt,5}"); //←
                 }
 
-                _remoteClock = new(RawClock.Instance, PeriodConverter<RtPeriod, RawPeriod>.Convert(newRemoteRt));
+                _remoteClock = new(new(), PeriodConverter<RtPeriod, RawPeriod>.Convert(newRemoteRt));
             }
 
             return span[..^length];

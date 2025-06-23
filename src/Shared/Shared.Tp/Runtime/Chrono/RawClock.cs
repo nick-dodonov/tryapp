@@ -28,7 +28,6 @@ namespace Shared.Tp.Chrono
     public readonly struct RawClock : IClock<long, RawPeriod>
     {
         public static readonly long CountPerSec = RawPeriod.CountPerSec;
-        public static RawClock Instance = new();
 
         //STOPWATCH:
         public long Count

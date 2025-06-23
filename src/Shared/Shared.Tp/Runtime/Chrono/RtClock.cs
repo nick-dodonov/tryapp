@@ -11,20 +11,6 @@ namespace Shared.Tp.Chrono
         public long InstanceCountPerSec => CountPerSec;
     }
 
-    public readonly struct RtClock<TSourcePeriod, TSourceClock> : IClock<long, RtPeriod>
-        where TSourcePeriod : IPeriod, new()
-        where TSourceClock : IClock<long, TSourcePeriod> 
-    {
-        private readonly TSourceClock _sourceClock;
-        
-        public RtClock(TSourceClock sourceClock)
-        {
-            _sourceClock = sourceClock;
-        }
-
-        public long Count => PeriodConverter<TSourcePeriod, RtPeriod>.Convert(_sourceClock.Count);
-    }
-
     public static class RtExtensions
     {
         public static long RtCount<TPeriod>(this IClock<long, TPeriod> clock)

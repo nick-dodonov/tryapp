@@ -3,8 +3,6 @@ using Shared.Tp.Chrono;
 
 namespace Shared.Tp.Ext.Misc
 {
-    using TickerClock = DeltaClock<long, RawPeriod, RawClock>;
-    
     public readonly struct Ticker
     {
         public const int RtPerMs = 10;
@@ -12,29 +10,9 @@ namespace Shared.Tp.Ext.Misc
 
         public const ushort MaxCycledRt = 0xFFFF;
 
-        public static readonly long TicksPerSeconds = TickerClock.CountPerSec;
+        public static readonly long TicksPerSeconds = RawPeriod.CountPerSec;
         public static readonly long TicksPerMs = TicksPerSeconds / 1000;
         public static readonly long TicksPerRt = TicksPerMs / RtPerMs;
-
-        private readonly TickerClock _clock;
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static Ticker StartNew(long offsetTicks = 0) => new(new(RawClock.Instance, -offsetTicks));
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private Ticker(TickerClock clock) => _clock = clock;
-
-        public long StartTicks
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => _clock.StartCount;
-        }
-
-        public TickPoint Point
-        {
-            [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            get => new(_clock.Count);
-        }
     }
 
     public readonly struct TickPoint
