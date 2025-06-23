@@ -14,6 +14,7 @@ using UnityEngine.Scripting;
 namespace Shared.Tp.Ext.Misc
 {
     using LocalClock = Clock<long, RawPeriod, RawClock>;
+    using RemoteClock = Clock<long, RawPeriod, RawClock>;
 
     // Enough to keep 4 seconds in 60 fps sends.
     //  In case of long lag (>4 sec) rtt calculation will be wrong.
@@ -94,7 +95,7 @@ namespace Shared.Tp.Ext.Misc
         }
 
         private readonly LocalClock _localClock;
-        private Ticker _remoteTicker;
+        private RemoteClock _remoteClock;
 
         private TimeTicksIndex _receivedRemoteIdx;
         private long _receivedLocalRt;
@@ -110,11 +111,11 @@ namespace Shared.Tp.Ext.Misc
         {
             _api = api;
             _localClock = localClock;
-            _remoteTicker = new();
+            _remoteClock = new();
         }
 
         public LocalClock LocalClock => _localClock;
-        public Ticker RemoteTicker => _remoteTicker;
+        public RemoteClock RemoteClock => _remoteClock;
 
         public int RttRt => _rttRt;
         public ref CycleSampleSet RttRtSet => ref _rttRtSet;
@@ -197,10 +198,10 @@ namespace Shared.Tp.Ext.Misc
 
                 if (_api.Options.LogRead)
                 {
-                    var remoteRt = _remoteTicker.Point.Rt;
+                    var remoteRt = _remoteClock.Tick().RtTick().Count;
                     var deltaRemoteRt = newRemoteRt - remoteRt;
 
-                    if (_remoteTicker.StartTicks != 0)
+                    if (_remoteClock.StartCount != 0)
                         _deltaRemoteRtSet.Add((int)deltaRemoteRt);
 
                     _log.Info( // ReSharper disable once ExplicitCallerInfoArgument
@@ -208,7 +209,7 @@ namespace Shared.Tp.Ext.Misc
                         $"R {localRt,5}"); //←
                 }
 
-                _remoteTicker = Ticker.StartNew(newRemoteRt * Ticker.TicksPerRt);
+                _remoteClock = new(RawClock.Instance, PeriodConvert<RtPeriod, RawPeriod>.Convert(newRemoteRt));
             }
 
             return span[..^length];

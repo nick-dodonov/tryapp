@@ -27,10 +27,10 @@ namespace Shared.Tp.Chrono
             _startCount = sourceClock.Count;
         }
 
-        public Clock(TSourceClock sourceClock, T sourceOffset)
+        public Clock(TSourceClock sourceClock, T startOffset)
         {
             _sourceClock = sourceClock;
-            _startCount = NumericHelper.Add(_sourceClock.Count, sourceOffset);
+            _startCount = NumericHelper.Sub(_sourceClock.Count, startOffset);
         }
 
         public T StartCount => _startCount;

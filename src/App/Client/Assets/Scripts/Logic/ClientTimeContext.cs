@@ -24,7 +24,7 @@ namespace Client.Logic
 
         public void Update()
         {
-            _remotePoint = _timeLink.RemoteTicker.Point;
+            _remotePoint = new(_timeLink.RemoteClock.Count);
             var desireHistoryPoint = _remotePoint - TickPoint.FromMs(_options.HistoryOffsetMs); //TODO: use offset based on current smoothed server's send rate and rtt
 
             if (_historyPoint.Ticks != 0)
