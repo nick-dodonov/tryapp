@@ -184,11 +184,11 @@ namespace Client.Logic
 
                 sb.Append($"rtt: ");
                 ref var rttRtSet = ref _timeLink.RttRtSet;
-                sb.AppendAligned(rttRtSet.Mean / Ticker.RtPerMs, "F1", 4);
+                sb.AppendAligned(rttRtSet.Mean / RtPeriod.CountPerMs, "F1", 4);
                 sb.Append(" ± ");
-                sb.AppendAligned(rttRtSet.StdDeviation / Ticker.RtPerMs, "F1", 3);
+                sb.AppendAligned(rttRtSet.StdDeviation / RtPeriod.CountPerMs, "F1", 3);
                 sb.Append("σ ");
-                sb.AppendAligned(_timeLink.RttRt / (float)Ticker.RtPerMs, "F1", 5);
+                sb.AppendAligned(_timeLink.RttRt / (float)RtPeriod.CountPerMs, "F1", 5);
                 sb.AppendLine(" ms");
 
                 infoControl.SetText(sb.AsArraySegment());

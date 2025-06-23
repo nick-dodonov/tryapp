@@ -1,10 +1,11 @@
+using Shared.Tp.Chrono;
 using Shared.Tp.Ext.Misc;
 
 namespace Client.Logic
 {
     public interface ITimeContext
     {
-        public TickPoint NowTickPoint { get; }
-        public TickPoint HistoryTickPoint { get; }
+        public Tick<long, RawPeriod> NowTick { get; }
+        public Tick<long, RawPeriod> HistoryTick { get; }
     }
 }

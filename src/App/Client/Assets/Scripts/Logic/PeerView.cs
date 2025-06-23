@@ -1,6 +1,5 @@
 using Common.Data;
-using Shared.Log;
-using Shared.Tp.Ext.Misc;
+using Shared.Tp.Chrono;
 using Shared.Tp.St.Sync;
 using TMPro;
 using UnityEngine;
@@ -90,8 +89,8 @@ namespace Client.Logic
 
         public void Update()
         {
-            var currentSessionCycledRt = _timeContext.NowTickPoint.CycledRt + 100*Ticker.RtPerMs;
-            var ageSec = (ushort)(currentSessionCycledRt - _peerState.CycledRt) / (float)Ticker.RtPerSec;
+            var currentSessionCycledRt = _timeContext.NowTick.RtTick().Cycled().Count + RtPeriod.CountPerSec / 10;
+            var ageSec = (ushort)(currentSessionCycledRt - _peerState.CycledRt) / (float)RtPeriod.CountPerSec;
 
             float alpha;
             if (ageSec < FadeAlphaHeadSec)

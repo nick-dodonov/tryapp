@@ -12,11 +12,18 @@ namespace Shared.Tp.Chrono
     /// </summary>
     public readonly struct RawPeriod : IPeriod
     {
-        //STOPWATCH:
-        public static readonly long CountPerSec = System.Diagnostics.Stopwatch.Frequency;
+        public static readonly long CountPerSec;
+        public static readonly long CountPerMs;
 
-        // //DATETIME:
-        // public static readonly long CountPerSec = System.Diagnostics.Stopwatch.Frequency;
+        static RawPeriod()
+        {
+            //STOPWATCH:
+            CountPerSec = System.Diagnostics.Stopwatch.Frequency;
+            // //DATETIME:
+            // CountPerSec = System.TimeSpan.TicksPerSecond;
+
+            CountPerMs = CountPerSec / 1000;
+        }
 
         public long InstanceCountPerSec
         {

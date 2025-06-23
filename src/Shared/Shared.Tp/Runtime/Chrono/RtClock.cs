@@ -8,11 +8,16 @@ namespace Shared.Tp.Chrono
     public readonly struct RtPeriod : IPeriod
     {
         public const long CountPerSec = 10_000; // (1/10 ms | 100 mk) run-tick is the selected time accuracy for networking
+        public const int CountPerMs = 10;
+
         public long InstanceCountPerSec => CountPerSec;
+
+        public static readonly long RawPerRt = RawPeriod.CountPerSec / CountPerSec;
     }
 
     public static class RtExtensions
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static long RtCount<TPeriod>(this IClock<long, TPeriod> clock)
             where TPeriod : IPeriod, new()
             => PeriodConverter<TPeriod, RtPeriod>.Convert(clock.Count);
@@ -21,6 +26,13 @@ namespace Shared.Tp.Chrono
         public static RtTick RtTick<TPeriod>(this Tick<long, TPeriod> tick)
             where TPeriod : IPeriod, new()
             => new(PeriodConverter<TPeriod, RtPeriod>.Convert(tick.Count));
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float RtFraction(this Tick<long, RawPeriod> tick)
+        {
+            var ratio = PeriodConverter<RawPeriod, RtPeriod>.SourceCountDen;
+            return tick.Count % ratio / (float)ratio;
+        }
 
         /// <summary>
         /// CycledRtTick is a "packed" absolute time value. Used to synchronize remote sides.

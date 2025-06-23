@@ -16,8 +16,8 @@ namespace Shared.Tp.Chrono
         where TToPeriod : IPeriod, new()
     {
         // ReSharper disable StaticMemberInGenericType
-        private static readonly long SourceCountNum;
-        private static readonly long SourceCountDen;
+        public static readonly long SourceCountNum;
+        public static readonly long SourceCountDen;
         // ReSharper restore StaticMemberInGenericType
 
         static PeriodConverter()

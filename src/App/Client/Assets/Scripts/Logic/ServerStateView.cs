@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Common.Data;
+using Shared.Tp.Chrono;
 using Shared.Tp.St.Sync;
 using Shared.Tp.Tween;
 using Shared.Tp.Util;
@@ -40,8 +41,8 @@ namespace Client.Logic
 
             //Slog.Info($"{Time.frameCount}: {Time.deltaTime}");
 
-            var historyTickPoint = _timeContext.HistoryTickPoint;
-            _history.VisitCycleKeyBounds((0, historyTickPoint.CycledRt),
+            var historyTick = _timeContext.HistoryTick;
+            _history.VisitCycleKeyBounds((0, historyTick.RtTick().Cycled().Count),
                 //TODO: visitor with state for static delegate
                 (StKey key, ref StHistory<ServerState>.Item from, ref StHistory<ServerState>.Item to) =>
                 {
@@ -52,7 +53,7 @@ namespace Client.Logic
                     var delta = (ushort)(time - prevTime);
 
                     var deltaPrecise = (float)delta;
-                    deltaPrecise += historyTickPoint.RtFraction;
+                    deltaPrecise += historyTick.RtFraction();
                     var t = interval > 0 ? Mathf.Clamp01(deltaPrecise / interval) : 0;
 
                     //Shared.Log.Slog.Info($"FR={Time.frameCount}: {time,5}/[{prevTime,5} {nextTime,5}]: {delta,4}/{interval}={t:F3} - {_history.DebugGetHistoryKeysArrayString()}");

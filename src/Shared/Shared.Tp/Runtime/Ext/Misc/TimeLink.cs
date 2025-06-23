@@ -48,7 +48,7 @@ namespace Shared.Tp.Ext.Misc
             [field: SerializeField] [RequiredMember]
             public bool LogHistory { get; set; }
             [field: SerializeField] [RequiredMember]
-            public int HistoryOffsetMs;
+            public int HistoryOffsetMs; //TODO: use offset based on current smoothed server's send rate and rtt
         }
 
         public class Api : ExtApi<TimeLink>

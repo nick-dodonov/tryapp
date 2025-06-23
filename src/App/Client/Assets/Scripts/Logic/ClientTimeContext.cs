@@ -1,4 +1,5 @@
 using Shared.Log;
+using Shared.Tp.Chrono;
 using Shared.Tp.Ext.Misc;
 using Shared.Tp.Util.Stat;
 using UnityEngine;
@@ -10,8 +11,9 @@ namespace Client.Logic
         private readonly TimeLink _timeLink;
         private readonly TimeLink.Options _options;
 
-        private TickPoint _remotePoint;
-        private TickPoint _historyPoint;
+        private Tick<long, RawPeriod> _remoteTick;
+        private Tick<long, RawPeriod> _historyTick;
+
         private CycleSampleSet _historyDeltaDeviationSet;
 
         public ClientTimeContext(TimeLink timeLink, TimeLink.Options options)
@@ -24,16 +26,15 @@ namespace Client.Logic
 
         public void Update()
         {
-            _remotePoint = new(_timeLink.RemoteClock.Count);
-            var desireHistoryPoint = _remotePoint - TickPoint.FromMs(_options.HistoryOffsetMs); //TODO: use offset based on current smoothed server's send rate and rtt
+            _remoteTick = _timeLink.RemoteClock.Tick();
+            var desireHistoryCount = _remoteTick.Count - _options.HistoryOffsetMs * RawPeriod.CountPerMs;
 
-            if (_historyPoint.Ticks != 0)
+            if (_historyTick.Count != 0)
             {
-                var desireDelta = desireHistoryPoint - _historyPoint;
-                var desireDeltaTicks = desireDelta.Ticks;
+                var desireDeltaTicks = desireHistoryCount - _historyTick.Count;
 
                 var unityDeltaSeconds = Time.unscaledDeltaTime;
-                var unityDeltaTicks = (long)(unityDeltaSeconds * Ticker.TicksPerSeconds);
+                var unityDeltaTicks = (long)(unityDeltaSeconds * RawPeriod.CountPerSec);
                 var deltaDeviationTicks = desireDeltaTicks - unityDeltaTicks;
 
                 _historyDeltaDeviationSet.Add((int)deltaDeviationTicks);
@@ -41,7 +42,7 @@ namespace Client.Logic
                 //var historyDeltaTicks = desireDeltaTicks;
                 var historyDeltaTicks = unityDeltaTicks + deltaDeviationTicks / 10; //XXXXXXX
 
-                _historyPoint += new TickPoint(historyDeltaTicks);
+                _historyTick = new(_historyTick.Count + historyDeltaTicks);
 
                 if (_options.LogHistory)
                 {
@@ -54,11 +55,11 @@ namespace Client.Logic
             }
             else
             {
-                _historyPoint = desireHistoryPoint;
+                _historyTick = new(desireHistoryCount);
             }
         }
 
-        TickPoint ITimeContext.NowTickPoint => _remotePoint;
-        TickPoint ITimeContext.HistoryTickPoint => _historyPoint;
+        Tick<long, RawPeriod> ITimeContext.NowTick => _remoteTick;
+        Tick<long, RawPeriod> ITimeContext.HistoryTick => _historyTick;
     }
 }

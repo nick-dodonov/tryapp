@@ -3,8 +3,6 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using NUnit.Framework;
 using Shared.Log;
-using Shared.Tp.Chrono;
-using Shared.Tp.Ext.Misc;
 
 namespace Shared.Tp.Tests
 {
@@ -35,33 +33,6 @@ namespace Shared.Tp.Tests
                 Slog.Info($"{value} -> {cycle} {(prevCycle != 0 ? $"diff={diff}": null)}");
                 prevCycle = cycle;
             }
-        }
-
-        private const int RtPerMs = 10;
-        private static readonly long TicksPerSeconds = RawPeriod.CountPerSec;
-        private static readonly long TicksPerMs = TicksPerSeconds / 1000;
-        private static readonly long TicksPerRt = TicksPerMs / RtPerMs;
-        private const ushort MaxCycledRt = 0xFFFF;
-        
-        [Test]
-        public void Point_Conversions()
-        {
-            //const int expectedRt = 100_000;
-            var ticks = 
-                //TicksPerRt * expectedRt +
-                TicksPerRt * MaxCycledRt +
-                TicksPerRt * (MaxCycledRt + 1) * 17 + 
-                TicksPerRt / 3;
-            Slog.Info($"ticks={ticks} TicksPerRt={TicksPerRt}");
-
-            var tp = new TickPoint(ticks);
-
-            Slog.Info($"Rt={tp.Rt}");
-            Slog.Info($"CycledRt={tp.CycledRt}");
-            Slog.Info($"RtFraction={tp.RtFraction}");
-            
-            Slog.Info($"Seconds={tp.Seconds}");
-            Slog.Info($"CycledSeconds={tp.CycledSeconds}");
         }
 
         /// <summary>
