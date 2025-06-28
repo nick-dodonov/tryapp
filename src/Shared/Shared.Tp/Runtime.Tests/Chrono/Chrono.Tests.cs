@@ -12,6 +12,7 @@ namespace Shared.Tp.Tests
     using RawTick = Tick<long, TestRawPeriod>;
 
     using TestClock = UserClock<long, TestRawPeriod>;
+    using UnityClock = UserClock<float, UnityPeriod>;
 
     internal readonly struct TestRawPeriod: IPeriod
     {
@@ -25,6 +26,12 @@ namespace Shared.Tp.Tests
         public long InstanceCountPerSec => CountPerSec;
     }
 
+    internal readonly struct UnityPeriod: IPeriod
+    {
+        private const long CountPerSec = 1;
+        public long InstanceCountPerSec => CountPerSec;
+    }
+    
     public class Chrono_Tests
     {
         [MethodImpl(MethodImplOptions.NoInlining)]
@@ -99,33 +106,25 @@ namespace Shared.Tp.Tests
         }
 
         [Test]
-        public void Clock_Count()
+        public void DeltaClock_Count()
         {
             var rawClock = new TestClock(1000);
             rawClock.Set(333);
-            var clock = new DeltaClock<long, TestRawPeriod, UserClock<long, TestRawPeriod>>(rawClock);
-            Assert.AreEqual(0, clock.Count);
+            var deltaClock = new DeltaClock<long, TestRawPeriod, TestClock>(rawClock);
+            Assert.AreEqual(0, deltaClock.Count);
             rawClock.Add(100);
-            Assert.AreEqual(100, clock.Count);
+            Assert.AreEqual(100, deltaClock.Count);
         }
 
-        // [Test]
-        // public void RtClock_Count()
-        // {
-        //     const long testSeconds = 123;
-        //
-        //     const long rawCountPerSecond = 10_000_000;
-        //     var rawClock = new ManualClock<long>(rawCountPerSecond);
-        //
-        //     var rtClock = new RtClock<ManualClock<long>>(rawClock);
-        //
-        //     rawClock.Add(testSeconds * rawCountPerSecond);
-        //
-        //     var rt = rtClock.Count;
-        //     Assert.AreEqual(testSeconds, rt / RtClock.RtPerSec);
-        //
-        //     // var rtPoint = rtClock.ClockPoint();
-        //     // rtPoint.
-        // }
+        [Test]
+        public void UnityClock_Count()
+        {
+            var unityClock = new UnityClock();
+            unityClock.Set(11.22f);
+            var deltaClock = new DeltaClock<float, UnityPeriod, UnityClock>(unityClock);
+            Assert.AreEqual(0.0f, deltaClock.Count);
+            unityClock.Add(33.44f);
+            Assert.AreEqual(33.44f, deltaClock.Count);
+        }
     }
 }

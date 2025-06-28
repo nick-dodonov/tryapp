@@ -31,6 +31,12 @@ namespace Shared.Tp.Chrono
                     return Unsafe.As<ushort, T>(ref result);
                 }
             }
+
+            if (typeof(T) == typeof(float))
+            {
+                var result = Unsafe.As<T, float>(ref a) + Unsafe.As<T, float>(ref b);
+                return Unsafe.As<float, T>(ref result);
+            }
             
             ThrowNotSupported<T>();
             return default;
@@ -60,6 +66,12 @@ namespace Shared.Tp.Chrono
                 }
             }
 
+            if (typeof(T) == typeof(float))
+            {
+                var result = Unsafe.As<T, float>(ref a) - Unsafe.As<T, float>(ref b);
+                return Unsafe.As<float, T>(ref result);
+            }
+            
             ThrowNotSupported<T>();
             return default;
         }
@@ -75,6 +87,9 @@ namespace Shared.Tp.Chrono
 
             if (typeof(T) == typeof(ushort))
                 return (float)Unsafe.As<T, ushort>(ref a) / b;
+
+            if (typeof(T) == typeof(float))
+                return Unsafe.As<T, float>(ref a) / b;
 
             ThrowNotSupported<T>();
             return 0;
