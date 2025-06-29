@@ -18,8 +18,8 @@ MonoBehaviour:
     <BasicSendRate>k__BackingField: 2
   timeLinkOptions:
     <LogWrite>k__BackingField: 0
-    <LogRead>k__BackingField: 0
-    <LogHistory>k__BackingField: 0
+    <LogRead>k__BackingField: 1
+    <LogHistory>k__BackingField: 1
     HistoryOffsetMs: 1000
   dumpLinkOptions:
     <LogEnabled>k__BackingField: 0
@@ -28,12 +28,12 @@ MonoBehaviour:
     <DelayReceiveMs>k__BackingField: 0
   dumpLinkStats:
     In:
-      CountTotal: 0
-      BytesTotal: 0
-      CountRate: 0
-      BytesRate: 0
+      CountTotal: 166
+      BytesTotal: 19951
+      CountRate: 1
+      BytesRate: 124
     Out:
-      CountTotal: 0
-      BytesTotal: 0
-      CountRate: 0
-      BytesRate: 0
+      CountTotal: 317
+      BytesTotal: 12962
+      CountRate: 2
+      BytesRate: 82

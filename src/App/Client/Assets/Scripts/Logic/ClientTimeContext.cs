@@ -6,6 +6,8 @@ using UnityEngine;
 
 namespace Client.Logic
 {
+    using RemoteClock = DeltaClock<long, RawPeriod, RawClock>;
+    
     public class ClientTimeContext : ITimeContext
     {
         private readonly TimeLink _timeLink;
@@ -14,6 +16,8 @@ namespace Client.Logic
         private Tick<long, RawPeriod> _remoteTick;
         private Tick<long, RawPeriod> _historyTick;
 
+        private FrameClock<RawPeriod, RemoteClock> _remoteFrameClock;
+        
         private CycleSampleSet _historyDeltaDeviationSet;
 
         public ClientTimeContext(TimeLink timeLink, TimeLink.Options options)

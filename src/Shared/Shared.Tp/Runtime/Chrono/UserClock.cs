@@ -4,8 +4,9 @@ namespace Shared.Tp.Chrono
         where T : unmanaged 
         where TPeriod : IPeriod, new()
     {
+        public static readonly long CountPerSec = new TPeriod().InstanceCountPerSec;
+        
         private T _count;
-
         public T Count => _count;
 
         public UserClock() => _count = default;
