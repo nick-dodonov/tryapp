@@ -2,26 +2,36 @@ using Shared.Tp.Util.Stat;
 
 namespace Shared.Tp.Chrono
 {
-    public struct FrameClock<TSourcePeriod, TSourceClock> : IClock<long, TSourcePeriod>
+    public struct RelaxClock<TSourcePeriod, TSourceClock> : IClock<long, TSourcePeriod>
         where TSourcePeriod : IPeriod, new()
         where TSourceClock : IClock<long, TSourcePeriod>
     {
-        //private static readonly long CountPerSec = new TSourcePeriod().InstanceCountPerSec;
+        private static readonly long CountPerSec = new TSourcePeriod().InstanceCountPerSec;
             
         private readonly TSourceClock _sourceClock;
-        private long _currentCount;
-        private CycleSampleSet _deltaDiffSet;
 
+        private long _currentCount;
         public long Count => _currentCount;
 
-        public FrameClock(TSourceClock sourceClock)
+        private CycleSampleSet _deltaDiffSet;
+        public int DeltaDiffCount => _deltaDiffSet.Count;
+        public float DeltaDiffMean => _deltaDiffSet.Mean;
+        public float DeltaDiffStdDeviation => _deltaDiffSet.StdDeviation;
+
+        public RelaxClock(TSourceClock sourceClock)
         {
             _sourceClock = sourceClock;
             _currentCount = sourceClock.Count;
             _deltaDiffSet = new();
         }
 
-        public void UpdateFrame(long realDelta)
+        public enum UpdateResult
+        {
+            Real,
+            Source,
+        }
+
+        public UpdateResult UpdateFrame(long realDelta)
         {
             var desireCount = _sourceClock.Count;
             var desireDelta = desireCount - _currentCount;
@@ -31,11 +41,11 @@ namespace Shared.Tp.Chrono
             {
                 _deltaDiffSet.Add(deltaDiff);
                 _currentCount += realDelta;
+                return UpdateResult.Real;
             }
-            else
-            {
-                _currentCount += desireDelta;
-            }
+
+            _currentCount += desireDelta;
+            return UpdateResult.Source;
         }
     }
 }
