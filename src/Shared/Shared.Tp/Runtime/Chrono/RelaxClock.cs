@@ -27,21 +27,23 @@ namespace Shared.Tp.Chrono
 
         public enum UpdateResult
         {
-            Real,
+            Passed,
             Source,
         }
 
-        public UpdateResult UpdateFrame(long realDelta)
+        public UpdateResult UpdateFrame(long passedDelta)
         {
             var desireCount = _sourceClock.Count;
             var desireDelta = desireCount - _currentCount;
 
-            var deltaDiff = (int)(desireDelta - realDelta);
-            if (_deltaDiffSet.Check(deltaDiff))
+            var deltaDiff = (int)(desireDelta - passedDelta);
+
+            var fitSigmas = _deltaDiffSet.FitSigmas(deltaDiff, 3);
+            _deltaDiffSet.Add(deltaDiff);
+            if (fitSigmas)
             {
-                _deltaDiffSet.Add(deltaDiff);
-                _currentCount += realDelta;
-                return UpdateResult.Real;
+                _currentCount += passedDelta;
+                return UpdateResult.Passed;
             }
 
             _currentCount += desireDelta;

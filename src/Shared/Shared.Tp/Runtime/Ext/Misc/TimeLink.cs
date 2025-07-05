@@ -102,6 +102,8 @@ namespace Shared.Tp.Ext.Misc
 
         private int _rttRt;
         private CycleSampleSet _rttRtSet;
+        private RejectDetector _rttRejectDetector;
+
         private CycleSampleSet _deltaRemoteRtSet;
 
         private Details _details;
@@ -188,8 +190,11 @@ namespace Shared.Tp.Ext.Misc
                 if (sentLocalRt > 0 && receivedSentDeltaRt > 0)
                 {
                     _rttRt = (int)(localRt - sentLocalRt - receivedSentDeltaRt);
-                    if (_rttRtSet.Check(_rttRt))
+                    if (_rttRejectDetector.Check(_rttRt, in _rttRtSet))
+                    {
+                        _rttRejectDetector.Reset();
                         _rttRtSet.Add(_rttRt);
+                    }
                 }
 
                 //TODO: correct remote offset with using smoothed value (and constraint it to never ever give ticks backward)
