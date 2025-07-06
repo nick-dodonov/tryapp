@@ -18,6 +18,20 @@ namespace Shared.Tp.Util.Stat
         private float _mean;
         private float _stdDeviation;
 
+        public struct ResultData
+        {
+            public int Count;
+            public float Mean;
+            public float StdDeviation;
+        }
+
+        public ResultData Result => new()
+        {
+            Count = _count,
+            Mean = _mean,
+            StdDeviation = _stdDeviation,
+        };
+        
         public int Count
         {
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
